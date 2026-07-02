@@ -247,7 +247,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
   <div class="topbar">
     <div class="tb-title" id="topTitle">Nuevo Análisis</div>
     <div id="syncStatus" style="display:flex;align-items:center;font-size:11px;font-weight:600;gap:4px;margin-right:12px;color:#C07A1A"><span style="width:8px;height:8px;border-radius:50%;background:#C07A1A;display:inline-block;margin-right:4px"></span>Sin conexión — datos locales</div>
-    <button class="btn-s" style="font-size:11px;padding:5px 12px;color:#fff;border-color:rgba(255,255,255,.3)" id="msLoginBtn" onclick="graphLogin()" title="Iniciar sesión con Microsoft 365">⬖ Conectar OneDrive</button>
+    <button class="btn-s" style="font-size:11px;padding:5px 12px;color:#fff;border-color:rgba(255,255,255,.3);cursor:pointer" id="msLoginBtn" onclick="graphLogin()" title="Iniciar sesión con Microsoft 365">⬖ Conectar OneDrive</button>
   </div>
   <div class="content">
 
@@ -506,7 +506,7 @@ var FACTOR_IDPC={2025:12.5/87.5,2026:12.5/87.5,2027:12.5/87.5,2028:15/85};
 var GRAPH_CONFIG = {
   clientId: '3460b91a-e038-4c71-b3f3-206ec87fc268',
   authority: 'https://login.microsoftonline.com/10faeb61-246b-4931-be8d-d552181fe733',
-  redirectUri: window.location.href.split('?')[0],
+  redirectUri: 'https://contadoor.github.io/Contadoor.app/',
   scopes: ['Files.ReadWrite', 'User.Read']
 };
 
@@ -537,20 +537,15 @@ function initMSAL() {
       },
       cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: false }
     });
-    _msalInstance.handleRedirectPromise().then(function(resp) {
-      if (resp) _graphToken = resp.accessToken;
-      var accounts = _msalInstance.getAllAccounts();
-      if (accounts.length > 0) {
-        _graphReady = true;
-        updateSyncStatus('online');
-        syncFromCloud();
-      } else {
-        updateSyncStatus('offline');
-      }
-    }).catch(function(e) {
-      console.warn('MSAL redirect error:', e);
+    // Verificar si ya hay sesión activa
+    var accounts = _msalInstance.getAllAccounts();
+    if (accounts.length > 0) {
+      _graphReady = true;
+      updateSyncStatus('online');
+      syncFromCloud();
+    } else {
       updateSyncStatus('offline');
-    });
+    }
   } catch(e) {
     console.warn('MSAL init error:', e);
     _graphReady = false;
@@ -559,8 +554,26 @@ function initMSAL() {
 
 // ── LOGIN / LOGOUT ────────────────────────────────────────────────────────
 function graphLogin() {
-  if (!_msalInstance) return;
-  _msalInstance.loginRedirect({ scopes: GRAPH_CONFIG.scopes });
+  if (!_msalInstance) {
+    alert('Iniciando conexi\u00f3n... Si no abre el login, revisa que no est\u00e9 bloqueado el popup.');
+    initMSAL();
+    setTimeout(function(){
+      if(_msalInstance)_msalInstance.loginPopup({scopes:GRAPH_CONFIG.scopes}).then(function(r){_graphToken=r.accessToken;_graphReady=true;updateSyncStatus('online');syncFromCloud();}).catch(function(e){console.error('Login error:',e);updateSyncStatus('error');});
+    },500);
+    return;
+  }
+  _msalInstance.loginPopup({ scopes: GRAPH_CONFIG.scopes })
+    .then(function(r){
+      _graphToken=r.accessToken;
+      _graphReady=true;
+      updateSyncStatus('online');
+      syncFromCloud();
+    })
+    .catch(function(e){
+      console.error('Login error:',e);
+      updateSyncStatus('error');
+      alert('Error al conectar: '+e.message);
+    });
 }
 function graphLogout() {
   if (!_msalInstance) return;
