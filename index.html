@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
 <title>Contadoor — Sistema Tributario</title>
 <style>:root{--p:#904891;--pd:#6D2E6E;--pm:#B06EB1;--pp:#F5EAF5;--deep:#1A0A1B;--bg:#F4F1F4;--sur:#fff;--sur2:#FAF7FA;--bdr:#E8DDE8;--t1:#1A0A1B;--t2:#5C4A5D;--tm:#9A849B;--green:#2D9B6F;--amber:#C07A1A;--red:#C0392B;--blue:#3B82F6;--mono:"SF Mono","Consolas",monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -499,6 +500,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 </div>
 
 <script>
+
+
+
 
 
 
@@ -1255,7 +1259,193 @@ function generarReporte(){
 }
 
 // ── RENDER
+
+// ── ENVÍO DE EMAIL AL CLIENTE ────────────────────────────────────────────
+function abrirModalEmail(params, acc){
+  // Crear modal si no existe
+  var existing = document.getElementById('emailModal');
+  if(existing) existing.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'emailModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;';
+
+  var razon = document.getElementById('c_razon').value || '--';
+  var rut   = document.getElementById('c_rut').value || '--';
+  var at    = params.at || '2026';
+  var analista = document.getElementById('c_analista').value || 'Contadoor';
+
+  // Construir resumen IGC socios
+  var igcLines = (params.sc||[]).map(function(s){
+    var c = s.calc;
+    var resultado = c.apagar > 0
+      ? 'Impuesto a pagar: $' + Math.round(c.apagar).toLocaleString('es-CL')
+      : 'Devolución a favor: $' + Math.round(c.devolucion).toLocaleString('es-CL');
+    return s.nombre + ' (' + s.pct.toFixed(1) + '%): ' + resultado;
+  }).join('\n      ');
+
+  var regMap = {'14D3':'PYME General (Art. 14D N°3)','14D8':'Transparente (Art. 14D N°8)','presunta':'Renta Presunta'};
+
+  var cuerpoDefault =
+    'Estimado/a,\n\n' +
+    'A continuación le presentamos el resumen de la Proyección de Impuesto a la Renta para el Año Tributario ' + at + ':\n\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+    'PROYECCIÓN TRIBUTARIA ' + at + '\n' +
+    'Empresa: ' + razon + ' | RUT: ' + rut + '\n' +
+    'Régimen: ' + (regMap[params.reg]||params.reg) + '\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
+    'RESULTADO EMPRESA\n' +
+    '• Ingresos del período:      $' + Math.round(acc.totalGan).toLocaleString('es-CL') + '\n' +
+    '• Renta Líquida Imponible:   $' + Math.round(params.rli).toLocaleString('es-CL') + '\n' +
+    (params.reg === '14D3' ?
+      '• Impuesto 1ª Categoría:     $' + Math.round(params.impBruto).toLocaleString('es-CL') + '\n' +
+      '• PPM Acumulados:            $' + Math.round(params.ppmEmp).toLocaleString('es-CL') + '\n' +
+      '• ' + (params.difEmp >= 0 ? 'Diferencia a pagar:' : 'Remanente a favor:') +
+      '         $' + Math.round(Math.abs(params.difEmp)).toLocaleString('es-CL') + '\n'
+      : '• Empresa exenta de Impuesto 1ª Categoría\n') +
+    '\nIMPUESTO GLOBAL COMPLEMENTARIO (SOCIOS)\n' +
+    '      ' + igcLines + '\n\n' +
+    'Este informe es una proyección estimativa con fines de planificación tributaria y no sustituye la declaración de impuestos anual (Formulario 22).\n\n' +
+    'Quedamos a su disposición para cualquier consulta.\n\n' +
+    'Saludos cordiales,\n' +
+    analista + '\n' +
+    'Contadoor — Asesoría Contable y Tributaria\n' +
+    'info@contadoor.cl';
+
+  modal.innerHTML =
+    '<div style="background:var(--sur);border-radius:14px;padding:24px;width:92%;max-width:600px;max-height:90vh;overflow-y:auto">' +
+    '<h2 style="font-size:16px;font-weight:700;margin-bottom:16px">Enviar Resumen al Cliente</h2>' +
+    '<div style="display:flex;flex-direction:column;gap:12px">' +
+    '<div class="fgroup"><label>Email destinatario</label>' +
+    '<input type="email" id="emailTo" placeholder="cliente@empresa.cl" style="width:100%"/></div>' +
+    '<div class="fgroup"><label>Asunto</label>' +
+    '<input type="text" id="emailSubject" value="Proyección Impuesto a la Renta AT' + at + ' — ' + razon + '" style="width:100%"/></div>' +
+    '<div class="fgroup"><label>Mensaje</label>' +
+    '<textarea id="emailBody" rows="14" style="width:100%;font-family:var(--mono);font-size:11.5px;border:1px solid var(--bdr);border-radius:7px;padding:9px 11px;resize:vertical;line-height:1.6">' +
+    cuerpoDefault.split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;') +
+    '</textarea></div>' +
+    '<div class="info-box" style="font-size:11.5px">El email se enviará desde tu cuenta Microsoft 365 (@contadoor.cl) con el reporte adjunto como PDF.</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">' +
+    '<button class="btn-s" onclick="document.getElementById(\'emailModal\').remove()">Cancelar</button>' +
+    '<button class="btn-p" id="btnSendEmail" onclick="enviarEmail()">Enviar correo</button>' +
+    '</div></div>';
+
+  // Guardar params/acc para usar en enviarEmail
+  window._emailParams = params;
+  window._emailAcc = acc;
+  document.body.appendChild(modal);
+}
+
+function enviarEmail(){
+  var to = document.getElementById('emailTo').value.trim();
+  var subject = document.getElementById('emailSubject').value.trim();
+  var body = document.getElementById('emailBody').value;
+  var btn = document.getElementById('btnSendEmail');
+
+  if(!to || !to.includes('@')){alert('Ingresa un email v\u00e1lido.');return;}
+  if(!subject){alert('Ingresa un asunto.');return;}
+
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  // Generar PDF del reporte
+  var rw = document.getElementById('reportWrap');
+  var pdfAttachment = null;
+
+  // Construir el email via Microsoft Graph
+  getMSToken(function(token){
+    if(!token){
+      // Fallback: abrir mailto
+      var mailtoUrl = 'mailto:' + encodeURIComponent(to) +
+        '?subject=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(body);
+      window.open(mailtoUrl);
+      btn.disabled = false;
+      btn.textContent = 'Enviar correo';
+      document.getElementById('emailModal').remove();
+      return;
+    }
+
+    var emailObj = {
+      message: {
+        subject: subject,
+        body: { contentType: 'Text', content: body },
+        toRecipients: [{ emailAddress: { address: to } }]
+      },
+      saveToSentItems: true
+    };
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'https://graph.microsoft.com/v1.0/me/sendMail', true);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.timeout = 20000;
+    xhr.onload = function(){
+      btn.disabled = false;
+      btn.textContent = 'Enviar correo';
+      if(xhr.status === 202){
+        alert('\u2705 Email enviado correctamente a ' + to);
+        document.getElementById('emailModal').remove();
+      } else {
+        alert('Error al enviar: ' + xhr.status + '. Verifica los permisos en Azure.');
+        console.error('Graph error:', xhr.responseText);
+      }
+    };
+    xhr.onerror = xhr.ontimeout = function(){
+      btn.disabled = false;
+      btn.textContent = 'Enviar correo';
+      alert('Error de conexi\u00f3n al enviar el email.');
+    };
+    xhr.send(JSON.stringify(emailObj));
+  });
+}
+
+function getMSToken(cb){
+  // Usar MSAL si está disponible, si no fallback a mailto
+  if(typeof msal === 'undefined' || !window._msalInstance){
+    // Intentar con MSAL popup
+    if(typeof msal !== 'undefined'){
+      try {
+        var msalInst = new msal.PublicClientApplication({
+          auth: {
+            clientId: '3460b91a-e038-4c71-b3f3-206ec87fc268',
+            authority: 'https://login.microsoftonline.com/10faeb61-246b-4931-be8d-d552181fe733',
+            redirectUri: 'https://contadoor.github.io/Contadoor.app/'
+          },
+          cache: { cacheLocation: 'localStorage' }
+        });
+        var accounts = msalInst.getAllAccounts();
+        if(accounts.length > 0){
+          msalInst.acquireTokenSilent({
+            scopes: ['Mail.Send','User.Read'],
+            account: accounts[0]
+          }).then(function(r){ cb(r.accessToken); })
+          .catch(function(){
+            msalInst.loginPopup({scopes:['Mail.Send','User.Read']})
+              .then(function(r){ cb(r.accessToken); })
+              .catch(function(){ cb(null); });
+          });
+        } else {
+          msalInst.loginPopup({scopes:['Mail.Send','User.Read']})
+            .then(function(r){ cb(r.accessToken); })
+            .catch(function(){ cb(null); });
+        }
+      } catch(e){ cb(null); }
+    } else { cb(null); }
+  } else {
+    window._msalInstance.acquireTokenSilent({
+      scopes: ['Mail.Send','User.Read'],
+      account: window._msalInstance.getAllAccounts()[0]
+    }).then(function(r){ cb(r.accessToken); })
+    .catch(function(){ cb(null); });
+  }
+}
+
 function render(acc,monthly,n,ia){
+  // Guardar para acceso desde modal email
+  window._lastParams=n;
+  window._lastAcc=acc;
   var rw=document.getElementById('reportWrap');
   var razon=sv('c_razon')||'--',rut=sv('c_rut')||'--',giro=sv('c_giro')||'--';
   var at=n.at,reg=n.reg,nivel=n.nivel||sv('c_nivel'),analista=sv('c_analista')||'Contadoor';
@@ -1267,6 +1457,7 @@ function render(acc,monthly,n,ia){
   // PRINT ROW
   h+='<div class="prow"><div class="prow-title">Reporte Tributario</div>';
   h+='<button class="btn-s" onclick="showTab(\'entrada\')">Editar</button>';
+  h+='<button class="btn-s" style="color:var(--blue);border-color:var(--blue)" onclick="abrirModalEmail(window._lastParams,window._lastAcc)">✉️ Enviar al cliente</button>';
   h+='<button class="btn-p" onclick="window.print()">Imprimir PDF</button></div>';
 
   // HEADER
@@ -1842,6 +2033,9 @@ function resetForm(){
   addSocio();
   badge();
 })();
+
+
+
 
 
 
