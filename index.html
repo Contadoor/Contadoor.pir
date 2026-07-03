@@ -282,6 +282,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
               </select>
             </div>
             <div class="fgroup"><label>Analista</label><input type="text" id="c_analista" placeholder="Nombre del analista"/></div>
+            <div class="fgroup"><label>Email del cliente</label><input type="email" id="c_email" placeholder="cliente@empresa.cl"/><span class="hint">Se usará como destinatario al enviar el reporte</span></div>
             <div class="fgroup"><label>Régimen Tributario</label>
               <select id="c_reg" onchange="onRegChange()">
                 <option value="14D3">PYME General (Art. 14D N°3)</option>
@@ -500,9 +501,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 </div>
 
 <script>
-
-
-
 
 
 
@@ -1098,7 +1096,7 @@ function guardarPerfil(){
   var rut=sv('c_rut');if(!rut)return;
   var c=getCli();
   c[rut]={rut:rut,razon:sv('c_razon'),giro:sv('c_giro'),nivel:sv('c_nivel'),
-    reg:sv('c_reg'),analista:sv('c_analista'),socios:getSocios(),ts:Date.now()};
+    reg:sv('c_reg'),analista:sv('c_analista'),email:sv('c_email'),socios:getSocios(),ts:Date.now()};
   setCli(c);
 }
 function autoFill(c){
@@ -1110,6 +1108,7 @@ function autoFill(c){
   if(c.nivel){document.getElementById('c_nivel').value=c.nivel;}
   if(c.analista){document.getElementById('c_analista').value=c.analista;}
   if(c.reg){document.getElementById('c_reg').value=c.reg;onRegChange();}
+  var _em2=document.getElementById('c_email');if(_em2&&c.email)_em2.value=c.email;
   if(c.socios&&c.socios.length){
     document.getElementById('sociosBody').innerHTML='';SC=0;
     c.socios.forEach(function(s){addSocio(s.nombre,s.pct,s.retiros||0,s.otros||0);});
@@ -1193,7 +1192,7 @@ function generarReporte(){
     var repo=getRepo();
     var rut=sv('c_rut'),analista=sv('c_analista')||'Contadoor';
     var nuevoReporte={id:window._editingRepoId||Date.now(),ts:new Date().toISOString(),
-      razon:sv('c_razon'),rut:rut,giro:sv('c_giro'),
+      razon:sv('c_razon'),rut:rut,giro:sv('c_giro'),email:sv('c_email'),
       at:at,reg:reg,nivel:nivel,tasa:tasa,rli:rli,impBruto:impBruto,difEmp:difEmp,
       tasaEf:tasaEf,analista:analista,
       socios:getSocios()};
@@ -1286,55 +1285,47 @@ function abrirModalEmail(params, acc){
 
   var regMap = {'14D3':'PYME General (Art. 14D N°3)','14D8':'Transparente (Art. 14D N°8)','presunta':'Renta Presunta'};
 
-  var cuerpoDefault =
-    'Estimado/a,\n\n' +
-    'A continuación le presentamos el resumen de la Proyección de Impuesto a la Renta para el Año Tributario ' + at + ':\n\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    'PROYECCIÓN TRIBUTARIA ' + at + '\n' +
-    'Empresa: ' + razon + ' | RUT: ' + rut + '\n' +
-    'Régimen: ' + (regMap[params.reg]||params.reg) + '\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
-    'RESULTADO EMPRESA\n' +
-    '• Ingresos del período:      $' + Math.round(acc.totalGan).toLocaleString('es-CL') + '\n' +
-    '• Renta Líquida Imponible:   $' + Math.round(params.rli).toLocaleString('es-CL') + '\n' +
-    (params.reg === '14D3' ?
-      '• Impuesto 1ª Categoría:     $' + Math.round(params.impBruto).toLocaleString('es-CL') + '\n' +
-      '• PPM Acumulados:            $' + Math.round(params.ppmEmp).toLocaleString('es-CL') + '\n' +
-      '• ' + (params.difEmp >= 0 ? 'Diferencia a pagar:' : 'Remanente a favor:') +
-      '         $' + Math.round(Math.abs(params.difEmp)).toLocaleString('es-CL') + '\n'
-      : '• Empresa exenta de Impuesto 1ª Categoría\n') +
-    '\nIMPUESTO GLOBAL COMPLEMENTARIO (SOCIOS)\n' +
-    '      ' + igcLines + '\n\n' +
-    'Este informe es una proyección estimativa con fines de planificación tributaria y no sustituye la declaración de impuestos anual (Formulario 22).\n\n' +
-    'Quedamos a su disposición para cualquier consulta.\n\n' +
-    'Saludos cordiales,\n' +
-    analista + '\n' +
-    'Contadoor — Asesoría Contable y Tributaria\n' +
-    'info@contadoor.cl';
+  var nombreSocio=(params.sc&&params.sc.length)?params.sc[0].nombre:'estimado/a';
+  var regMap2={'14D3':'PYME General (Art. 14D N°3)','14D8':'Transparente (Art. 14D N°8)','presunta':'Renta Presunta'};
+  var igcLines2=(params.sc||[]).map(function(s){
+    var c=s.calc;
+    return '• '+s.nombre+' ('+s.pct.toFixed(0)+'%): '+(c.apagar>0?'Impuesto a pagar: $'+Math.round(c.apagar).toLocaleString('es-CL'):'Devolución a favor: $'+Math.round(c.devolucion).toLocaleString('es-CL'));
+  }).join('\n');
+  var em1='\u{1F44B}',em2='\u{1F4CA}',em3='\u{1F4CB}',em4='\u{1F3E2}',em5='\u{1F194}',em6='\u{1F4CC}',em7='\u{1F60A}',em8='\u{1F4E7}';
+  var cuerpoDefault=
+    'Hola '+nombreSocio+', '+em1+'\n\n'+
+    'Espero que estés muy bien. Te escribimos desde Contadoor con los resultados de la proyección tributaria preparada para '+razon+' correspondiente al Año Tributario '+at+'. '+em2+'\n\n'+
+    'Como siempre, nuestro trabajo parte desde tu contabilidad — analizamos cada movimiento del período para determinar con precisión tu Renta Líquida Imponible, calcular el impuesto proyectado y evaluar cómo están cubiertos tus Pagos Provisionales. El objetivo es que llegues a abril sin sorpresas y con todas las decisiones tomadas a tiempo.\n\n'+
+    'Encontrarás el reporte completo adjunto con el detalle de los cálculos, gráficos de tendencia y el análisis del Impuesto Global Complementario para cada socio. '+em3+'\n\n'+
+    'RESUMEN EJECUTIVO — AT'+at+'\n'+
+    '━━━━━━━━━━━━━━━━━━━━━━━━\n'+
+    em4+' Empresa:  '+razon+'\n'+
+    em5+' RUT:      '+rut+'\n'+
+    em6+' Régimen:  '+(regMap2[params.reg]||params.reg)+'\n'+
+    '━━━━━━━━━━━━━━━━━━━━━━━━\n\n'+
+    'RESULTADO EMPRESA\n'+
+    '• Ingresos del período:    $'+Math.round(acc.totalGan).toLocaleString('es-CL')+'\n'+
+    '• Renta Líquida Imponible: $'+Math.round(params.rli).toLocaleString('es-CL')+'\n'+
+    (params.reg==='14D3'?
+      '• Impuesto 1ª Categoría:  $'+Math.round(params.impBruto).toLocaleString('es-CL')+'\n'+
+      '• PPM Acumulados:         $'+Math.round(params.ppmEmp).toLocaleString('es-CL')+'\n'+
+      '• '+(params.difEmp>=0?'Diferencia a pagar:  ':'Remanente a favor:   ')+'$'+Math.round(Math.abs(params.difEmp)).toLocaleString('es-CL')+'\n'
+    :'• Empresa exenta de Impuesto 1ª Categoría\n')+
+    '\nIMPUESTO GLOBAL COMPLEMENTARIO SOCIOS\n'+
+    igcLines2+'\n\n'+
+    '━━━━━━━━━━━━━━━━━━━━━━━━\n'+
+    'Este informe es una proyección estimativa con fines de planificación tributaria. Los valores definitivos se determinarán en la Declaración de Renta (F22).\n\n'+
+    'Cualquier duda o consulta, aquí estamos. '+em7+' Podemos coordinar una reunión para revisar los resultados cuando lo estimes conveniente.\n\n'+
+    'Un abrazo,\n'+
+    analista+'\n'+
+    'Contadoor — Asesoría Contable y Tributaria\n'+
+    em8+' info@contadoor.cl';
 
-  modal.innerHTML =
-    '<div style="background:var(--sur);border-radius:14px;padding:24px;width:92%;max-width:600px;max-height:90vh;overflow-y:auto">' +
-    '<h2 style="font-size:16px;font-weight:700;margin-bottom:16px">Enviar Resumen al Cliente</h2>' +
-    '<div style="display:flex;flex-direction:column;gap:12px">' +
-    '<div class="fgroup"><label>Email destinatario</label>' +
-    '<input type="email" id="emailTo" placeholder="cliente@empresa.cl" style="width:100%"/></div>' +
-    '<div class="fgroup"><label>Asunto</label>' +
-    '<input type="text" id="emailSubject" value="Proyección Impuesto a la Renta AT' + at + ' — ' + razon + '" style="width:100%"/></div>' +
-    '<div class="fgroup"><label>Mensaje</label>' +
-    '<textarea id="emailBody" rows="14" style="width:100%;font-family:var(--mono);font-size:11.5px;border:1px solid var(--bdr);border-radius:7px;padding:9px 11px;resize:vertical;line-height:1.6">' +
-    cuerpoDefault.split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;') +
-    '</textarea></div>' +
-    '<div class="info-box" style="font-size:11.5px">El email se enviará desde tu cuenta Microsoft 365 (@contadoor.cl) con el reporte adjunto como PDF.</div>' +
-    '</div>' +
-    '<div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">' +
-    '<button class="btn-s" onclick="document.getElementById(\'emailModal\').remove()">Cancelar</button>' +
-    '<button class="btn-p" id="btnSendEmail" onclick="enviarEmail()">Enviar correo</button>' +
-    '</div></div>';
-
-  // Guardar params/acc para usar en enviarEmail
   window._emailParams = params;
   window._emailAcc = acc;
   document.body.appendChild(modal);
+  var _cem=document.getElementById('c_email'),_tom=document.getElementById('emailTo');
+  if(_tom&&_cem&&_cem.value)_tom.value=_cem.value;
 }
 
 function enviarEmail(){
@@ -1367,11 +1358,22 @@ function enviarEmail(){
       return;
     }
 
+    var attachments=[];
+    var rptEl=document.getElementById('reportWrap');
+    if(rptEl&&rptEl.innerHTML){
+      try{
+        var hs='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;font-size:12px}</style></head><body>'+rptEl.innerHTML+'</body></html>';
+        var b64=btoa(unescape(encodeURIComponent(hs)));
+        var fn='Proyeccion_Renta_AT'+(window._lastParams?window._lastParams.at:'')+'.html';
+        attachments=[{'@odata.type':'#microsoft.graph.fileAttachment',name:fn,contentType:'text/html',contentBytes:b64}];
+      }catch(e){}
+    }
     var emailObj = {
       message: {
         subject: subject,
         body: { contentType: 'Text', content: body },
-        toRecipients: [{ emailAddress: { address: to } }]
+        toRecipients: [{ emailAddress: { address: to } }],
+        attachments: attachments
       },
       saveToSentItems: true
     };
@@ -2043,41 +2045,6 @@ function resetForm(){
 
 
 
-
-
-</script>
-<script>
-function saveClientId(){
-  var id=document.getElementById("clientIdInput").value.trim();
-  if(!id||id.length<10){alert("Ingresa un Client ID v\u00e1lido.");return;}
-  localStorage.setItem("msClientId",id);
-  GRAPH_CONFIG.clientId=id;
-  alert("Client ID guardado. Recarga la p\u00e1gina y conecta tu cuenta Microsoft.");
-}
-// Cargar clientId guardado
-(function(){
-  var saved=localStorage.getItem("msClientId");
-  if(saved){GRAPH_CONFIG.clientId=saved;}
-  var inp=document.getElementById("clientIdInput");
-  if(inp)inp.value=saved||GRAPH_CONFIG.clientId;
-})();
-
-</script>
-<script>
-function saveClientId(){
-  var id=document.getElementById("clientIdInput").value.trim();
-  if(!id||id.length<10){alert("Ingresa un Client ID v\u00e1lido.");return;}
-  localStorage.setItem("msClientId",id);
-  GRAPH_CONFIG.clientId=id;
-  alert("Client ID guardado. Recarga la p\u00e1gina y conecta tu cuenta Microsoft.");
-}
-// Cargar clientId guardado
-(function(){
-  var saved=localStorage.getItem("msClientId");
-  if(saved){GRAPH_CONFIG.clientId=saved;}
-  var inp=document.getElementById("clientIdInput");
-  if(inp)inp.value=saved||GRAPH_CONFIG.clientId;
-})();
 </script>
 </body>
 </html>
