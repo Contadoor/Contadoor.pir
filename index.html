@@ -386,9 +386,21 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 
     <!-- REPOSITORIO -->
     <div class="view" id="view-repo">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <h2 style="font-size:18px;font-weight:700">Repositorio de Reportes</h2>
         <button class="btn-p" onclick="goView('nuevo')">+ Nuevo</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <input class="search-input" type="text" id="repoSearch" placeholder="Buscar por empresa o RUT..." oninput="renderRepo()" style="flex:1;min-width:200px"/>
+        <select class="filter-sel" id="repoFiltroAnalista" onchange="renderRepo()">
+          <option value="">Todos los analistas</option>
+        </select>
+        <select class="filter-sel" id="repoFiltroAT" onchange="renderRepo()">
+          <option value="">Todos los períodos</option>
+          <option value="2026">AT 2026</option>
+          <option value="2025">AT 2025</option>
+          <option value="2027">AT 2027</option>
+        </select>
       </div>
       <div id="repoList"></div>
     </div>
@@ -487,6 +499,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 </div>
 
 <script>
+
 
 
 
@@ -1171,13 +1184,36 @@ function generarReporte(){
       sc:sc,rec:rec,cm:cm,per:per,use14E:use14E,cred:cred,ppmTotal:acc.ppm,nivel:nivel,
       retirosPara14E:retirosPara14E};
 
-    // Save
+    // Guardar perfil cliente
     guardarPerfil();
     var repo=getRepo();
-    repo.unshift({id:Date.now(),ts:new Date().toISOString(),razon:sv('c_razon'),rut:sv('c_rut'),
+    var rut=sv('c_rut'),analista=sv('c_analista')||'Contadoor';
+    var nuevoReporte={id:window._editingRepoId||Date.now(),ts:new Date().toISOString(),
+      razon:sv('c_razon'),rut:rut,giro:sv('c_giro'),
       at:at,reg:reg,nivel:nivel,tasa:tasa,rli:rli,impBruto:impBruto,difEmp:difEmp,
-      tasaEf:tasaEf,analista:sv('c_analista')||'Contadoor'});
-    if(repo.length>100)repo.splice(100);
+      tasaEf:tasaEf,analista:analista,
+      socios:getSocios()};
+    if(window._editingRepoId){
+      // Reemplazar el reporte existente
+      var idx=repo.findIndex(function(x){return x.id===window._editingRepoId;});
+      if(idx>=0)repo[idx]=nuevoReporte;else repo.unshift(nuevoReporte);
+      window._editingRepoId=null;
+      var av=document.getElementById('editingAlert');if(av)av.remove();
+    } else {
+      // Verificar si ya existe reporte del mismo RUT y AT
+      var existIdx=repo.findIndex(function(x){return x.rut===rut&&String(x.at)===String(at);});
+      if(existIdx>=0){
+        if(confirm('Ya existe un análisis de '+hesc(sv('c_razon')||rut)+' para '+at+'.¿Deseas reemplazarlo?')){
+          repo[existIdx]=nuevoReporte;
+        } else {
+          nuevoReporte.id=Date.now();
+          repo.unshift(nuevoReporte);
+        }
+      } else {
+        repo.unshift(nuevoReporte);
+      }
+    }
+    if(repo.length>200)repo.splice(200);
     setRepo(repo);
 
     // Render immediately with fallback
@@ -1559,20 +1595,104 @@ function render(acc,monthly,n,ia){
 function renderRepo(){
   var repo=getRepo(),el=document.getElementById('repoList');
   if(!el)return;
-  if(!repo.length){el.innerHTML='<div class="empty-state"><h3>Sin reportes</h3><p>Los reportes generados aparecer\u00e1n aqu\u00ed.</p></div>';return;}
-  var RL={'14D3':'14D N\u00b03','14D8':'14D N\u00b08','presunta':'Presunta'};
-  el.innerHTML=repo.map(function(r){
+
+  // Actualizar filtro de analistas
+  var selA=document.getElementById('repoFiltroAnalista');
+  if(selA){
+    var analistas=[...new Set(repo.map(function(r){return r.analista||'Contadoor';}))].sort();
+    var curA=selA.value;
+    selA.innerHTML='<option value="">Todos los analistas</option>'+
+      analistas.map(function(a){return '<option value="'+hesc(a)+'"'+(curA===a?' selected':'')+'>'+hesc(a)+'</option>';}).join('');
+  }
+
+  // Filtrar
+  var q=(document.getElementById('repoSearch')||{}).value||'';
+  q=q.toLowerCase();
+  var fA=(document.getElementById('repoFiltroAnalista')||{}).value||'';
+  var fT=(document.getElementById('repoFiltroAT')||{}).value||'';
+
+  var filtered=repo.filter(function(r){
+    var matchQ=!q||(r.razon||'').toLowerCase().indexOf(q)>=0||(r.rut||'').toLowerCase().indexOf(q)>=0;
+    var matchA=!fA||(r.analista||'Contadoor')===fA;
+    var matchT=!fT||String(r.at)===fT;
+    return matchQ&&matchA&&matchT;
+  });
+
+  if(!filtered.length){
+    el.innerHTML='<div class="empty-state"><h3>'+(repo.length?'Sin resultados':'Sin reportes')+'</h3>'
+      +'<p>'+(repo.length?'Prueba con otro filtro.':'Los reportes generados aparecerán aquí.')+'</p></div>';
+    return;
+  }
+
+  var RL={'14D3':'14D N°3','14D8':'14D N°8','presunta':'Presunta'};
+  el.innerHTML='';
+  filtered.forEach(function(r){
     var f=new Date(r.ts).toLocaleDateString('es-CL',{day:'2-digit',month:'short',year:'numeric'});
     var rg=r.reg==='14D8'?'transp':(r.reg==='presunta'?'presunta':'pyme');
-    return '<div class="repo-item">'
-      +'<div class="repo-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>'
-      +'<div class="repo-info"><div class="repo-name">'+hesc(r.razon||'--')+'</div>'
-      +'<div class="repo-meta">'+hesc(r.rut||'--')+' \u2014 '+r.at+' \u2014 '+hesc(r.analista||'Contadoor')+' \u2014 '+f+'</div>'
-      +'<div class="repo-badges"><span class="regime-tag '+rg+'">'+(RL[r.reg]||r.reg)+'</span>'
+    var div=document.createElement('div');
+    div.className='repo-item';
+    div.innerHTML='<div class="repo-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor">'
+      +'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" '
+      +'d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>'
+      +'<div class="repo-info">'
+      +'<div class="repo-name">'+hesc(r.razon||'--')+'</div>'
+      +'<div class="repo-meta">'+hesc(r.rut||'--')+' — '+r.at+' — '+hesc(r.analista||'Contadoor')+' — '+f+'</div>'
+      +'<div class="repo-badges">'
+      +'<span class="regime-tag '+rg+'">'+(RL[r.reg]||r.reg)+'</span>'
       +'<span class="level-tag '+(r.nivel||'PRO').toLowerCase()+'">'+(r.nivel||'PRO')+'</span>'
-      +'<span style="font-size:11px;color:var(--tm)">RLI: '+ff(r.rli||0)+' \u2014 Imp: '+ff(r.impBruto||0)+'</span></div></div>'
-      +'<button class="btn-danger" onclick="delRepo('+r.id+')">Eliminar</button></div>';
-  }).join('');
+      +'<span style="font-size:11px;color:var(--tm)">RLI: '+ff(r.rli||0)+' — Imp: '+ff(r.impBruto||0)+'</span>'
+      +'</div></div>'
+      +'<div style="display:flex;gap:6px;flex-shrink:0">'
+      +'<button class="btn-s" style="font-size:11px;padding:5px 12px" data-edit="'+r.id+'">Editar</button>'
+      +'<button class="btn-danger" data-del="'+r.id+'">Eliminar</button>'
+      +'</div>';
+    var btnEdit=div.querySelector('[data-edit]');
+    var btnDel=div.querySelector('[data-del]');
+    if(btnEdit)(function(rid){btnEdit.addEventListener('click',function(){editRepo(rid);});})(r.id);
+    if(btnDel)(function(rid){btnDel.addEventListener('click',function(){delRepo(rid);});})(r.id);
+    el.appendChild(div);
+  });
+}
+
+function editRepo(id){
+  var repo=getRepo();
+  var r=repo.filter(function(x){return x.id===id;})[0];
+  if(!r)return;
+  // Cargar datos del reporte en el formulario
+  goView('nuevo');showTab('entrada');
+  setTimeout(function(){
+    if(r.razon)document.getElementById('c_razon').value=r.razon;
+    if(r.rut)document.getElementById('c_rut').value=r.rut;
+    if(r.giro)document.getElementById('c_giro').value=r.giro||'';
+    if(r.nivel)document.getElementById('c_nivel').value=r.nivel;
+    if(r.analista)document.getElementById('c_analista').value=r.analista;
+    if(r.reg){document.getElementById('c_reg').value=r.reg;onRegChange();}
+    if(r.at){document.getElementById('c_at').value=r.at;onATChange();}
+    if(r.socios&&r.socios.length){
+      document.getElementById('sociosBody').innerHTML='';SC=0;
+      r.socios.forEach(function(s){addSocio(s.nombre,s.pct,s.retiros||0,s.otros||0);});
+    }
+    // Marcar como edición del reporte existente
+    window._editingRepoId=id;
+    // Mostrar aviso
+    var av=document.getElementById('editingAlert');
+    if(!av){
+      av=document.createElement('div');av.id='editingAlert';
+      av.style.cssText='background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 14px;'
+        +'font-size:12.5px;color:#1E40AF;margin-bottom:12px;display:flex;align-items:center;gap:8px';
+      av.innerHTML='<b>✏ Editando:</b> '+hesc(r.razon||r.rut)+' — '+r.at
+        +' &nbsp;<button onclick="cancelEdit()" style="margin-left:auto;background:none;border:1px solid #93C5FD;'
+        +'border-radius:5px;padding:3px 8px;font-size:11px;color:#1E40AF;cursor:pointer">Cancelar edición</button>';
+      var firstCard=document.querySelector('#view-nuevo .card');
+      if(firstCard)firstCard.parentNode.insertBefore(av,firstCard);
+    }
+  },100);
+}
+
+function cancelEdit(){
+  window._editingRepoId=null;
+  var av=document.getElementById('editingAlert');
+  if(av)av.remove();
 }
 function delRepo(id){if(!confirm('Eliminar este reporte?'))return;setRepo(getRepo().filter(function(r){return r.id!==id;}));renderRepo();}
 
@@ -1722,6 +1842,7 @@ function resetForm(){
   addSocio();
   badge();
 })();
+
 
 
 
