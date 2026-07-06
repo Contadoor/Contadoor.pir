@@ -794,6 +794,9 @@ function parseDiario(content){
   doc.querySelectorAll('tr').forEach(function(tr){
     var cells=Array.from(tr.querySelectorAll('td')).map(function(td){return td.textContent.replace(/\s+/g,' ').trim();});
     if(cells.length<8)return;
+    // Excluir asientos de apertura (01-01)
+    var _fech=(cells[0]||'').trim();
+    if(_fech.startsWith('01-01-')||_fech.startsWith('01/01/')||_fech==='1/1'||_fech.startsWith('1/1/'))return;
     var cod=cells[4].trim();
     if(!cod||!/^\d{6}/.test(cod))return;
     var debe=pn(cells[6]),haber=pn(cells[7]);
@@ -1192,11 +1195,14 @@ function generarReporte(){
     guardarPerfil();
     var repo=getRepo();
     var rut=sv('c_rut'),analista=sv('c_analista')||'Contadoor';
+    var _rptEl=document.getElementById('reportWrap');
+    var _rptHtml=_rptEl&&_rptEl.innerHTML?_rptEl.innerHTML:'';
+    var _now=new Date(),_mes=(_now.getMonth()+1)+'/'+_now.getFullYear();
     var nuevoReporte={id:window._editingRepoId||Date.now(),ts:new Date().toISOString(),
       razon:sv('c_razon'),rut:rut,giro:sv('c_giro'),email:sv('c_email'),
       at:at,reg:reg,nivel:nivel,tasa:tasa,rli:rli,impBruto:impBruto,difEmp:difEmp,
-      tasaEf:tasaEf,analista:analista,
-      socios:getSocios()};
+      tasaEf:tasaEf,analista:analista,mes:_mes,
+      socios:getSocios(),rptHtml:_rptHtml};
     if(window._editingRepoId){
       // Reemplazar el reporte existente
       var idx=repo.findIndex(function(x){return x.id===window._editingRepoId;});
@@ -1746,15 +1752,43 @@ function renderRepo(){
       +'<span style="font-size:11px;color:var(--tm)">RLI: '+ff(r.rli||0)+' — Imp: '+ff(r.impBruto||0)+'</span>'
       +'</div></div>'
       +'<div style="display:flex;gap:6px;flex-shrink:0">'
+      +(r.rptHtml?'<button class="btn-s" style="font-size:11px;padding:5px 12px;color:var(--blue);border-color:var(--blue)" data-ver="'+r.id+'">\uD83D\uDCC4 Ver</button>':'')
       +'<button class="btn-s" style="font-size:11px;padding:5px 12px" data-edit="'+r.id+'">Editar</button>'
       +'<button class="btn-danger" data-del="'+r.id+'">Eliminar</button>'
       +'</div>';
     var btnEdit=div.querySelector('[data-edit]');
     var btnDel=div.querySelector('[data-del]');
+    var btnVer=div.querySelector('[data-ver]');
+    if(btnVer)(function(rid){btnVer.addEventListener('click',function(){verReporte(rid);});})(r.id);
     if(btnEdit)(function(rid){btnEdit.addEventListener('click',function(){editRepo(rid);});})(r.id);
     if(btnDel)(function(rid){btnDel.addEventListener('click',function(){delRepo(rid);});})(r.id);
     el.appendChild(div);
   });
+}
+
+function verReporte(id){
+  var repo=getRepo();
+  var r=repo.filter(function(x){return x.id===id;})[0];
+  if(!r||!r.rptHtml){alert('No hay reporte guardado para este an\u00e1lisis. Genera el reporte primero.');return;}
+  var ex=document.getElementById('verReporteModal');if(ex)ex.remove();
+  var modal=document.createElement('div');
+  modal.id='verReporteModal';
+  modal.style.cssText='position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;background:var(--bg);';
+  var hdr=document.createElement('div');
+  hdr.style.cssText='background:var(--deep);color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;print-color-adjust:exact;';
+  hdr.innerHTML='<span style="font-weight:700;font-size:14px">'+hesc(r.razon||'--')+' \u2014 AT'+r.at+(r.mes?' ('+r.mes+')':'')+
+    '</span><div style="display:flex;gap:8px">'+
+    '<button onclick="window.print()" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">\uD83D\uDDA8 Imprimir</button>'+
+    '<button onclick="editRepo('+r.id+');document.getElementById(\'verReporteModal\').remove()" style="background:var(--p);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">Editar</button>'+
+    '<button onclick="document.getElementById(\'verReporteModal\').remove()" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer">\u2715 Cerrar</button>'+
+    '</div>';
+  var body=document.createElement('div');
+  body.id='reportWrap';
+  body.style.cssText='flex:1;overflow-y:auto;padding:20px;';
+  body.innerHTML=r.rptHtml;
+  modal.appendChild(hdr);
+  modal.appendChild(body);
+  document.body.appendChild(modal);
 }
 
 function editRepo(id){
