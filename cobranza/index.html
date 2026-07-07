@@ -183,6 +183,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────
 var PROXY_URL='https://contafunnel-v2.vercel.app/api/cobranza-email';
+var PROXY_EC_URL='https://contafunnel-v2.vercel.app/api/estado-cuenta-email';
 var BANCO_DATOS={banco:'Itaú',tipo:'Cuenta Corriente',numero:'0220729517',rut:'77.166.269-2',nombre:'Asesorías Contadoor Ltda.'};
 var DIA_VENCIMIENTO = 21; // Día del mes en que vence la factura
 var DIAS_COBRANZA_ACTIVA = [21, 23, 26, 28, 30]; // Días de recordatorio
@@ -605,6 +606,7 @@ function renderCobranza(){
       +'<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">'
       +(waHref?'<button class="btn-wa btn-sm" onclick="enviarWACliente(\''+cl.rut+'\',\''+tipoMsg+'\')">💬 WhatsApp cobranza</button>':'')
       +(cl.email?'<button class="btn-mail btn-sm" onclick="enviarEmailCliente(\''+cl.rut+'\',\''+tipoMsg+'\')">✉️ Email formal</button>':'')
+      +(cl.email?'<button class="btn-s btn-sm" onclick="enviarEstadoCuenta(\''+cl.rut+'\')" style="border-color:var(--p);color:var(--p)">📊 Estado de cuenta</button>':'')
       +'</div></div>';
   }).join('');
 }
@@ -729,7 +731,8 @@ function renderPorCliente(){
     +'<div><div style="font-size:17px;font-weight:700">'+(cl?cl.razon:rutSel)+'</div>'
     +'<div style="font-size:12px;opacity:.7">'+rutSel+(cl&&cl.plan?' · Plan: '+cl.plan:'')+'</div>'
     +(al?'<div style="font-size:12px;font-weight:700;margin-top:6px;background:rgba(255,255,255,.15);padding:4px 10px;border-radius:5px;display:inline-block">'+al.label+'</div>':'')+'</div>'
-    +(waHref?'<a class="btn-wa btn-sm" href="'+waHref+'" target="_blank">💬 WhatsApp</a>':'')+'</div>'
+    +(waHref?'<a class="btn-wa btn-sm" href="'+waHref+'" target="_blank">💬 WhatsApp</a>':'')
+    +(cl&&cl.email?'<button class="btn-s btn-sm" onclick="enviarEstadoCuenta(\''+rutSel+'\')" style="border-color:var(--p);color:var(--p)">📊 Estado de cuenta</button>':'')+'</div>'
     +'<div style="display:flex;gap:20px;margin-top:12px;flex-wrap:wrap">'
     +'<div><div style="font-size:10px;opacity:.6;text-transform:uppercase;letter-spacing:1px">Total facturado</div><div style="font-size:18px;font-weight:700">'+ff(total)+'</div></div>'
     +'<div><div style="font-size:10px;opacity:.6;text-transform:uppercase;letter-spacing:1px">Cobrado</div><div style="font-size:18px;font-weight:700;color:#6ee7b7">'+ff(cobrado)+'</div></div>'
@@ -751,6 +754,36 @@ function setView(v){
   else if(v==='dashboard')renderDashboard();
   else if(v==='clientes')renderPorCliente();
   else if(v==='importar')renderImportar();
+}
+
+function enviarEstadoCuenta(rut){
+  var cl=getClientes().find(function(c){return limpiarRut(c.rut)===limpiarRut(rut);});
+  var email=cl?cl.email:'';
+  if(!email){alert('Este cliente no tiene email registrado en la base de clientes.');return;}
+  var facts=getFacturas().filter(function(f){return limpiarRut(f.rutCliente)===limpiarRut(rut);})
+    .sort(function(a,b){return(b.ts||0)-(a.ts||0);}).slice(0,6);
+  var totalFacturado=facts.reduce(function(s,f){return s+f.montoTotal;},0);
+  var totalPagado=facts.filter(function(f){return f.estado==='cobrada';}).reduce(function(s,f){return s+f.montoTotal;},0);
+  var totalPendiente=totalFacturado-totalPagado;
+  var periodo=new Date().toLocaleDateString('es-CL',{month:'long',year:'numeric'});
+  var btn=event&&event.target;if(btn){btn.disabled=true;btn.textContent='Enviando...';}
+  fetch(PROXY_EC_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      destinatario:email,
+      datos:{
+        clienteNombre:cl?cl.razon:rut,
+        rut:rut,periodo,
+        facturas:facts.map(function(f){return{folio:f.folio,periodo:f.periodo,fechaVenc:f.fechaVenc,montoTotal:f.montoTotal,estado:f.estado,diasVenc:getEstadoCobranza(f).diasVenc};}),
+        totalFacturado,totalPagado,totalPendiente
+      }
+    })
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.ok){alert('✅ Estado de cuenta enviado a '+email);}
+    else{alert('Error: '+(data.error||'Error desconocido'));}
+  }).catch(function(err){alert('Error de conexión: '+err.message);})
+  .finally(function(){if(btn){btn.disabled=false;btn.textContent='📊 Estado de cuenta';}});
 }
 
 function renderAll(){renderStats();if(_view==='libro')renderLibro();else if(_view==='cobranza')renderCobranza();else if(_view==='dashboard')renderDashboard();else if(_view==='clientes')renderPorCliente();else if(_view==='importar')renderImportar();}
