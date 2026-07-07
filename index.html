@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contadoor.app — Sistema de Gestión</title>
+<style>
+:root{--p:#904891;--pd:#6D2E6E;--pp:#F5EAF5;--deep:#08040f;--bg:#f0ebff;--sur:#fff;--sur2:#faf7fa;--bdr:#e8dde8;--t1:#1a0a1b;--t2:#5c4a5d;--tm:#9a849b;--green:#2D9B6F;--amber:#C07A1A;--red:#C0392B;--blue:#3B82F6;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--deep);color:#f0ebff;min-height:100vh;}
+.header{padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(144,72,145,.2);position:sticky;top:0;z-index:10;background:var(--deep);}
+.header-left{display:flex;align-items:center;gap:14px;}
+.header-left img{height:34px;}
+.divider{width:1px;height:24px;background:rgba(255,255,255,.1);}
+.app-name{font-size:15px;font-weight:700;color:#fff;}
+.app-ver{font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;text-transform:uppercase;margin-top:1px;}
+.header-right{font-size:11px;color:rgba(255,255,255,.2);}
+.hero{padding:48px 40px 36px;text-align:center;border-bottom:1px solid rgba(144,72,145,.1);}
+.hero-eye{font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--p);margin-bottom:12px;}
+.hero-title{font-size:30px;font-weight:700;color:#fff;line-height:1.25;margin-bottom:8px;}
+.hero-title span{color:var(--p);}
+.hero-sub{font-size:13px;color:rgba(240,235,255,.35);margin-bottom:24px;}
+.hero-stats{display:inline-flex;gap:28px;background:rgba(144,72,145,.08);border:1px solid rgba(144,72,145,.15);border-radius:12px;padding:12px 24px;}
+.hstat{text-align:center;}
+.hstat-v{font-size:19px;font-weight:700;color:#fff;}
+.hstat-l{font-size:10px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.main{max-width:1100px;margin:0 auto;padding:36px 20px 60px;}
+.section{margin-bottom:36px;}
+.sec-hd{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.sec-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.sec-title{font-size:15px;font-weight:700;color:#fff;}
+.sec-desc{font-size:11px;color:rgba(255,255,255,.3);margin-top:1px;}
+.sec-line{height:1px;background:rgba(144,72,145,.12);margin-bottom:16px;}
+.mod-grid{display:grid;gap:10px;}
+.g2{grid-template-columns:1fr 1fr;}
+.g3{grid-template-columns:1fr 1fr 1fr;}
+.g4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.mod{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:18px;cursor:pointer;transition:all .2s;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;}
+.mod::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--mc,var(--p));opacity:.6;}
+.mod:hover{background:rgba(144,72,145,.09);border-color:rgba(144,72,145,.3);transform:translateY(-2px);}
+.mod.disabled{opacity:.4;cursor:not-allowed;pointer-events:none;}
+.mod-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.mod-icon{width:38px;height:38px;border-radius:9px;background:rgba(144,72,145,.12);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.mod-badges{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+.badge{padding:3px 8px;border-radius:20px;font-size:9px;font-weight:700;}
+.b-activo{background:rgba(45,155,111,.2);color:#6ee7b7;border:1px solid rgba(45,155,111,.3);}
+.b-nuevo{background:rgba(144,72,145,.2);color:#d8b4fe;border:1px solid rgba(144,72,145,.3);}
+.b-dev{background:rgba(192,122,26,.2);color:#fcd34d;border:1px solid rgba(192,122,26,.3);}
+.b-plan{background:rgba(255,255,255,.06);color:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.1);}
+.mod-name{font-size:13px;font-weight:700;color:#fff;line-height:1.3;}
+.mod-desc{font-size:11px;color:rgba(255,255,255,.4);line-height:1.6;}
+.mod-tags{display:flex;flex-wrap:wrap;gap:3px;}
+.mod-tag{font-size:9.5px;color:rgba(255,255,255,.25);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:3px;padding:2px 6px;}
+.mod-footer{display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);}
+.mod-cta{font-size:11px;font-weight:600;color:var(--mc,var(--p));}
+.mod-url{font-size:9px;color:rgba(255,255,255,.15);font-family:monospace;}
+.quick{max-width:1100px;margin:0 auto;padding:0 20px 48px;}
+.quick-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:12px;}
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:7px;}
+.qcard{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:11px 13px;cursor:pointer;transition:.15s;text-decoration:none;color:inherit;display:flex;align-items:center;gap:9px;}
+.qcard:hover{background:rgba(144,72,145,.09);border-color:rgba(144,72,145,.25);}
+.qi{font-size:17px;width:24px;text-align:center;flex-shrink:0;}
+.ql{font-size:11px;font-weight:500;color:rgba(255,255,255,.6);}
+.qs{font-size:10px;color:rgba(255,255,255,.2);margin-top:1px;}
+.footer{border-top:1px solid rgba(144,72,145,.1);padding:18px 40px;text-align:center;font-size:10px;color:rgba(255,255,255,.15);}
+.footer span{color:var(--p);}
+@media(max-width:900px){.g3{grid-template-columns:1fr 1fr;}.g4{grid-template-columns:1fr 1fr;}.hero{padding:32px 16px 24px;}.main{padding:24px 12px 40px;}.header{padding:0 16px;}}
+@media(max-width:600px){.g2,.g3,.g4{grid-template-columns:1fr;}.hero-stats{gap:16px;padding:10px 16px;}}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <img src="https://assets.cdn.filesafe.space/kfq1F3czdejkInyTMLkO/media/6982b1a12dd9857339e39ae1.png" alt="Contadoor"/>
+    <div class="divider"></div>
+    <div>
+      <div class="app-name">Contadoor.app</div>
+      <div class="app-ver">Sistema de Gestión · v1.0</div>
+    </div>
+  </div>
+  <div class="header-right" id="sessionBadge">Solo uso interno · Contadoor Chile</div>
+</header>
+
+<div class="hero">
+  <div class="hero-eye">Bienvenido al sistema</div>
+  <div class="hero-title">Contadoor<span>.app</span></div>
+  <div class="hero-sub">Todos los módulos de gestión en un solo lugar</div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-v">+1.000</div><div class="hstat-l">Clientes</div></div>
+    <div class="hstat"><div class="hstat-v" id="stat-fecha">—</div><div class="hstat-l">Hoy</div></div>
+    <div class="hstat"><div class="hstat-v">10</div><div class="hstat-l">Módulos</div></div>
+    <div class="hstat"><div class="hstat-v">2015</div><div class="hstat-l">Desde</div></div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- BASE DE DATOS -->
+  <div class="section">
+    <div class="sec-hd">
+      <div class="sec-icon" style="background:rgba(144,72,145,.2)">👥</div>
+      <div><div class="sec-title">Base de Datos y Gestión</div><div class="sec-desc">Información central de clientes y reportes operativos</div></div>
+    </div>
+    <div class="sec-line"></div>
+    <div class="mod-grid g3">
+      <a class="mod" href="clientes/index.html" style="--mc:#904891">
+        <div class="mod-top"><div class="mod-icon">👥</div><div class="mod-badges"><span class="badge b-activo">✅ Activo</span></div></div>
+        <div><div class="mod-name">Base de Clientes</div><div class="mod-desc">Planes UF/CLP, equipo asignado, socios, credenciales, WhatsApp directo.</div></div>
+        <div class="mod-tags"><span class="mod-tag">Alimenta todos los módulos</span><span class="mod-tag">Export CSV</span></div>
+        <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">clientes/</div></div>
+      </a>
+      <a class="mod" href="reportes/index.html" style="--mc:#904891">
+        <div class="mod-top"><div class="mod-icon">📋</div><div class="mod-badges"><span class="badge b-nuevo">⬆ Subir</span></div></div>
+        <div><div class="mod-name">Reportes Mensuales</div><div class="mod-desc">RRHH + impuestos + honorarios + atrasos. Envío por email y WhatsApp. Historial y tendencias.</div></div>
+        <div class="mod-tags"><span class="mod-tag">PDF</span><span class="mod-tag">WhatsApp</span><span class="mod-tag">Tendencias</span></div>
+        <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">reportes/</div></div>
+      </a>
+      <a class="mod" href="pir/index.html" style="--mc:#2D9B6F">
+        <div class="mod-top"><div class="mod-icon">📊</div><div class="mod-badges"><span class="badge b-activo">✅ Activo</span></div></div>
+        <div><div class="mod-name">PIR — Proyección Renta</div><div class="mod-desc">Impuesto a la renta estimado. Regímenes 14D N°3, 14D N°8 y Renta Presunta. IGC por socio.</div></div>
+        <div class="mod-tags"><span class="mod-tag">Mascontable</span><span class="mod-tag">IGC socios</span><span class="mod-tag">Cloudflare KV</span></div>
+        <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">pir/</div></div>
+      </a>
+    </div>
+  </div>
+
+  <!-- FINANCIERO -->
+  <div class="section">
+    <div class="sec-hd">
+      <div class="sec-icon" style="background:rgba(192,122,26,.2)">💰</div>
+      <div><div class="sec-title">Módulo Financiero</div><div class="sec-desc">Pagos, conciliación bancaria, cobranza y convenios</div></div>
+    </div>
+    <div class="sec-line"></div>
+    <div class="mod-grid g4" style="margin-bottom:10px">
+      <a class="mod" href="pagos/index.html" style="--mc:#C07A1A">
+        <div class="mod-top"><div class="mod-icon">💰</div><div class="mod-badges"><span class="badge b-nuevo">⬆ Subir</span></div></div>
+        <div><div class="mod-name">Control de Pagos</div><div class="mod-desc">Flujo completo con aprobación de Luciano. Trazabilidad por analista.</div></div>
+        <div class="mod-tags"><span class="mod-tag">Creada→Aprobado</span><span class="mod-tag">Email aprobación</span></div>
+        <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">pagos/</div></div>
+      </a>
+      <a class="mod" href="conciliacion/index.html" style="--mc:#3B82F6">
+        <div class="mod-top"><div class="mod-icon">🏦</div><div class="mod-badges"><span class="badge b-nuevo">⬆ Subir</span></div></div>
+        <div><div class="mod-name">Conciliación Bancaria</div><div class="mod-desc">Carga cartola Itaú. Match automático por RUT+monto. Pivot financiero.</div></div>
+        <div class="mod-tags"><span class="mod-tag">Pivot</span><span class="mod-tag">RUT match</span><span class="mod-tag">Auto+manual</span></div>
+        <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">conciliacion/</div></div>
+      </a>
+      <a class="mod" href="cobranza/index.html" style="--mc:#2D9B6F">
+        <div class="mod-top"><div class="mod-icon">🧾</div><div class="mod-badges"><span class="badge b-nuevo">⬆ Subir</span></div></div>
+        <div><div class="mod-name">CxC / Cobranza</div><div class="mod-desc">Facturas emitidas, importación desde SII, estado de cobro y vencimientos.</div></div>
+        <div class="mod-tags"><span class="mod-tag">Import SII</span><span class="mod-tag">WhatsApp</span><span class="mod-tag">Vencimientos</span></div>
+        <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">cobranza/</div></div>
+      </a>
+      <a class="mod" href="convenios/index.html" style="--mc:#904891">
+        <div class="mod-top"><div class="mod-icon">🤝</div><div class="mod-badges"><span class="badge b-nuevo">⬆ Subir</span></div></div>
+        <div><div class="mod-name">Convenios de Pago</div><div class="mod-desc">TGR, Previred, SII, Municipalidad. Amortización, calendario mensual y KPI.</div></div>
+        <div class="mod-tags"><span class="mod-tag">Amortización</span><span class="mod-tag">Calendario</span><span class="mod-tag">KPI anual</span></div>
+        <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">convenios/</div></div>
+      </a>
+    </div>
+  </div>
+
+  <!-- TRIBUTARIO -->
+  <div class="section">
+    <div class="sec-hd">
+      <div class="sec-icon" style="background:rgba(45,155,111,.2)">📅</div>
+      <div><div class="sec-title">Módulo Tributario</div><div class="sec-desc">Herramientas de análisis y planificación tributaria</div></div>
+    </div>
+    <div class="sec-line"></div>
+    <div class="mod-grid g3">
+      <a class="mod" href="pir/index.html" style="--mc:#2D9B6F">
+        <div class="mod-top"><div class="mod-icon">📊</div><div class="mod-badges"><span class="badge b-activo">✅ Activo</span></div></div>
+        <div><div class="mod-name">PIR</div><div class="mod-desc">Proyección impuesto a la renta por régimen y socio.</div></div>
+        <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">pir/</div></div>
+      </a>
+      <div class="mod disabled" style="--mc:#2D9B6F">
+        <div class="mod-top"><div class="mod-icon">📅</div><div class="mod-badges"><span class="badge b-plan">📋 Futuro</span></div></div>
+        <div><div class="mod-name">Calendario Tributario</div><div class="mod-desc">Fechas SII de todos los clientes. Alertas automáticas de vencimiento.</div></div>
+        <div class="mod-footer"><div class="mod-cta">Próximamente</div><div class="mod-url">calendario/</div></div>
+      </div>
+      <div class="mod disabled" style="--mc:#2D9B6F">
+        <div class="mod-top"><div class="mod-icon">🧾</div><div class="mod-badges"><span class="badge b-plan">📋 Futuro</span></div></div>
+        <div><div class="mod-name">Asistente F22</div><div class="mod-desc">Declaración de renta asistida. Integrado con el PIR.</div></div>
+        <div class="mod-footer"><div class="mod-cta">Próximamente</div><div class="mod-url">f22/</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMERCIAL -->
+  <div class="section">
+    <div class="sec-hd">
+      <div class="sec-icon" style="background:rgba(59,130,246,.2)">🎯</div>
+      <div><div class="sec-title">Módulo Comercial</div><div class="sec-desc">Captación, calificación y seguimiento de nuevos clientes</div></div>
+    </div>
+    <div class="sec-line"></div>
+    <div class="mod-grid g3">
+      <a class="mod" href="https://agenda.contadoor.cl" target="_blank" style="--mc:#3B82F6">
+        <div class="mod-top"><div class="mod-icon">🌐</div><div class="mod-badges"><span class="badge b-activo">✅ Activo</span></div></div>
+        <div><div class="mod-name">Landing + ContaFunnel</div><div class="mod-desc">Calificación PRO automática. Agendamiento Outlook. 6 emails de nutrición.</div></div>
+        <div class="mod-tags"><span class="mod-tag">Meta Pixel</span><span class="mod-tag">Vercel</span><span class="mod-tag">Azure</span></div>
+        <div class="mod-footer"><div class="mod-cta">Abrir ↗</div><div class="mod-url">agenda.contadoor.cl</div></div>
+      </a>
+      <div class="mod disabled" style="--mc:#3B82F6">
+        <div class="mod-top"><div class="mod-icon">💼</div><div class="mod-badges"><span class="badge b-plan">📋 Futuro</span></div></div>
+        <div><div class="mod-name">CRM de Ventas</div><div class="mod-desc">Pipeline, guía de diagnóstico, propuestas y seguimiento post-reunión.</div></div>
+        <div class="mod-footer"><div class="mod-cta">Próximamente</div><div class="mod-url">crm/</div></div>
+      </div>
+      <div class="mod disabled" style="--mc:#3B82F6">
+        <div class="mod-top"><div class="mod-icon">📄</div><div class="mod-badges"><span class="badge b-plan">📋 Futuro</span></div></div>
+        <div><div class="mod-name">Propuestas PDF</div><div class="mod-desc">Generador automático de propuestas por perfil de cliente.</div></div>
+        <div class="mod-footer"><div class="mod-cta">Próximamente</div><div class="mod-url">propuestas/</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PORTAL Y SISTEMA -->
+  <div class="section">
+    <div class="sec-hd">
+      <div class="sec-icon" style="background:rgba(144,72,145,.2)">⚙️</div>
+      <div><div class="sec-title">Portal y Sistema</div><div class="sec-desc">Acceso de clientes y administración interna</div></div>
+    </div>
+    <div class="sec-line"></div>
+    <div class="mod-grid g3">
+      <a class="mod" href="portal/index.html" style="--mc:#904891">
+        <div class="mod-top"><div class="mod-icon">🌐</div><div class="mod-badges"><span class="badge b-nuevo">⬆ Subir</span></div></div>
+        <div><div class="mod-name">Portal de Clientes</div><div class="mod-desc">Acceso externo con email + contraseña. Reportes, historial y estado de cuenta.</div></div>
+        <div class="mod-tags"><span class="mod-tag">Registro</span><span class="mod-tag">Aprobación</span><span class="mod-tag">Estado cuenta</span></div>
+        <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">portal/</div></div>
+      </a>
+      <a class="mod" href="admin/index.html" style="--mc:#904891">
+        <div class="mod-top"><div class="mod-icon">👤</div><div class="mod-badges"><span class="badge b-nuevo">⬆ Subir</span></div></div>
+        <div><div class="mod-name">Admin Usuarios</div><div class="mod-desc">Solo Master. Crea usuarios, asigna PIN y permisos por módulo.</div></div>
+        <div class="mod-tags"><span class="mod-tag">Solo Luciano</span><span class="mod-tag">Roles flexibles</span></div>
+        <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">admin/</div></div>
+      </a>
+      <div class="mod disabled" style="--mc:#904891">
+        <div class="mod-top"><div class="mod-icon">📈</div><div class="mod-badges"><span class="badge b-plan">📋 Futuro</span></div></div>
+        <div><div class="mod-name">KPIs y Reportes</div><div class="mod-desc">Dashboard ejecutivo. MRR, retención, facturación por contador.</div></div>
+        <div class="mod-footer"><div class="mod-cta">Próximamente</div><div class="mod-url">kpis/</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ACCESO RÁPIDO -->
+<div class="quick">
+  <div class="quick-title">Acceso rápido a herramientas externas</div>
+  <div class="quick-grid">
+    <a class="qcard" href="https://outlook.office.com" target="_blank"><div class="qi">📧</div><div><div class="ql">Outlook</div><div class="qs">info@contadoor.cl</div></div></a>
+    <a class="qcard" href="https://agenda.contadoor.cl" target="_blank"><div class="qi">📅</div><div><div class="ql">Landing ventas</div><div class="qs">agenda.contadoor.cl</div></div></a>
+    <a class="qcard" href="https://portal.azure.com" target="_blank"><div class="qi">☁️</div><div><div class="ql">Azure Portal</div><div class="qs">ContaFunnel App</div></div></a>
+    <a class="qcard" href="https://vercel.com" target="_blank"><div class="qi">▲</div><div><div class="ql">Vercel</div><div class="qs">contafunnel-v2</div></div></a>
+    <a class="qcard" href="https://cron-job.org" target="_blank"><div class="qi">⏱️</div><div><div class="ql">Cron-job.org</div><div class="qs">Recordatorios</div></div></a>
+    <a class="qcard" href="https://github.com/Contadoor/Contadoor.app" target="_blank"><div class="qi">💻</div><div><div class="ql">GitHub</div><div class="qs">Contadoor.app</div></div></a>
+    <a class="qcard" href="https://www.sii.cl" target="_blank"><div class="qi">🏛️</div><div><div class="ql">SII</div><div class="qs">sii.cl</div></div></a>
+    <a class="qcard" href="https://www.contadoor.cl" target="_blank"><div class="qi">🌐</div><div><div class="ql">Sitio web</div><div class="qs">contadoor.cl</div></div></a>
+  </div>
+</div>
+
+<footer class="footer">
+  © 2026 <span>Contadoor Chile</span> · Contadoor.app v1.0 · Sistema de uso exclusivo interno · contadoor.cl · +56 9 7988 1891
+</footer>
+
+<script>
+// Fecha
+var d=new Date();
+var m=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+document.getElementById('stat-fecha').textContent=d.getDate()+' '+m[d.getMonth()];
+// Sesión
+try{
+  var s=JSON.parse(sessionStorage.getItem('usuario_activo')||'null');
+  if(s) document.getElementById('sessionBadge').textContent='👤 '+s.nombre+' · '+s.rol;
+}catch(e){}
+</script>
+</body>
+</html>
