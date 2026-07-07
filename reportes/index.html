@@ -1,0 +1,809 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contadoor.app — Reportes Mensuales</title>
+<style>
+:root{--p:#904891;--pd:#6D2E6E;--pp:#F5EAF5;--deep:#08040f;--bg:#f0ebff;--sur:#fff;--sur2:#faf7fa;--bdr:#e8dde8;--t1:#1a0a1b;--t2:#5c4a5d;--tm:#9a849b;--green:#2D9B6F;--amber:#C07A1A;--red:#C0392B;--blue:#3B82F6;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100vh;}
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:220px;background:var(--deep);display:flex;flex-direction:column;position:fixed;height:100vh;z-index:20;}
+.main{margin-left:220px;flex:1;}
+.sb-logo{padding:18px 16px 12px;border-bottom:1px solid rgba(144,72,145,.3);}
+.sb-logo img{width:140px;display:block;}
+.sb-tagline{font-size:9px;color:rgba(255,255,255,.28);letter-spacing:1px;text-transform:uppercase;margin-top:5px;}
+.sb-nav{padding:12px 8px;flex:1;}
+.sb-sec{font-size:9px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.25);text-transform:uppercase;padding:10px 8px 4px;margin-top:4px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.55);transition:.15s;margin-bottom:1px;text-decoration:none;}
+.sb-item:hover{background:rgba(144,72,145,.18);color:#fff;}
+.sb-item.on{background:rgba(144,72,145,.3);color:#fff;font-weight:600;}
+.sb-item svg{width:14px;height:14px;flex-shrink:0;}
+.sb-foot{padding:12px 14px;border-top:1px solid rgba(144,72,145,.25);font-size:9px;color:rgba(255,255,255,.3);}
+.topbar{background:var(--deep);padding:10px 20px;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--p);position:sticky;top:0;z-index:10;}
+.tb-title{font-size:14px;font-weight:600;color:#fff;flex:1;}
+.content{padding:20px;}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;margin-bottom:14px;}
+.card-hd{font-size:11px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.fg4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+.fgroup{display:flex;flex-direction:column;gap:4px;}
+.fgroup label{font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;}
+.fgroup input,.fgroup select,.fgroup textarea{font-family:var(--sans);font-size:13px;border:1px solid var(--bdr);border-radius:7px;padding:7px 10px;color:var(--t1);background:var(--sur2);outline:none;transition:.15s;width:100%;}
+.fgroup input:focus,.fgroup select:focus,.fgroup textarea:focus{border-color:var(--p);}
+.fgroup .hint{font-size:10px;color:var(--tm);}
+.btn-p{background:var(--p);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;}
+.btn-p:hover{background:var(--pd);}
+.btn-s{background:transparent;color:var(--t1);border:1px solid var(--bdr);border-radius:8px;padding:8px 14px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;}
+.btn-s:hover{border-color:var(--p);color:var(--p);}
+.btn-wa{background:#25d366;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;}
+.btn-wa:hover{background:#1da851;}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:6px;}
+.btn-danger{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;border-radius:7px;padding:5px 10px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;}
+.tab-bar{display:flex;gap:3px;background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:3px;margin-bottom:16px;width:fit-content;}
+.tab{padding:6px 16px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;color:var(--t2);transition:.15s;}
+.tab:hover{color:var(--p);}
+.tab.on{background:var(--p);color:#fff;font-weight:600;}
+.view{display:none;}.view.on{display:block;}
+.badge{padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;display:inline-block;}
+.badge-borrador{background:#f3f4f6;color:#374151;border:1px solid #d1d5db;}
+.badge-enviado{background:#ecfdf5;color:#064e3b;border:1px solid #a7f3d0;}
+.badge-pendiente{background:#fef3c7;color:#78350f;border:1px solid #fde68a;}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;display:none;align-items:center;justify-content:center;}
+.modal-bg.on{display:flex;}
+.modal{background:var(--sur);border-radius:14px;padding:24px;max-width:760px;width:96%;max-height:90vh;overflow-y:auto;}
+.modal h2{font-size:16px;font-weight:700;margin-bottom:4px;color:var(--p);}
+.modal-sub{font-size:12px;color:var(--tm);margin-bottom:18px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:14px;border-top:1px solid var(--bdr);}
+.section-box{background:var(--sur2);border:1px solid var(--bdr);border-left:3px solid var(--p);border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px;}
+.section-box.green{border-left-color:var(--green);}
+.section-box.amber{border-left-color:var(--amber);}
+.section-box.blue{border-left-color:var(--blue);}
+.section-box.red{border-left-color:var(--red);}
+.section-box-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.section-box.green .section-box-title{color:var(--green);}
+.section-box.amber .section-box-title{color:var(--amber);}
+.section-box.blue .section-box-title{color:var(--blue);}
+.section-box.red .section-box-title{color:var(--red);}
+.total-box{background:linear-gradient(135deg,var(--pd),var(--p));border-radius:10px;padding:16px 20px;color:#fff;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.total-val{font-size:26px;font-weight:700;}
+.total-lbl{font-size:11px;opacity:.7;margin-bottom:4px;}
+.reporte-list .reporte-row{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px;transition:.15s;}
+.reporte-row:hover{border-color:var(--p);}
+.reporte-row-info{flex:1;}
+.reporte-row-cliente{font-size:14px;font-weight:700;}
+.reporte-row-meta{font-size:11.5px;color:var(--tm);margin-top:2px;}
+.reporte-row-total{font-size:16px;font-weight:700;color:var(--p);}
+.reporte-row-actions{display:flex;gap:6px;}
+.empty-state{text-align:center;padding:48px 24px;color:var(--tm);}
+.empty-state h3{font-size:15px;font-weight:600;margin-bottom:5px;color:var(--t2);}
+.historial-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:10px;}
+.historial-mes{background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;text-align:center;cursor:pointer;transition:.15s;}
+.historial-mes:hover{border-color:var(--p);background:var(--pp);}
+.historial-mes .hm-mes{font-size:12px;font-weight:600;color:var(--t1);}
+.historial-mes .hm-total{font-size:14px;font-weight:700;color:var(--p);margin-top:3px;}
+.historial-mes .hm-estado{font-size:10px;color:var(--tm);margin-top:2px;}
+.atraso-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;padding:8px 10px;background:var(--sur);border:1px solid var(--bdr);border-radius:7px;}
+.atraso-row input{flex:1;font-family:var(--sans);font-size:12px;border:1px solid var(--bdr);border-radius:5px;padding:5px 8px;background:var(--sur2);outline:none;}
+.atraso-row input:focus{border-color:var(--p);}
+
+/* PREVIEW REPORTE IMPRESO */
+@media print{
+  .sidebar,.topbar,.tab-bar,.no-print{display:none!important;}
+  .main{margin-left:0;}
+  body{background:#fff;}
+  .rpt-preview{display:block!important;}
+}
+.rpt-preview{display:none;}
+
+/* CHARTS */
+.chart-wrap{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:14px;}
+.chart-wrap h3{font-size:12px;font-weight:700;margin-bottom:12px;color:var(--t2);}
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:100px;}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+.bar-fill{width:100%;border-radius:4px 4px 0 0;background:var(--p);opacity:.8;transition:.3s;min-height:2px;}
+.bar-lbl{font-size:9px;color:var(--tm);}
+.bar-val{font-size:9px;font-weight:700;color:var(--p);}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-logo">
+    <img src="https://assets.cdn.filesafe.space/kfq1F3czdejkInyTMLkO/media/6982b1a12dd9857339e39ae1.png" alt="Contadoor"/>
+    <div class="sb-tagline">Sistema de Gestión</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Sistema</div>
+    <a class="sb-item" href="../index.html">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Dashboard
+    </a>
+    <div class="sb-sec">Módulos</div>
+    <a class="sb-item" href="../pir/index.html">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      PIR
+    </a>
+    <a class="sb-item" href="../clientes/index.html">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Clientes
+    </a>
+    <div class="sb-item on">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Reportes
+    </div>
+    <a class="sb-item" href="https://agenda.contadoor.cl" target="_blank">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      ContaFunnel ↗
+    </a>
+  </nav>
+  <div class="sb-foot">Contadoor.app v1.0</div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="tb-title">Reportes Mensuales de Gestión</div>
+    <button class="btn-p btn-sm no-print" onclick="abrirModalNuevo()">+ Nuevo reporte</button>
+  </div>
+  <div class="content">
+    <div class="tab-bar no-print">
+      <div class="tab on" onclick="setView('lista')">📋 Todos los reportes</div>
+      <div class="tab" onclick="setView('porcliente')">👤 Por cliente</div>
+      <div class="tab" onclick="setView('pormes')">📅 Por mes</div>
+    </div>
+
+    <!-- VISTA LISTA -->
+    <div class="view on" id="view-lista">
+      <div class="fg3" style="margin-bottom:14px">
+        <div class="fgroup">
+          <label>Filtrar por mes</label>
+          <select id="filtroMes" onchange="renderLista()">
+            <option value="">Todos los meses</option>
+          </select>
+        </div>
+        <div class="fgroup">
+          <label>Filtrar por estado</label>
+          <select id="filtroEstado" onchange="renderLista()">
+            <option value="">Todos</option>
+            <option value="borrador">Borrador</option>
+            <option value="enviado">Enviado</option>
+          </select>
+        </div>
+        <div class="fgroup">
+          <label>Buscar cliente</label>
+          <input type="text" id="filtroQ" placeholder="Nombre o RUT..." oninput="renderLista()"/>
+        </div>
+      </div>
+      <div id="listaReportes" class="reporte-list"></div>
+    </div>
+
+    <!-- VISTA POR CLIENTE -->
+    <div class="view" id="view-porcliente">
+      <div class="fg2" style="margin-bottom:16px">
+        <div class="fgroup">
+          <label>Seleccionar cliente</label>
+          <select id="selectClienteHist" onchange="renderHistorialCliente()">
+            <option value="">Selecciona un cliente...</option>
+          </select>
+        </div>
+      </div>
+      <div id="historialClienteContent"></div>
+    </div>
+
+    <!-- VISTA POR MES -->
+    <div class="view" id="view-pormes">
+      <div class="fg2" style="margin-bottom:16px">
+        <div class="fgroup">
+          <label>Seleccionar mes</label>
+          <select id="selectMesHist" onchange="renderHistorialMes()">
+            <option value="">Selecciona un mes...</option>
+          </select>
+        </div>
+      </div>
+      <div id="historialMesContent"></div>
+    </div>
+  </div>
+</main>
+</div>
+
+<!-- MODAL NUEVO/EDITAR REPORTE -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h2 id="modalTitle">Nuevo Reporte Mensual</h2>
+    <div class="modal-sub">Completa cada sección con la información del período</div>
+    <input type="hidden" id="f-id"/>
+
+    <!-- Cliente y período -->
+    <div class="card-hd">📋 Cliente y período</div>
+    <div class="fg3" style="margin-bottom:16px">
+      <div class="fgroup" style="grid-column:1/3">
+        <label>Cliente *</label>
+        <select id="f-cliente" onchange="onClienteChange()">
+          <option value="">Seleccionar cliente...</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label>Período (mes/año) *</label>
+        <input type="month" id="f-periodo"/>
+      </div>
+    </div>
+    <div id="cliente-info-box" style="display:none;margin-bottom:14px"></div>
+
+    <!-- RRHH / Remuneraciones -->
+    <div class="section-box green" style="margin-bottom:12px">
+      <div class="section-box-title">👥 Remuneraciones (RRHH)</div>
+      <div class="fg4">
+        <div class="fgroup"><label>N° trabajadores</label><input type="number" id="f-trab" placeholder="0" oninput="calcTotal()"/></div>
+        <div class="fgroup"><label>Total líquido sueldos</label><input type="number" id="f-sueldos" placeholder="0" oninput="calcTotal()"/></div>
+        <div class="fgroup"><label>AFP + Salud (cotizaciones)</label><input type="number" id="f-cot" placeholder="0" oninput="calcTotal()"/></div>
+        <div class="fgroup"><label>Seguro de Cesantía</label><input type="number" id="f-ces" placeholder="0" oninput="calcTotal()"/></div>
+        <div class="fgroup"><label>Mutual / Accidentes</label><input type="number" id="f-mutual" placeholder="0" oninput="calcTotal()"/></div>
+        <div class="fgroup"><label>Impuesto Único (2ª Cat.)</label><input type="number" id="f-imp2cat" placeholder="0" oninput="calcTotal()"/></div>
+        <div class="fgroup" style="grid-column:3/5"><label>Observaciones RRHH</label><input type="text" id="f-obs-rrhh" placeholder="Ej: Liquidación de finiquito incluida"/></div>
+      </div>
+    </div>
+
+    <!-- Contabilidad -->
+    <div class="section-box amber" style="margin-bottom:12px">
+      <div class="section-box-title">📊 Contabilidad (Impuestos)</div>
+      <div class="fg4">
+        <div class="fgroup"><label>IVA a pagar</label><input type="number" id="f-iva" placeholder="0" oninput="calcTotal()"/></div>
+        <div class="fgroup"><label>PPM (Pago Provisional)</label><input type="number" id="f-ppm" placeholder="0" oninput="calcTotal()"/></div>
+        <div class="fgroup"><label>Retenciones 2ª Cat.</label><input type="number" id="f-ret" placeholder="0" oninput="calcTotal()"/></div>
+        <div class="fgroup"><label>Otros impuestos</label><input type="number" id="f-otros-imp" placeholder="0" oninput="calcTotal()"/></div>
+        <div class="fgroup" style="grid-column:1/5"><label>Observaciones contables</label><input type="text" id="f-obs-cont" placeholder="Ej: IVA mayor por compra de activo fijo en el período"/></div>
+      </div>
+    </div>
+
+    <!-- Honorarios Contadoor -->
+    <div class="section-box blue" style="margin-bottom:12px">
+      <div class="section-box-title">💼 Honorarios Contadoor</div>
+      <div class="fg3">
+        <div class="fgroup"><label>Valor base servicio</label><input type="number" id="f-hon-base" placeholder="0" oninput="calcTotal()"/></div>
+        <div class="fgroup"><label>Variable (trabajadores)</label><input type="number" id="f-hon-var" placeholder="0" oninput="calcTotal()"/><span class="hint" id="hon-var-hint"></span></div>
+        <div class="fgroup"><label>Total honorarios</label><input type="number" id="f-hon-total" placeholder="0 (calculado)" readonly style="background:#f0f0f0;font-weight:700;color:var(--p)"/></div>
+        <div class="fgroup"><label>Moneda</label><input type="text" id="f-hon-moneda" readonly placeholder="CLP" style="background:#f0f0f0"/></div>
+        <div class="fgroup"><label>N° Factura (si aplica)</label><input type="text" id="f-factura" placeholder="Ej: 00123"/></div>
+        <div class="fgroup"><label>Estado pago honorarios</label>
+          <select id="f-hon-estado">
+            <option value="pendiente">Pendiente</option>
+            <option value="pagado">Pagado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagos atrasados -->
+    <div class="section-box red" style="margin-bottom:12px">
+      <div class="section-box-title">⚠️ Pagos de períodos anteriores
+        <button class="btn-s btn-sm" onclick="addAtraso()" style="margin-left:auto">+ Agregar</button>
+      </div>
+      <div id="atrasosWrap"></div>
+      <div id="atrasosEmpty" style="font-size:12px;color:var(--tm);padding:4px 0">Sin pagos atrasados para este período</div>
+    </div>
+
+    <!-- Recomendaciones -->
+    <div class="section-box" style="margin-bottom:12px">
+      <div class="section-box-title">💡 Recomendaciones tributarias del mes</div>
+      <div class="fgroup">
+        <textarea id="f-recomendaciones" rows="3" placeholder="Ej: Recomendamos revisar la tasa PPM para el próximo período dado el incremento de ventas. Considerar provisión para operación renta AT2027..."></textarea>
+      </div>
+    </div>
+
+    <!-- Firma / Responsable -->
+    <div class="fg3" style="margin-bottom:12px">
+      <div class="fgroup"><label>Preparado por</label><input type="text" id="f-preparado" placeholder="Nombre del analista"/></div>
+      <div class="fgroup"><label>Revisado por (contador)</label><input type="text" id="f-revisado" placeholder="Nombre del contador"/></div>
+      <div class="fgroup"><label>Estado del reporte</label>
+        <select id="f-estado">
+          <option value="borrador">Borrador</option>
+          <option value="enviado">Enviado al cliente</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- RESUMEN TOTAL -->
+    <div class="total-box" id="totalPreview">
+      <div>
+        <div class="total-lbl">Total a pagar este período</div>
+        <div class="total-val" id="totalVal">$0</div>
+        <div style="font-size:11px;opacity:.6;margin-top:4px" id="totalDetalle"></div>
+      </div>
+      <div style="font-size:28px">📋</div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-s" onclick="closeModal()">Cancelar</button>
+      <button class="btn-s" onclick="guardarReporte('borrador')">💾 Guardar borrador</button>
+      <button class="btn-p" onclick="guardarReporte('enviado')">✅ Guardar y marcar enviado</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VISTA REPORTE -->
+<div class="modal-bg" id="modalVista">
+  <div class="modal" style="max-width:820px">
+    <div id="vistaContent"></div>
+    <div class="modal-footer no-print">
+      <button class="btn-s" onclick="closeVista()">Cerrar</button>
+      <button class="btn-s" onclick="editarDesdeVista()">✏️ Editar</button>
+      <button class="btn-s" onclick="imprimirReporte()">🖨️ Imprimir PDF</button>
+      <button class="btn-s" onclick="enviarEmail()">✉️ Email</button>
+      <button class="btn-wa" onclick="enviarWhatsApp()" style="padding:8px 14px;font-size:13px">💬 WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── HELPERS ───────────────────────────────────────────────────────────────
+var _editId=null, _vistaId=null, _atCnt=0;
+var MESES_NOMBRE=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function hesc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function ff(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
+function ffUF(n,mon){if(mon==='UF')return (n||0).toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2})+' UF';return ff(n);}
+function sv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+function nv(id){return parseFloat(sv(id))||0;}
+function setPeriodoActual(){
+  var d=new Date();
+  var y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0');
+  var el=document.getElementById('f-periodo');
+  if(el&&!el.value) el.value=y+'-'+m;
+}
+function formatPeriodo(p){
+  if(!p)return '—';
+  var parts=p.split('-');
+  return MESES_NOMBRE[parseInt(parts[1])-1]+' '+parts[0];
+}
+
+// ── STORAGE ───────────────────────────────────────────────────────────────
+function getReportes(){try{return JSON.parse(localStorage.getItem('reportes_mensuales')||'[]');}catch(e){return[];}}
+function setReportes(arr){localStorage.setItem('reportes_mensuales',JSON.stringify(arr));renderAll();}
+function getClientes(){try{return JSON.parse(localStorage.getItem('clientes_bd')||'[]');}catch(e){return[];}}
+
+// ── PAGOS ATRASADOS ───────────────────────────────────────────────────────
+function addAtraso(concepto,periodo,monto){
+  _atCnt++;
+  document.getElementById('atrasosEmpty').style.display='none';
+  var wrap=document.getElementById('atrasosWrap');
+  var div=document.createElement('div');div.className='atraso-row';div.id='at-'+_atCnt;
+  var mkI=function(type,val,ph){var i=document.createElement('input');i.type=type;i.value=val||'';i.placeholder=ph;i.addEventListener('input',calcTotal);return i;};
+  var btn=document.createElement('button');btn.className='btn-danger btn-sm';btn.textContent='✕';
+  var id=_atCnt;
+  btn.onclick=function(){
+    var el=document.getElementById('at-'+id);if(el)el.remove();
+    if(!document.querySelectorAll('#atrasosWrap .atraso-row').length) document.getElementById('atrasosEmpty').style.display='';
+    calcTotal();
+  };
+  [mkI('text',concepto,'Concepto (ej: IVA oct-2025)'),mkI('text',periodo,'Período'),mkI('number',monto,'Monto $'),btn].forEach(function(el){div.appendChild(el);});
+  wrap.appendChild(div);calcTotal();
+}
+function getAtrasos(){
+  return Array.from(document.querySelectorAll('#atrasosWrap .atraso-row')).map(function(d){
+    var ins=d.querySelectorAll('input');
+    return{concepto:ins[0]?ins[0].value.trim():'',periodo:ins[1]?ins[1].value.trim():'',monto:ins[2]?parseFloat(ins[2].value)||0:0};
+  }).filter(function(a){return a.concepto||a.monto>0;});
+}
+
+// ── CÁLCULO TOTAL ─────────────────────────────────────────────────────────
+function calcTotal(){
+  var cot=nv('f-cot'),ces=nv('f-ces'),mutual=nv('f-mutual'),imp2=nv('f-imp2cat');
+  var iva=nv('f-iva'),ppm=nv('f-ppm'),ret=nv('f-ret'),otros=nv('f-otros-imp');
+  var honBase=nv('f-hon-base'),honVar=nv('f-hon-var');
+  var honTotal=honBase+honVar;
+  document.getElementById('f-hon-total').value=honTotal||'';
+  var atrasos=getAtrasos().reduce(function(s,a){return s+a.monto;},0);
+  var total=cot+ces+mutual+imp2+iva+ppm+ret+otros+honTotal+atrasos;
+  document.getElementById('totalVal').textContent=ff(total);
+  var partes=[];
+  if(cot+ces+mutual+imp2>0) partes.push('RRHH: '+ff(cot+ces+mutual+imp2));
+  if(iva+ppm+ret+otros>0) partes.push('Impuestos: '+ff(iva+ppm+ret+otros));
+  if(honTotal>0) partes.push('Honorarios: '+ff(honTotal));
+  if(atrasos>0) partes.push('Atrasos: '+ff(atrasos));
+  document.getElementById('totalDetalle').textContent=partes.join('  ·  ');
+}
+
+// ── CLIENTE CHANGE ────────────────────────────────────────────────────────
+function onClienteChange(){
+  var rut=sv('f-cliente');
+  var box=document.getElementById('cliente-info-box');
+  if(!rut){box.style.display='none';return;}
+  var c=getClientes().find(function(x){return x.rut===rut;});
+  if(!c){box.style.display='none';return;}
+  var honBase=c.valorBase||0;
+  var trab=parseInt(sv('f-trab'))||c.trabajadores||0;
+  var honVar=(c.valorTrab||0)*trab;
+  document.getElementById('f-hon-base').value=honBase||'';
+  document.getElementById('f-hon-var').value=honVar||'';
+  document.getElementById('f-hon-moneda').value=c.moneda||'CLP';
+  document.getElementById('f-trab').value=c.trabajadores||'';
+  document.getElementById('hon-var-hint').textContent=c.valorTrab?c.valorTrab+' '+c.moneda+'/trabajador':'';
+  document.getElementById('f-preparado').value=c.rrhh||'';
+  document.getElementById('f-revisado').value=c.contador||'';
+  var waHref=c.wa?'https://wa.me/56'+c.wa.replace(/\D/g,''):'';
+  box.style.display='block';
+  box.innerHTML='<div style="background:var(--pp);border:1px solid rgba(144,72,145,.2);border-radius:8px;padding:10px 14px;font-size:12px;display:flex;justify-content:space-between;align-items:center">'
+    +'<div><strong>'+hesc(c.razon)+'</strong> · '+hesc(c.reg||'')+(c.plan?' · Plan: '+hesc(c.plan):'')+'</div>'
+    +(waHref?'<a class="btn-wa btn-sm" href="'+waHref+'" target="_blank">💬 WhatsApp</a>':'')
+    +'</div>';
+  calcTotal();
+}
+
+// ── MODAL FORM ────────────────────────────────────────────────────────────
+function popularSelectClientes(){
+  var clientes=getClientes().filter(function(c){return c.estado==='activo'||c.estado==='onboarding';});
+  var selects=['f-cliente','selectClienteHist'];
+  selects.forEach(function(sid){
+    var sel=document.getElementById(sid);if(!sel)return;
+    var cur=sel.value;
+    sel.innerHTML='<option value="">'+( sid==='f-cliente'?'Seleccionar cliente...':'Selecciona un cliente...')+'</option>';
+    clientes.forEach(function(c){
+      var opt=document.createElement('option');opt.value=c.rut;opt.textContent=c.razon;sel.appendChild(opt);
+    });
+    if(cur) sel.value=cur;
+  });
+}
+
+function resetForm(){
+  ['f-cliente','f-periodo','f-trab','f-sueldos','f-cot','f-ces','f-mutual','f-imp2cat','f-iva','f-ppm','f-ret','f-otros-imp','f-hon-base','f-hon-var','f-hon-total','f-hon-moneda','f-factura','f-obs-rrhh','f-obs-cont','f-recomendaciones','f-preparado','f-revisado'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('f-hon-estado').value='pendiente';
+  document.getElementById('f-estado').value='borrador';
+  document.getElementById('atrasosWrap').innerHTML='';_atCnt=0;
+  document.getElementById('atrasosEmpty').style.display='';
+  document.getElementById('cliente-info-box').style.display='none';
+  document.getElementById('hon-var-hint').textContent='';
+  calcTotal();setPeriodoActual();
+}
+
+function abrirModalNuevo(){
+  _editId=null;resetForm();popularSelectClientes();
+  document.getElementById('modalTitle').textContent='Nuevo Reporte Mensual';
+  document.getElementById('modal').classList.add('on');
+}
+
+function abrirModalEditar(id){
+  var r=getReportes().find(function(x){return x.id===id;});if(!r)return;
+  _editId=id;resetForm();popularSelectClientes();
+  document.getElementById('modalTitle').textContent='Editar Reporte — '+formatPeriodo(r.periodo);
+  document.getElementById('f-cliente').value=r.rut||'';
+  document.getElementById('f-periodo').value=r.periodo||'';
+  ['trab','sueldos','cot','ces','mutual','imp2cat','iva','ppm','ret','otros-imp','hon-base','hon-var','hon-total'].forEach(function(k){
+    var el=document.getElementById('f-'+k);if(el&&r[k.replace(/-/g,'_')]!==undefined)el.value=r[k.replace(/-/g,'_')]||'';
+  });
+  document.getElementById('f-hon-moneda').value=r.honMoneda||'CLP';
+  document.getElementById('f-factura').value=r.factura||'';
+  document.getElementById('f-obs-rrhh').value=r.obsRrhh||'';
+  document.getElementById('f-obs-cont').value=r.obsCont||'';
+  document.getElementById('f-recomendaciones').value=r.recomendaciones||'';
+  document.getElementById('f-preparado').value=r.preparado||'';
+  document.getElementById('f-revisado').value=r.revisado||'';
+  document.getElementById('f-hon-estado').value=r.honEstado||'pendiente';
+  document.getElementById('f-estado').value=r.estado||'borrador';
+  (r.atrasos||[]).forEach(function(a){addAtraso(a.concepto,a.periodo,a.monto);});
+  onClienteChange();closeVista();
+  document.getElementById('modal').classList.add('on');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('on');}
+
+function guardarReporte(estado){
+  var rut=sv('f-cliente'),periodo=sv('f-periodo');
+  if(!rut||!periodo){alert('Selecciona un cliente y un período.');return;}
+  var c=getClientes().find(function(x){return x.rut===rut;});
+  var arr=getReportes();
+  var r={
+    id:_editId||Date.now(),rut,
+    clienteNombre:c?c.razon:'',clienteWa:c?c.wa:'',
+    periodo,
+    trab:nv('f-trab'),sueldos:nv('f-sueldos'),cot:nv('f-cot'),ces:nv('f-ces'),
+    mutual:nv('f-mutual'),imp2_cat:nv('f-imp2cat'),
+    iva:nv('f-iva'),ppm:nv('f-ppm'),ret:nv('f-ret'),otros_imp:nv('f-otros-imp'),
+    hon_base:nv('f-hon-base'),hon_var:nv('f-hon-var'),hon_total:nv('f-hon-total'),
+    honMoneda:sv('f-hon-moneda')||'CLP',factura:sv('f-factura'),
+    honEstado:sv('f-hon-estado'),
+    obsRrhh:sv('f-obs-rrhh'),obsCont:sv('f-obs-cont'),
+    recomendaciones:sv('f-recomendaciones'),
+    preparado:sv('f-preparado'),revisado:sv('f-revisado'),
+    atrasos:getAtrasos(),
+    estado:estado||'borrador',ts:Date.now()
+  };
+  r.totalRrhh=r.cot+r.ces+r.mutual+r.imp2_cat;
+  r.totalImp=r.iva+r.ppm+r.ret+r.otros_imp;
+  r.totalAtrasos=(r.atrasos||[]).reduce(function(s,a){return s+a.monto;},0);
+  r.totalGeneral=r.totalRrhh+r.totalImp+r.hon_total+r.totalAtrasos;
+  if(_editId){var idx=arr.findIndex(function(x){return x.id===_editId;});if(idx>=0)arr[idx]=r;else arr.unshift(r);}
+  else arr.unshift(r);
+  setReportes(arr);closeModal();
+}
+
+// ── VISTA REPORTE ─────────────────────────────────────────────────────────
+function verReporte(id){
+  var r=getReportes().find(function(x){return x.id===id;});if(!r)return;
+  _vistaId=id;
+  var waHref=r.clienteWa?'https://wa.me/56'+r.clienteWa.replace(/\D/g,''):'';
+  var estBadge=r.estado==='enviado'?'badge-enviado':'badge-borrador';
+
+  var atrasosHTML=(r.atrasos||[]).length?(r.atrasos||[]).map(function(a){
+    return'<tr><td style="padding:6px 12px;border-bottom:1px solid var(--bdr)">'+hesc(a.concepto)+'</td>'
+      +'<td style="padding:6px 12px;border-bottom:1px solid var(--bdr);color:var(--tm)">'+hesc(a.periodo)+'</td>'
+      +'<td style="padding:6px 12px;border-bottom:1px solid var(--bdr);text-align:right;font-weight:600;color:var(--red)">'+ff(a.monto)+'</td></tr>';
+  }).join(''):'<tr><td colspan="3" style="padding:10px 12px;color:var(--tm);font-size:12px">Sin pagos atrasados</td></tr>';
+
+  document.getElementById('vistaContent').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <div>
+        <h2 style="color:var(--p);margin-bottom:4px">Reporte Mensual de Gestión</h2>
+        <div style="font-size:13px;color:var(--tm)">${formatPeriodo(r.periodo)}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="badge ${estBadge}">${r.estado==='enviado'?'✅ Enviado':'📝 Borrador'}</span>
+        ${waHref?'<a class="btn-wa btn-sm" href="'+waHref+'" target="_blank">💬 WhatsApp cliente</a>':''}
+      </div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,var(--pd),var(--p));border-radius:10px;padding:18px 22px;color:#fff;margin-bottom:16px">
+      <div style="font-size:18px;font-weight:700;margin-bottom:2px">${hesc(r.clienteNombre)}</div>
+      <div style="font-size:12px;opacity:.65">${hesc(r.rut)} · Período: ${formatPeriodo(r.periodo)}</div>
+      <div style="margin-top:12px;display:flex;gap:20px;flex-wrap:wrap">
+        <div><div style="font-size:10px;opacity:.6;text-transform:uppercase;letter-spacing:1px">Total a pagar</div><div style="font-size:22px;font-weight:700">${ff(r.totalGeneral)}</div></div>
+        <div><div style="font-size:10px;opacity:.6;text-transform:uppercase;letter-spacing:1px">Honorarios Contadoor</div><div style="font-size:16px;font-weight:600">${ff(r.hon_total)}</div></div>
+        <div><div style="font-size:10px;opacity:.6;text-transform:uppercase;letter-spacing:1px">Trabajadores</div><div style="font-size:16px;font-weight:600">${r.trab||0}</div></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">👥 Remuneraciones</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          ${r.sueldos?'<tr><td style="padding:5px 0;border-bottom:1px solid var(--bdr);color:var(--t2)">Sueldos líquidos</td><td style="text-align:right;font-weight:600;padding:5px 0;border-bottom:1px solid var(--bdr)">'+ff(r.sueldos)+'</td></tr>':''}
+          ${r.cot?'<tr><td style="padding:5px 0;border-bottom:1px solid var(--bdr);color:var(--t2)">AFP + Salud</td><td style="text-align:right;font-weight:600;padding:5px 0;border-bottom:1px solid var(--bdr)">'+ff(r.cot)+'</td></tr>':''}
+          ${r.ces?'<tr><td style="padding:5px 0;border-bottom:1px solid var(--bdr);color:var(--t2)">Seguro Cesantía</td><td style="text-align:right;font-weight:600;padding:5px 0;border-bottom:1px solid var(--bdr)">'+ff(r.ces)+'</td></tr>':''}
+          ${r.mutual?'<tr><td style="padding:5px 0;border-bottom:1px solid var(--bdr);color:var(--t2)">Mutual</td><td style="text-align:right;font-weight:600;padding:5px 0;border-bottom:1px solid var(--bdr)">'+ff(r.mutual)+'</td></tr>':''}
+          ${r.imp2_cat?'<tr><td style="padding:5px 0;border-bottom:1px solid var(--bdr);color:var(--t2)">Impuesto 2ª Cat.</td><td style="text-align:right;font-weight:600;padding:5px 0;border-bottom:1px solid var(--bdr)">'+ff(r.imp2_cat)+'</td></tr>':''}
+          <tr style="background:rgba(45,155,111,.08)"><td style="padding:6px 0;font-weight:700;color:var(--green)">Total RRHH</td><td style="text-align:right;font-weight:700;color:var(--green);padding:6px 0">${ff(r.totalRrhh)}</td></tr>
+        </table>
+        ${r.obsRrhh?'<div style="margin-top:6px;font-size:11px;color:var(--tm);font-style:italic">'+hesc(r.obsRrhh)+'</div>':''}
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">📊 Impuestos</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          ${r.iva?'<tr><td style="padding:5px 0;border-bottom:1px solid var(--bdr);color:var(--t2)">IVA</td><td style="text-align:right;font-weight:600;padding:5px 0;border-bottom:1px solid var(--bdr)">'+ff(r.iva)+'</td></tr>':''}
+          ${r.ppm?'<tr><td style="padding:5px 0;border-bottom:1px solid var(--bdr);color:var(--t2)">PPM</td><td style="text-align:right;font-weight:600;padding:5px 0;border-bottom:1px solid var(--bdr)">'+ff(r.ppm)+'</td></tr>':''}
+          ${r.ret?'<tr><td style="padding:5px 0;border-bottom:1px solid var(--bdr);color:var(--t2)">Retenciones 2ª Cat.</td><td style="text-align:right;font-weight:600;padding:5px 0;border-bottom:1px solid var(--bdr)">'+ff(r.ret)+'</td></tr>':''}
+          ${r.otros_imp?'<tr><td style="padding:5px 0;border-bottom:1px solid var(--bdr);color:var(--t2)">Otros impuestos</td><td style="text-align:right;font-weight:600;padding:5px 0;border-bottom:1px solid var(--bdr)">'+ff(r.otros_imp)+'</td></tr>':''}
+          <tr style="background:rgba(192,122,26,.08)"><td style="padding:6px 0;font-weight:700;color:var(--amber)">Total Impuestos</td><td style="text-align:right;font-weight:700;color:var(--amber);padding:6px 0">${ff(r.totalImp)}</td></tr>
+        </table>
+        ${r.obsCont?'<div style="margin-top:6px;font-size:11px;color:var(--tm);font-style:italic">'+hesc(r.obsCont)+'</div>':''}
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">💼 Honorarios Contadoor</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;font-size:13px">
+          <div style="font-size:10px;color:#1e40af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Valor base</div>
+          <div style="font-weight:700">${ff(r.hon_base)}</div>
+        </div>
+        ${r.hon_var?'<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;font-size:13px"><div style="font-size:10px;color:#1e40af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Variable ('+r.trab+' trab.)</div><div style="font-weight:700">'+ff(r.hon_var)+'</div></div>':''}
+        <div style="background:#eff6ff;border:2px solid #3B82F6;border-radius:8px;padding:10px 14px;font-size:13px">
+          <div style="font-size:10px;color:#1e40af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Total honorarios</div>
+          <div style="font-weight:700;color:#1e40af;font-size:15px">${ff(r.hon_total)}</div>
+        </div>
+        <div style="background:${r.honEstado==='pagado'?'#ecfdf5':'#fef3c7'};border:1px solid ${r.honEstado==='pagado'?'#a7f3d0':'#fde68a'};border-radius:8px;padding:10px 14px;font-size:13px">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px;color:${r.honEstado==='pagado'?'#064e3b':'#78350f'}">Estado pago</div>
+          <div style="font-weight:700;color:${r.honEstado==='pagado'?'#064e3b':'#78350f'}">${r.honEstado==='pagado'?'✅ Pagado':'⏳ Pendiente'}</div>
+        </div>
+        ${r.factura?'<div style="background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:10px 14px;font-size:13px"><div style="font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">N° Factura</div><div style="font-weight:600">'+(r.factura)+'</div></div>':''}
+      </div>
+    </div>
+
+    ${(r.atrasos||[]).length?`
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">⚠️ Pagos períodos anteriores</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid var(--bdr);border-radius:8px;overflow:hidden">
+        <thead><tr style="background:var(--sur2)"><th style="padding:8px 12px;text-align:left;color:var(--t2)">Concepto</th><th style="padding:8px 12px;text-align:left;color:var(--t2)">Período</th><th style="padding:8px 12px;text-align:right;color:var(--t2)">Monto</th></tr></thead>
+        <tbody>${atrasosHTML}</tbody>
+        <tfoot><tr style="background:#fff0f0"><td colspan="2" style="padding:8px 12px;font-weight:700;color:var(--red)">Total atrasos</td><td style="padding:8px 12px;text-align:right;font-weight:700;color:var(--red)">${ff(r.totalAtrasos)}</td></tr></tfoot>
+      </table>
+    </div>`:''}
+
+    ${r.recomendaciones?`
+    <div style="background:linear-gradient(135deg,var(--pp),#fff);border:1px solid rgba(144,72,145,.2);border-radius:10px;padding:16px 18px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">💡 Recomendaciones tributarias del mes</div>
+      <div style="font-size:13px;color:var(--t2);line-height:1.7;white-space:pre-wrap">${hesc(r.recomendaciones)}</div>
+    </div>`:''}
+
+    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:12px 16px;font-size:12px;color:var(--tm)">
+      <div>${r.preparado?'Preparado por: <strong>'+hesc(r.preparado)+'</strong>':''} ${r.revisado?' · Revisado por: <strong>'+hesc(r.revisado)+'</strong>':''}</div>
+      <div>Contadoor Chile · contadoor.cl · +56 9 7988 1891</div>
+    </div>
+  `;
+  document.getElementById('modalVista').classList.add('on');
+}
+
+function closeVista(){document.getElementById('modalVista').classList.remove('on');}
+function editarDesdeVista(){if(_vistaId)abrirModalEditar(_vistaId);}
+function imprimirReporte(){window.print();}
+
+function enviarEmail(){
+  var r=getReportes().find(function(x){return x.id===_vistaId;});if(!r)return;
+  var c=getClientes().find(function(x){return x.rut===r.rut;});
+  var to=c?c.email:'';
+  var subject='Reporte Mensual de Gestión — '+formatPeriodo(r.periodo)+' — '+r.clienteNombre;
+  var body='Estimado/a,\n\nAdjunto encontrará el Reporte Mensual de Gestión correspondiente al período '+formatPeriodo(r.periodo)+'.\n\n'
+    +'RESUMEN:\n'
+    +'• Remuneraciones y cotizaciones: '+ff(r.totalRrhh)+'\n'
+    +'• Impuestos (IVA, PPM, otros): '+ff(r.totalImp)+'\n'
+    +'• Honorarios Contadoor: '+ff(r.hon_total)+'\n'
+    +(r.totalAtrasos?'• Pagos períodos anteriores: '+ff(r.totalAtrasos)+'\n':'')
+    +'• TOTAL A PAGAR: '+ff(r.totalGeneral)+'\n\n'
+    +(r.recomendaciones?'RECOMENDACIONES DEL MES:\n'+r.recomendaciones+'\n\n':'')
+    +'Cualquier consulta, estamos disponibles.\n\nContadoor Chile\ninfo@contadoor.cl · +56 9 7988 1891';
+  window.location.href='mailto:'+encodeURIComponent(to)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+}
+
+function enviarWhatsApp(){
+  var r=getReportes().find(function(x){return x.id===_vistaId;});if(!r)return;
+  if(!r.clienteWa){alert('Este cliente no tiene número de WhatsApp registrado.');return;}
+  var msg='Hola! Te enviamos el Reporte Mensual de Gestión de *'+r.clienteNombre+'* correspondiente a *'+formatPeriodo(r.periodo)+'*.\n\n'
+    +'📋 *RESUMEN:*\n'
+    +'👥 Remuneraciones: '+ff(r.totalRrhh)+'\n'
+    +'📊 Impuestos: '+ff(r.totalImp)+'\n'
+    +'💼 Honorarios Contadoor: '+ff(r.hon_total)+'\n'
+    +(r.totalAtrasos?'⚠️ Atrasos: '+ff(r.totalAtrasos)+'\n':'')
+    +'✅ *TOTAL: '+ff(r.totalGeneral)+'*\n\n'
+    +(r.recomendaciones?'💡 '+r.recomendaciones+'\n\n':'')
+    +'Cualquier consulta, escríbenos. Saludos, Contadoor.';
+  var waNum='56'+r.clienteWa.replace(/\D/g,'');
+  window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+// ── RENDER LISTA ──────────────────────────────────────────────────────────
+function renderLista(){
+  var arr=getReportes();
+  var mes=sv('filtroMes'),est=sv('filtroEstado'),q=(sv('filtroQ')||'').toLowerCase();
+  arr=arr.filter(function(r){
+    return(!mes||r.periodo===mes)&&(!est||r.estado===est)&&(!q||(r.clienteNombre||'').toLowerCase().includes(q)||(r.rut||'').includes(q));
+  });
+  var cont=document.getElementById('listaReportes');
+  if(!arr.length){cont.innerHTML='<div class="empty-state"><h3>No hay reportes</h3><p>Crea el primer reporte mensual con el botón "+ Nuevo reporte"</p></div>';return;}
+  cont.innerHTML=arr.map(function(r){
+    var estBadge=r.estado==='enviado'?'badge-enviado':'badge-borrador';
+    var waHref=r.clienteWa?'https://wa.me/56'+r.clienteWa.replace(/\D/g,''):'';
+    return'<div class="reporte-row">'
+      +'<div style="width:44px;height:44px;border-radius:10px;background:var(--pp);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📋</div>'
+      +'<div class="reporte-row-info">'
+      +'<div class="reporte-row-cliente">'+hesc(r.clienteNombre||r.rut)+'</div>'
+      +'<div class="reporte-row-meta">'+formatPeriodo(r.periodo)+' · '+r.trab+' trab. · <span class="badge '+estBadge+'">'+( r.estado==='enviado'?'Enviado':'Borrador')+'</span></div>'
+      +'</div>'
+      +'<div class="reporte-row-total">'+ff(r.totalGeneral)+'</div>'
+      +'<div class="reporte-row-actions">'
+      +(waHref?'<a class="btn-wa btn-sm" href="'+waHref+'" target="_blank">💬</a>':'')
+      +'<button class="btn-s btn-sm" onclick="verReporte('+r.id+')">Ver</button>'
+      +'<button class="btn-s btn-sm" onclick="abrirModalEditar('+r.id+')">✏️</button>'
+      +'<button class="btn-danger btn-sm" onclick="eliminarReporte('+r.id+')">🗑</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function eliminarReporte(id){
+  if(!confirm('¿Eliminar este reporte?'))return;
+  setReportes(getReportes().filter(function(x){return x.id!==id;}));
+}
+
+// ── HISTORIAL POR CLIENTE ─────────────────────────────────────────────────
+function renderHistorialCliente(){
+  var rut=sv('selectClienteHist');
+  var cont=document.getElementById('historialClienteContent');
+  if(!rut){cont.innerHTML='';return;}
+  var arr=getReportes().filter(function(r){return r.rut===rut;}).sort(function(a,b){return a.periodo>b.periodo?-1:1;});
+  var c=getClientes().find(function(x){return x.rut===rut;});
+  var waHref=c&&c.wa?'https://wa.me/56'+c.wa.replace(/\D/g,''):'';
+  if(!arr.length){cont.innerHTML='<div class="empty-state"><h3>Sin reportes para este cliente</h3></div>';return;}
+  // Gráfico de tendencia
+  var maxTotal=Math.max.apply(null,arr.map(function(r){return r.totalGeneral;}));
+  var barsHTML=arr.slice().reverse().map(function(r){
+    var pct=maxTotal>0?(r.totalGeneral/maxTotal*100):0;
+    return'<div class="bar-col">'
+      +'<div class="bar-val">'+ff(r.totalGeneral).replace('$','').replace(/\./g,'')/1000+'K</div>'
+      +'<div class="bar-fill" style="height:'+Math.max(4,pct)+'px"></div>'
+      +'<div class="bar-lbl">'+formatPeriodo(r.periodo).slice(0,3)+'</div>'
+      +'</div>';
+  }).join('');
+
+  cont.innerHTML=(c?'<div style="background:var(--pp);border:1px solid rgba(144,72,145,.2);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">'
+    +'<div><strong>'+hesc(c.razon)+'</strong> · '+hesc(c.rut)+'</div>'
+    +(waHref?'<a class="btn-wa btn-sm" href="'+waHref+'" target="_blank">💬 WhatsApp</a>':'')
+    +'</div>':'')
+    +'<div class="chart-wrap"><h3>Tendencia de pagos — últimos '+arr.length+' períodos</h3><div class="bar-chart">'+barsHTML+'</div></div>'
+    +'<div class="reporte-list">'+arr.map(function(r){
+      var estBadge=r.estado==='enviado'?'badge-enviado':'badge-borrador';
+      return'<div class="reporte-row">'
+        +'<div class="reporte-row-info">'
+        +'<div class="reporte-row-cliente">'+formatPeriodo(r.periodo)+'</div>'
+        +'<div class="reporte-row-meta">'+r.trab+' trabajadores · <span class="badge '+estBadge+'">'+( r.estado==='enviado'?'Enviado':'Borrador')+'</span></div>'
+        +'</div>'
+        +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:right;font-size:12px">'
+        +'<div><div style="color:var(--tm);font-size:10px">RRHH</div><div style="font-weight:600">'+ff(r.totalRrhh)+'</div></div>'
+        +'<div><div style="color:var(--tm);font-size:10px">Impuestos</div><div style="font-weight:600">'+ff(r.totalImp)+'</div></div>'
+        +'<div><div style="color:var(--tm);font-size:10px">Honorarios</div><div style="font-weight:600">'+ff(r.hon_total)+'</div></div>'
+        +'</div>'
+        +'<div class="reporte-row-total">'+ff(r.totalGeneral)+'</div>'
+        +'<div class="reporte-row-actions">'
+        +'<button class="btn-s btn-sm" onclick="verReporte('+r.id+')">Ver</button>'
+        +'<button class="btn-s btn-sm" onclick="abrirModalEditar('+r.id+')">✏️</button>'
+        +'</div></div>';
+    }).join('')+'</div>';
+}
+
+// ── HISTORIAL POR MES ─────────────────────────────────────────────────────
+function renderHistorialMes(){
+  var mes=sv('selectMesHist');
+  var cont=document.getElementById('historialMesContent');
+  if(!mes){cont.innerHTML='';return;}
+  var arr=getReportes().filter(function(r){return r.periodo===mes;});
+  if(!arr.length){cont.innerHTML='<div class="empty-state"><h3>Sin reportes para este período</h3></div>';return;}
+  var totalPeriodo=arr.reduce(function(s,r){return s+r.totalGeneral;},0);
+  var enviados=arr.filter(function(r){return r.estado==='enviado';}).length;
+  cont.innerHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">'
+    +'<div class="stat-box"><div class="sv">'+arr.length+'</div><div class="sl">Reportes</div></div>'
+    +'<div class="stat-box"><div class="sv">'+enviados+'</div><div class="sl">Enviados</div></div>'
+    +'<div class="stat-box"><div class="sv">'+ff(totalPeriodo).replace('$','$')+'</div><div class="sl">Total período</div></div>'
+    +'</div>'
+    +'<div class="reporte-list">'+arr.map(function(r){
+      var estBadge=r.estado==='enviado'?'badge-enviado':'badge-borrador';
+      var waHref=r.clienteWa?'https://wa.me/56'+r.clienteWa.replace(/\D/g,''):'';
+      return'<div class="reporte-row">'
+        +'<div class="reporte-row-info">'
+        +'<div class="reporte-row-cliente">'+hesc(r.clienteNombre||r.rut)+'</div>'
+        +'<div class="reporte-row-meta">'+r.trab+' trab. · <span class="badge '+estBadge+'">'+( r.estado==='enviado'?'Enviado':'Borrador')+'</span></div>'
+        +'</div>'
+        +'<div class="reporte-row-total">'+ff(r.totalGeneral)+'</div>'
+        +'<div class="reporte-row-actions">'
+        +(waHref?'<a class="btn-wa btn-sm" href="'+waHref+'" target="_blank">💬</a>':'')
+        +'<button class="btn-s btn-sm" onclick="verReporte('+r.id+')">Ver</button>'
+        +'<button class="btn-s btn-sm" onclick="abrirModalEditar('+r.id+')">✏️</button>'
+        +'</div></div>';
+    }).join('')+'</div>';
+}
+
+// ── POPULARES SELECT MES ──────────────────────────────────────────────────
+function popularSelectMeses(){
+  var arr=getReportes();
+  var meses=[...new Set(arr.map(function(r){return r.periodo;}).filter(Boolean))].sort().reverse();
+  ['filtroMes','selectMesHist'].forEach(function(sid){
+    var sel=document.getElementById(sid);if(!sel)return;
+    var cur=sel.value;
+    var placeholder=sid==='filtroMes'?'Todos los meses':'Selecciona un mes...';
+    sel.innerHTML='<option value="">'+placeholder+'</option>';
+    meses.forEach(function(m){
+      var opt=document.createElement('option');opt.value=m;opt.textContent=formatPeriodo(m);sel.appendChild(opt);
+    });
+    if(cur)sel.value=cur;
+  });
+}
+
+// ── VISTAS ────────────────────────────────────────────────────────────────
+function setView(v){
+  document.querySelectorAll('.view').forEach(function(el){el.classList.remove('on');});
+  document.querySelectorAll('.tab').forEach(function(el){el.classList.remove('on');});
+  document.getElementById('view-'+v).classList.add('on');
+  document.querySelector('[onclick="setView(\''+v+'\')"]').classList.add('on');
+  if(v==='porcliente')popularSelectClientes();
+}
+
+function renderAll(){
+  popularSelectMeses();popularSelectClientes();
+  renderLista();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+renderAll();
+</script>
+</body>
+</html>
