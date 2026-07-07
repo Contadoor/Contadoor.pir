@@ -1,0 +1,721 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contadoor.app — Control de Pagos</title>
+<style>
+:root{--p:#904891;--pd:#6D2E6E;--pp:#F5EAF5;--deep:#08040f;--bg:#f0ebff;--sur:#fff;--sur2:#faf7fa;--bdr:#e8dde8;--t1:#1a0a1b;--t2:#5c4a5d;--tm:#9a849b;--green:#2D9B6F;--amber:#C07A1A;--red:#C0392B;--blue:#3B82F6;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100vh;}
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:220px;background:var(--deep);display:flex;flex-direction:column;position:fixed;height:100vh;z-index:20;}
+.main{margin-left:220px;flex:1;}
+.sb-logo{padding:18px 16px 12px;border-bottom:1px solid rgba(144,72,145,.3);}
+.sb-logo img{width:140px;display:block;}
+.sb-tagline{font-size:9px;color:rgba(255,255,255,.28);letter-spacing:1px;text-transform:uppercase;margin-top:5px;}
+.sb-nav{padding:12px 8px;flex:1;}
+.sb-sec{font-size:9px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.25);text-transform:uppercase;padding:10px 8px 4px;margin-top:4px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.55);transition:.15s;margin-bottom:1px;text-decoration:none;}
+.sb-item:hover{background:rgba(144,72,145,.18);color:#fff;}
+.sb-item.on{background:rgba(144,72,145,.3);color:#fff;font-weight:600;}
+.sb-item svg{width:14px;height:14px;flex-shrink:0;}
+.sb-foot{padding:12px 14px;border-top:1px solid rgba(144,72,145,.25);font-size:9px;color:rgba(255,255,255,.3);}
+.topbar{background:var(--deep);padding:10px 20px;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--p);position:sticky;top:0;z-index:10;}
+.tb-title{font-size:14px;font-weight:600;color:#fff;flex:1;}
+.content{padding:20px;}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;margin-bottom:14px;}
+.card-hd{font-size:11px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.fg4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+.fgroup{display:flex;flex-direction:column;gap:4px;}
+.fgroup label{font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;}
+.fgroup input,.fgroup select,.fgroup textarea{font-family:var(--sans);font-size:13px;border:1px solid var(--bdr);border-radius:7px;padding:7px 10px;color:var(--t1);background:var(--sur2);outline:none;transition:.15s;width:100%;}
+.fgroup input:focus,.fgroup select:focus,.fgroup textarea:focus{border-color:var(--p);}
+.fgroup .hint{font-size:10px;color:var(--tm);}
+.btn-p{background:var(--p);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;}
+.btn-p:hover{background:var(--pd);}
+.btn-s{background:transparent;color:var(--t1);border:1px solid var(--bdr);border-radius:8px;padding:8px 14px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;}
+.btn-s:hover{border-color:var(--p);color:var(--p);}
+.btn-wa{background:#25d366;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;text-decoration:none;}
+.btn-wa:hover{background:#1da851;}
+.btn-approve{background:#2D9B6F;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+.btn-approve:hover{background:#1d7a56;}
+.btn-reject{background:#C0392B;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+.btn-reject:hover{background:#922b21;}
+.btn-danger{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;border-radius:7px;padding:5px 10px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:6px;}
+.tab-bar{display:flex;gap:3px;background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:3px;margin-bottom:16px;width:fit-content;flex-wrap:wrap;}
+.tab{padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;color:var(--t2);transition:.15s;}
+.tab:hover{color:var(--p);}
+.tab.on{background:var(--p);color:#fff;font-weight:600;}
+.view{display:none;}.view.on{display:block;}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;display:none;align-items:center;justify-content:center;}
+.modal-bg.on{display:flex;}
+.modal{background:var(--sur);border-radius:14px;padding:24px;max-width:680px;width:96%;max-height:90vh;overflow-y:auto;}
+.modal h2{font-size:16px;font-weight:700;margin-bottom:4px;color:var(--p);}
+.modal-sub{font-size:12px;color:var(--tm);margin-bottom:18px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:14px;border-top:1px solid var(--bdr);}
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;}
+.stat-box{background:var(--sur);border:1px solid var(--bdr);border-radius:9px;padding:12px 14px;text-align:center;}
+.stat-box .sv{font-size:17px;font-weight:700;color:var(--p);font-family:monospace;}
+.stat-box .sl{font-size:10px;color:var(--tm);margin-top:2px;text-transform:uppercase;letter-spacing:.6px;}
+.search-bar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+.search-input{flex:1;min-width:160px;font-family:var(--sans);font-size:13px;border:1px solid var(--bdr);border-radius:8px;padding:8px 12px;outline:none;background:var(--sur);}
+.search-input:focus{border-color:var(--p);}
+.filter-sel{font-family:var(--sans);font-size:12px;border:1px solid var(--bdr);border-radius:7px;padding:7px 10px;outline:none;background:var(--sur);color:var(--t1);}
+.empty-state{text-align:center;padding:48px 24px;color:var(--tm);}
+.empty-state h3{font-size:15px;font-weight:600;margin-bottom:5px;color:var(--t2);}
+
+/* OBLIGACIÓN ROW */
+.oblig-row{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:16px 18px;margin-bottom:12px;transition:.15s;}
+.oblig-row:hover{border-color:rgba(144,72,145,.3);}
+.oblig-row.seleccionada{border-color:var(--p);background:var(--pp);}
+.oblig-row.vencida-border{border-left:3px solid var(--red);}
+
+/* FLUJO DE ESTADOS */
+.flujo{display:flex;gap:2px;margin:12px 0;}
+.flujo-paso{flex:1;padding:5px 4px;text-align:center;font-size:9.5px;font-weight:600;background:var(--sur2);border:1px solid var(--bdr);color:var(--tm);}
+.flujo-paso:first-child{border-radius:6px 0 0 6px;}
+.flujo-paso:last-child{border-radius:0 6px 6px 0;}
+.flujo-paso.activo{background:var(--p);color:#fff;border-color:var(--p);}
+.flujo-paso.hecho{background:var(--green);color:#fff;border-color:var(--green);}
+.flujo-paso.rechazado{background:var(--red);color:#fff;border-color:var(--red);}
+
+/* TRAZABILIDAD */
+.traza{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.traza-item{font-size:10px;color:var(--tm);background:var(--sur2);border:1px solid var(--bdr);border-radius:5px;padding:3px 8px;}
+.traza-item strong{color:var(--t2);}
+
+/* BADGE */
+.badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;display:inline-block;white-space:nowrap;}
+.b-creada{background:#f3f4f6;color:#374151;border:1px solid #d1d5db;}
+.b-transferido{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;}
+.b-aprobacion{background:#fef3c7;color:#78350f;border:1px solid #fde68a;}
+.b-aprobado{background:#ecfdf5;color:#064e3b;border:1px solid #a7f3d0;}
+.b-rechazado{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;}
+.b-cobrado{background:var(--pp);color:var(--pd);border:1px solid rgba(144,72,145,.2);}
+
+/* SELECCIÓN MÚLTIPLE */
+.seleccion-bar{background:var(--deep);border-radius:10px;padding:12px 18px;margin-bottom:14px;display:none;align-items:center;gap:12px;color:#fff;}
+.seleccion-bar.on{display:flex;}
+.sel-count{font-size:14px;font-weight:700;}
+.sel-monto{font-size:13px;color:rgba(255,255,255,.6);}
+
+/* APROBACIÓN PENDIENTE */
+.aprobacion-banner{background:linear-gradient(135deg,#C07A1A,#92400e);border-radius:10px;padding:14px 18px;margin-bottom:16px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.aprobacion-banner .count{font-size:20px;font-weight:700;}
+
+/* TIPO TAG */
+.tipo-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;background:var(--sur2);border:1px solid var(--bdr);}
+.vencido-pill{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;margin-left:5px;}
+
+/* CHECKBOX */
+.ob-check{width:18px;height:18px;cursor:pointer;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-logo">
+    <img src="https://assets.cdn.filesafe.space/kfq1F3czdejkInyTMLkO/media/6982b1a12dd9857339e39ae1.png" alt="Contadoor"/>
+    <div class="sb-tagline">Sistema de Gestión</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Sistema</div>
+    <a class="sb-item" href="../index.html">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Dashboard
+    </a>
+    <div class="sb-sec">Módulos</div>
+    <a class="sb-item" href="../clientes/index.html">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Clientes
+    </a>
+    <a class="sb-item" href="../reportes/index.html">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Reportes
+    </a>
+    <div class="sb-item on">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>Pagos
+    </div>
+    <a class="sb-item" href="../pir/index.html">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>PIR
+    </a>
+  </nav>
+  <div class="sb-foot">Contadoor.app v1.0</div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="tb-title">Control de Pagos y Obligaciones</div>
+    <button class="btn-s btn-sm" onclick="exportarCSV()">⬇ CSV</button>
+    <button class="btn-p btn-sm" onclick="abrirModalNuevo()">+ Nueva obligación</button>
+  </div>
+  <div class="content">
+
+    <!-- BANNER APROBACIONES PENDIENTES -->
+    <div id="aprobBanner" class="aprobacion-banner" style="display:none">
+      <div>
+        <div style="font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">⚠️ Pendiente de tu aprobación</div>
+        <div class="count" id="aprobCount">0 pagos esperan aprobación</div>
+        <div style="font-size:12px;opacity:.7;margin-top:2px" id="aprobMonto"></div>
+      </div>
+      <button class="btn-p" onclick="setView('aprobar')" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3)">Ver y aprobar →</button>
+    </div>
+
+    <div class="stats-row" id="statsRow"></div>
+
+    <!-- BARRA SELECCIÓN MÚLTIPLE -->
+    <div class="seleccion-bar" id="selBar">
+      <div class="sel-count" id="selCount">0 seleccionados</div>
+      <div class="sel-monto" id="selMonto"></div>
+      <div style="flex:1"></div>
+      <button class="btn-s btn-sm" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="deseleccionarTodo()">✕ Limpiar</button>
+      <button class="btn-approve btn-sm" onclick="solicitarAprobacion()">📧 Solicitar aprobación</button>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab on" onclick="setView('todas')">📋 Todas</div>
+      <div class="tab" onclick="setView('creadas')">✏️ Creadas</div>
+      <div class="tab" onclick="setView('transferido')">💳 Transferidas</div>
+      <div class="tab" onclick="setView('aprobacion')">⏳ En aprobación</div>
+      <div class="tab" onclick="setView('aprobar')">✅ Aprobar <span id="tabAprobBadge" style="display:none;background:#C07A1A;color:#fff;border-radius:10px;padding:1px 6px;font-size:9px;margin-left:3px">0</span></div>
+      <div class="tab" onclick="setView('historial')">📁 Historial</div>
+    </div>
+
+    <div class="search-bar">
+      <input class="search-input" type="text" id="searchQ" placeholder="Buscar cliente, concepto, tipo..." oninput="renderObligaciones()"/>
+      <select class="filter-sel" id="filterTipo" onchange="renderObligaciones()">
+        <option value="">Todos los tipos</option>
+        <option value="Finiquito">Finiquito</option>
+        <option value="Cotizaciones previsionales">Cotizaciones</option>
+        <option value="IVA / PPM / Impuestos SII">IVA / PPM / SII</option>
+        <option value="Honorarios a terceros">Honorarios</option>
+        <option value="Multas y recargos">Multas</option>
+        <option value="Cuotas créditos bancarios">Créditos</option>
+        <option value="Otro">Otro</option>
+      </select>
+      <select class="filter-sel" id="filterCliente" onchange="renderObligaciones()">
+        <option value="">Todos los clientes</option>
+      </select>
+    </div>
+
+    <div id="obligacionesList"></div>
+  </div>
+</main>
+</div>
+
+<!-- MODAL NUEVA / EDITAR OBLIGACIÓN -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h2 id="modalTitle">Nueva Obligación</h2>
+    <div class="modal-sub">El analista que crea la obligación queda registrado automáticamente</div>
+    <input type="hidden" id="f-id"/>
+
+    <div class="card-hd">📋 Datos de la obligación</div>
+    <div class="fg2" style="margin-bottom:12px">
+      <div class="fgroup" style="grid-column:1/3">
+        <label>Cliente *</label>
+        <select id="f-cliente" onchange="onClienteChange()"><option value="">Seleccionar...</option></select>
+      </div>
+      <div class="fgroup">
+        <label>Tipo *</label>
+        <select id="f-tipo">
+          <option value="">Seleccionar...</option>
+          <option value="Finiquito">Finiquito</option>
+          <option value="Cotizaciones previsionales">Cotizaciones previsionales</option>
+          <option value="IVA / PPM / Impuestos SII">IVA / PPM / Impuestos SII</option>
+          <option value="Honorarios a terceros">Honorarios a terceros</option>
+          <option value="Multas y recargos">Multas y recargos</option>
+          <option value="Cuotas créditos bancarios">Cuotas créditos bancarios</option>
+          <option value="Otro">Otro pago especial</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label>Concepto / Descripción *</label>
+        <input type="text" id="f-concepto" placeholder="Ej: Finiquito Juan Pérez nov-2025"/>
+      </div>
+      <div class="fgroup">
+        <label>Monto *</label>
+        <input type="number" id="f-monto" placeholder="0"/>
+      </div>
+      <div class="fgroup">
+        <label>Período al que corresponde</label>
+        <input type="month" id="f-periodo"/>
+      </div>
+      <div class="fgroup">
+        <label>Fecha límite de pago</label>
+        <input type="date" id="f-fecha-limite"/>
+      </div>
+      <div class="fgroup" style="grid-column:1/3">
+        <label>Creado por (analista) *</label>
+        <input type="text" id="f-creado-por" placeholder="Tu nombre"/>
+      </div>
+      <div class="fgroup">
+        <label>¿Se cobra al cliente?</label>
+        <select id="f-cobrar">
+          <option value="si">Sí — incluir en reporte</option>
+          <option value="no">No — gasto interno</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label>Prioridad</label>
+        <select id="f-prioridad">
+          <option value="normal">Normal</option>
+          <option value="urgente">Urgente</option>
+        </select>
+      </div>
+      <div class="fgroup" style="grid-column:1/3">
+        <label>Observaciones</label>
+        <textarea id="f-obs" rows="2" placeholder="Detalles adicionales..."></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-s" onclick="closeModal()">Cancelar</button>
+      <button class="btn-p" onclick="guardarObligacion()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONCILIAR (Analista de Pagos) -->
+<div class="modal-bg" id="modalConciliar">
+  <div class="modal" style="max-width:560px">
+    <h2>Registrar Transferencia</h2>
+    <div class="modal-sub" id="concilSub"></div>
+    <input type="hidden" id="c-id"/>
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#1e40af">
+      El analista de pagos carga los datos de la cartola bancaria y hace el match con esta obligación.
+    </div>
+    <div class="fg2" style="margin-bottom:12px">
+      <div class="fgroup">
+        <label>Fecha en cartola *</label>
+        <input type="date" id="c-fecha"/>
+      </div>
+      <div class="fgroup">
+        <label>Monto en cartola *</label>
+        <input type="number" id="c-monto"/>
+      </div>
+      <div class="fgroup">
+        <label>N° Referencia / Movimiento</label>
+        <input type="text" id="c-ref" placeholder="Ej: MOV-20241115-042"/>
+      </div>
+      <div class="fgroup">
+        <label>Cuenta bancaria</label>
+        <input type="text" id="c-cuenta" placeholder="Ej: Banco Estado cta. cte."/>
+      </div>
+      <div class="fgroup" style="grid-column:1/3">
+        <label>Descripción en cartola</label>
+        <input type="text" id="c-desc" placeholder="Texto del extracto bancario"/>
+      </div>
+      <div class="fgroup" style="grid-column:1/3">
+        <label>Conciliado por (analista de pagos) *</label>
+        <input type="text" id="c-quien" placeholder="Tu nombre"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-s" onclick="closeConciliar()">Cancelar</button>
+      <button class="btn-p" onclick="confirmarConciliacion()">💳 Marcar como Transferido</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL APROBAR/RECHAZAR (Luciano) -->
+<div class="modal-bg" id="modalAprobar">
+  <div class="modal" style="max-width:600px">
+    <h2>Aprobar o Rechazar Pago</h2>
+    <div class="modal-sub" id="aprobarSub"></div>
+    <input type="hidden" id="a-id"/>
+    <div id="aprobarDetalle" style="margin-bottom:14px"></div>
+    <div class="fgroup" style="margin-bottom:12px">
+      <label>Observaciones (opcional)</label>
+      <textarea id="a-obs" rows="2" placeholder="Motivo de rechazo u observación..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-s" onclick="closeAprobar()">Cancelar</button>
+      <button class="btn-reject" onclick="rechazarPago()">❌ Rechazar</button>
+      <button class="btn-approve" onclick="aprobarPago()">✅ Aprobar pago</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────
+var MASTER_EMAIL = 'lucianoduartec65@gmail.com'; // Email para solicitudes
+var MASTER_NOMBRE = 'Luciano';
+
+var ESTADOS = {
+  creada:      {label:'Creada',          cls:'b-creada',      icon:'✏️',  orden:0},
+  transferido: {label:'Transferido',     cls:'b-transferido', icon:'💳',  orden:1},
+  aprobacion:  {label:'En aprobación',   cls:'b-aprobacion',  icon:'⏳',  orden:2},
+  aprobado:    {label:'Aprobado',        cls:'b-aprobado',    icon:'✅',  orden:3},
+  rechazado:   {label:'Rechazado',       cls:'b-rechazado',   icon:'❌',  orden:1},
+  cobrado:     {label:'Cobrado',         cls:'b-cobrado',     icon:'💜',  orden:4}
+};
+var FLUJO_PASOS = ['creada','transferido','aprobacion','aprobado','cobrado'];
+
+var _editId=null, _accionId=null, _viewActual='todas', _seleccionados=new Set();
+
+function hesc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function ff(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
+function sv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+function nv(id){return parseFloat(sv(id))||0;}
+function hoy(){return new Date().toISOString().slice(0,10);}
+function esVencido(ob){return ob.estado==='creada'&&ob.fechaLimite&&ob.fechaLimite<hoy();}
+function ts(){return new Date().toLocaleString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+
+function getObs(){try{return JSON.parse(localStorage.getItem('pagos_bd')||'[]');}catch(e){return[];}}
+function setObs(arr){localStorage.setItem('pagos_bd',JSON.stringify(arr));renderAll();}
+function getClientes(){try{return JSON.parse(localStorage.getItem('clientes_bd')||'[]');}catch(e){return[];}}
+
+function popularSelectClientes(){
+  var cl=getClientes();
+  ['f-cliente','filterCliente'].forEach(function(sid){
+    var sel=document.getElementById(sid);if(!sel)return;
+    var cur=sel.value;
+    sel.innerHTML='<option value="">'+(sid==='f-cliente'?'Seleccionar...':'Todos los clientes')+'</option>';
+    cl.forEach(function(c){var o=document.createElement('option');o.value=c.rut;o.textContent=c.razon;sel.appendChild(o);});
+    if(cur)sel.value=cur;
+  });
+}
+
+function onClienteChange(){
+  var rut=sv('f-cliente');
+  var c=getClientes().find(function(x){return x.rut===rut;});
+}
+
+// ── MODAL NUEVA / EDITAR ──────────────────────────────────────────────────
+function resetForm(){
+  ['f-cliente','f-tipo','f-concepto','f-monto','f-periodo','f-fecha-limite','f-creado-por','f-obs'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('f-cobrar').value='si';
+  document.getElementById('f-prioridad').value='normal';
+}
+
+function abrirModalNuevo(){
+  _editId=null;resetForm();popularSelectClientes();
+  document.getElementById('modalTitle').textContent='Nueva Obligación';
+  document.getElementById('modal').classList.add('on');
+}
+
+function abrirModalEditar(id){
+  var ob=getObs().find(function(x){return x.id===id;});if(!ob)return;
+  if(ob.estado!=='creada'){alert('Solo se pueden editar obligaciones en estado Creada.');return;}
+  _editId=id;resetForm();popularSelectClientes();
+  document.getElementById('modalTitle').textContent='Editar Obligación';
+  document.getElementById('f-cliente').value=ob.rut||'';
+  document.getElementById('f-tipo').value=ob.tipo||'';
+  document.getElementById('f-concepto').value=ob.concepto||'';
+  document.getElementById('f-monto').value=ob.monto||'';
+  document.getElementById('f-periodo').value=ob.periodo||'';
+  document.getElementById('f-fecha-limite').value=ob.fechaLimite||'';
+  document.getElementById('f-creado-por').value=ob.creadoPor||'';
+  document.getElementById('f-cobrar').value=ob.cobrar||'si';
+  document.getElementById('f-prioridad').value=ob.prioridad||'normal';
+  document.getElementById('f-obs').value=ob.obs||'';
+  document.getElementById('modal').classList.add('on');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('on');}
+
+function guardarObligacion(){
+  var rut=sv('f-cliente'),concepto=sv('f-concepto'),tipo=sv('f-tipo'),quien=sv('f-creado-por');
+  if(!rut||!concepto||!tipo){alert('Cliente, tipo y concepto son obligatorios.');return;}
+  if(!quien){alert('Debes indicar quién crea esta obligación.');return;}
+  var cl=getClientes().find(function(x){return x.rut===rut;});
+  var arr=getObs();
+  var ob={
+    id:_editId||Date.now(),rut,
+    clienteNombre:cl?cl.razon:'',clienteWa:cl?cl.wa:'',
+    tipo,concepto,monto:nv('f-monto'),
+    periodo:sv('f-periodo'),fechaLimite:sv('f-fecha-limite'),
+    obs:sv('f-obs'),cobrar:sv('f-cobrar'),prioridad:sv('f-prioridad'),
+    creadoPor:quien,tsCreado:ts(),
+    estado:'creada',ts:Date.now()
+  };
+  if(_editId){
+    var idx=arr.findIndex(function(x){return x.id===_editId;});
+    if(idx>=0){ob.conciliacion=arr[idx].conciliacion;arr[idx]=ob;}
+    else arr.unshift(ob);
+  } else arr.unshift(ob);
+  setObs(arr);closeModal();
+}
+
+// ── CONCILIAR ─────────────────────────────────────────────────────────────
+function abrirConciliar(id){
+  var ob=getObs().find(function(x){return x.id===id;});if(!ob)return;
+  _accionId=id;
+  document.getElementById('concilSub').textContent=ob.concepto+' · '+ff(ob.monto);
+  document.getElementById('c-fecha').value=hoy();
+  document.getElementById('c-monto').value=ob.monto||'';
+  ['c-ref','c-cuenta','c-desc','c-quien'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('modalConciliar').classList.add('on');
+}
+function closeConciliar(){document.getElementById('modalConciliar').classList.remove('on');}
+function confirmarConciliacion(){
+  var fecha=sv('c-fecha'),monto=nv('c-monto'),quien=sv('c-quien');
+  if(!fecha||!monto){alert('Fecha y monto son obligatorios.');return;}
+  if(!quien){alert('Indica quién concilia este pago.');return;}
+  var arr=getObs();
+  var idx=arr.findIndex(function(x){return x.id===_accionId;});if(idx<0)return;
+  arr[idx].estado='transferido';
+  arr[idx].conciliacion={fecha,monto,ref:sv('c-ref'),cuenta:sv('c-cuenta'),desc:sv('c-desc'),quien,ts:ts()};
+  setObs(arr);closeConciliar();
+}
+
+// ── SELECCIÓN MÚLTIPLE ────────────────────────────────────────────────────
+function toggleSeleccion(id){
+  if(_seleccionados.has(id)) _seleccionados.delete(id);
+  else _seleccionados.add(id);
+  actualizarBarraSeleccion();
+  renderObligaciones();
+}
+function deseleccionarTodo(){_seleccionados.clear();actualizarBarraSeleccion();renderObligaciones();}
+function actualizarBarraSeleccion(){
+  var bar=document.getElementById('selBar');
+  var arr=getObs().filter(function(ob){return _seleccionados.has(ob.id);});
+  var total=arr.reduce(function(s,ob){return s+ob.monto;},0);
+  document.getElementById('selCount').textContent=_seleccionados.size+' seleccionado'+(arr.length!==1?'s':'');
+  document.getElementById('selMonto').textContent='Total: '+ff(total);
+  bar.classList.toggle('on',_seleccionados.size>0);
+}
+
+function solicitarAprobacion(){
+  if(!_seleccionados.size){alert('Selecciona al menos una obligación.');return;}
+  var arr=getObs();
+  var selArr=arr.filter(function(ob){return _seleccionados.has(ob.id)&&ob.estado==='transferido';});
+  if(!selArr.length){alert('Solo se pueden enviar a aprobación obligaciones en estado "Transferido".');return;}
+  var total=selArr.reduce(function(s,ob){return s+ob.monto;},0);
+
+  // Marcar como en aprobación
+  selArr.forEach(function(ob){
+    var idx=arr.findIndex(function(x){return x.id===ob.id;});
+    if(idx>=0){arr[idx].estado='aprobacion';arr[idx].tsSolicitud=ts();}
+  });
+  setObs(arr);_seleccionados.clear();actualizarBarraSeleccion();
+
+  // Generar email para Luciano
+  var subject='🔔 Aprobación requerida — '+selArr.length+' pago'+(selArr.length!==1?'s':'')+' · Total: '+ff(total);
+  var body='Hola '+MASTER_NOMBRE+',\n\nSe han enviado los siguientes pagos para tu aprobación:\n\n'
+    +selArr.map(function(ob,i){return(i+1)+'. '+ob.clienteNombre+' — '+ob.concepto+'\n   Tipo: '+ob.tipo+'\n   Monto: '+ff(ob.monto)+'\n   Creado por: '+ob.creadoPor+'\n   Conciliado por: '+(ob.conciliacion?ob.conciliacion.quien:'—')+'\n   Referencia cartola: '+(ob.conciliacion?ob.conciliacion.ref||'—':'—')+'\n';}).join('\n')
+    +'\nTOTAL A APROBAR: '+ff(total)+'\n\nIngresa al sistema para aprobar o rechazar:\nhttps://contadoor.github.io/Contadoor.app/pagos/\n\nContadoor.app';
+  window.location.href='mailto:'+encodeURIComponent(MASTER_EMAIL)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+}
+
+// ── APROBAR / RECHAZAR ────────────────────────────────────────────────────
+function abrirAprobar(id){
+  var ob=getObs().find(function(x){return x.id===id;});if(!ob)return;
+  _accionId=id;
+  document.getElementById('aprobarSub').textContent=ob.clienteNombre+' · '+ob.concepto;
+  document.getElementById('a-obs').value='';
+  document.getElementById('aprobarDetalle').innerHTML=
+    '<div style="background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:12px 16px;font-size:13px">'
+    +'<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--tm)">Monto</span><strong>'+ff(ob.monto)+'</strong></div>'
+    +'<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--tm)">Tipo</span><span>'+hesc(ob.tipo)+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--tm)">Creado por</span><span>'+hesc(ob.creadoPor)+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--tm)">Conciliado por</span><span>'+(ob.conciliacion?hesc(ob.conciliacion.quien):'—')+'</span></div>'
+    +(ob.conciliacion?'<div style="display:flex;justify-content:space-between"><span style="color:var(--tm)">Ref. cartola</span><span>'+hesc(ob.conciliacion.ref||'—')+'</span></div>':'')
+    +'</div>';
+  document.getElementById('modalAprobar').classList.add('on');
+}
+function closeAprobar(){document.getElementById('modalAprobar').classList.remove('on');}
+
+function aprobarPago(){
+  var arr=getObs();
+  var idx=arr.findIndex(function(x){return x.id===_accionId;});if(idx<0)return;
+  arr[idx].estado='aprobado';
+  arr[idx].aprobacion={quien:MASTER_NOMBRE,obs:sv('a-obs'),ts:ts()};
+  setObs(arr);closeAprobar();
+}
+function rechazarPago(){
+  var obs=sv('a-obs');
+  if(!obs){alert('Indica el motivo del rechazo.');return;}
+  var arr=getObs();
+  var idx=arr.findIndex(function(x){return x.id===_accionId;});if(idx<0)return;
+  arr[idx].estado='rechazado';
+  arr[idx].rechazo={quien:MASTER_NOMBRE,obs,ts:ts()};
+  setObs(arr);closeAprobar();
+}
+
+function marcarCobrado(id){
+  if(!confirm('¿Marcar como cobrado al cliente?'))return;
+  var arr=getObs();
+  var idx=arr.findIndex(function(x){return x.id===id;});if(idx<0)return;
+  arr[idx].estado='cobrado';arr[idx].tsCobrado=ts();
+  setObs(arr);
+}
+function eliminarObligacion(id){
+  if(!confirm('¿Eliminar esta obligación?'))return;
+  setObs(getObs().filter(function(x){return x.id!==id;}));
+}
+
+// ── RENDER STATS ──────────────────────────────────────────────────────────
+function renderStats(){
+  var arr=getObs();
+  var creadas=arr.filter(function(ob){return ob.estado==='creada';});
+  var vencidos=creadas.filter(function(ob){return esVencido(ob);});
+  var xConciliar=arr.filter(function(ob){return ob.estado==='transferido';});
+  var xAprobar=arr.filter(function(ob){return ob.estado==='aprobacion';});
+  var totalPend=arr.filter(function(ob){return['creada','transferido','aprobacion'].includes(ob.estado);}).reduce(function(s,ob){return s+ob.monto;},0);
+
+  document.getElementById('statsRow').innerHTML=[
+    {val:creadas.length,lbl:'Creadas'},
+    {val:vencidos.length,lbl:'Vencidas',color:vencidos.length?'#C0392B':null},
+    {val:xConciliar.length,lbl:'Por conciliar'},
+    {val:xAprobar.length,lbl:'En aprobación',color:xAprobar.length?'#C07A1A':null},
+    {val:ff(totalPend),lbl:'Monto pendiente'}
+  ].map(function(s){return'<div class="stat-box"><div class="sv"'+(s.color?' style="color:'+s.color+'"':'')+'>'+s.val+'</div><div class="sl">'+s.lbl+'</div></div>';}).join('');
+
+  // Banner aprobaciones
+  var banner=document.getElementById('aprobBanner');
+  var tab=document.getElementById('tabAprobBadge');
+  if(xAprobar.length>0){
+    banner.style.display='flex';
+    document.getElementById('aprobCount').textContent=xAprobar.length+' pago'+(xAprobar.length!==1?'s':'')+' esperan tu aprobación';
+    document.getElementById('aprobMonto').textContent='Total: '+ff(xAprobar.reduce(function(s,ob){return s+ob.monto;},0));
+    tab.textContent=xAprobar.length;tab.style.display='inline';
+  } else {banner.style.display='none';tab.style.display='none';}
+}
+
+// ── RENDER OBLIGACIONES ───────────────────────────────────────────────────
+function filtrarObs(){
+  var q=(sv('searchQ')||'').toLowerCase();
+  var tipo=sv('filterTipo'),cliente=sv('filterCliente');
+  var arr=getObs().filter(function(ob){
+    var mq=!q||(ob.clienteNombre||'').toLowerCase().includes(q)||(ob.concepto||'').toLowerCase().includes(q)||(ob.tipo||'').toLowerCase().includes(q)||(ob.creadoPor||'').toLowerCase().includes(q);
+    return mq&&(!tipo||ob.tipo===tipo)&&(!cliente||ob.rut===cliente);
+  });
+  if(_viewActual==='creadas') arr=arr.filter(function(ob){return ob.estado==='creada';});
+  if(_viewActual==='transferido') arr=arr.filter(function(ob){return ob.estado==='transferido';});
+  if(_viewActual==='aprobacion') arr=arr.filter(function(ob){return ob.estado==='aprobacion';});
+  if(_viewActual==='aprobar') arr=arr.filter(function(ob){return ob.estado==='aprobacion';});
+  if(_viewActual==='historial') arr=arr.filter(function(ob){return['aprobado','rechazado','cobrado'].includes(ob.estado);});
+  return arr.sort(function(a,b){return(b.ts||0)-(a.ts||0);});
+}
+
+function renderObligaciones(){
+  var arr=filtrarObs();
+  var cont=document.getElementById('obligacionesList');
+  if(!arr.length){
+    cont.innerHTML='<div class="empty-state"><h3>No hay obligaciones'+(
+      _viewActual==='creadas'?' creadas':
+      _viewActual==='transferido'?' por conciliar':
+      _viewActual==='aprobacion'||_viewActual==='aprobar'?' en aprobación':
+      _viewActual==='historial'?' en el historial':''
+    )+'</h3><p>'+(
+      _viewActual==='todas'?'Crea la primera con el botón "+ Nueva obligación"':
+      _viewActual==='aprobar'?'No hay pagos pendientes de tu aprobación 👍':'Cambia el filtro o la vista'
+    )+'</p></div>';
+    return;
+  }
+
+  cont.innerHTML=arr.map(function(ob){
+    var est=ESTADOS[ob.estado]||ESTADOS.creada;
+    var venc=esVencido(ob);
+    var waHref=ob.clienteWa?'https://wa.me/56'+ob.clienteWa.replace(/\D/g,''):'';
+    var esSel=_seleccionados.has(ob.id);
+    var puedeSeleccionar=ob.estado==='transferido';
+
+    // BARRA FLUJO
+    var flujoHTML=FLUJO_PASOS.map(function(p){
+      var ordenActual=ESTADOS[ob.estado]?ESTADOS[ob.estado].orden:0;
+      var ordenPaso=ESTADOS[p].orden;
+      var cls=ob.estado==='rechazado'&&p==='transferido'?'rechazado':ordenPaso<ordenActual?'hecho':ordenPaso===ordenActual?'activo':'';
+      return'<div class="flujo-paso '+cls+'">'+ESTADOS[p].icon+' '+ESTADOS[p].label+'</div>';
+    }).join('');
+
+    // TRAZABILIDAD
+    var trazaHTML='<div class="traza">'
+      +'<div class="traza-item">✏️ Creado por <strong>'+hesc(ob.creadoPor||'—')+'</strong>'+(ob.tsCreado?' · '+ob.tsCreado:'')+'</div>'
+      +(ob.conciliacion?'<div class="traza-item">💳 Conciliado por <strong>'+hesc(ob.conciliacion.quien)+'</strong> · '+ob.conciliacion.ts+'</div>':'')
+      +(ob.aprobacion?'<div class="traza-item">✅ Aprobado por <strong>'+hesc(ob.aprobacion.quien)+'</strong> · '+ob.aprobacion.ts+'</div>':'')
+      +(ob.rechazo?'<div class="traza-item" style="color:var(--red)">❌ Rechazado por <strong>'+hesc(ob.rechazo.quien)+'</strong>: '+hesc(ob.rechazo.obs)+'</div>':'')
+      +'</div>';
+
+    // DETALLE CARTOLA
+    var cartolaHTML='';
+    if(ob.conciliacion){
+      cartolaHTML='<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:8px 12px;font-size:11.5px;color:#1e40af;margin-top:8px">'
+        +'🏦 Cartola: '+ob.conciliacion.fecha+' · '+ff(ob.conciliacion.monto)
+        +(ob.conciliacion.ref?' · Ref: '+hesc(ob.conciliacion.ref):'')
+        +(ob.conciliacion.cuenta?' · '+hesc(ob.conciliacion.cuenta):'')
+        +'</div>';
+    }
+
+    // ACCIONES
+    var accionesHTML='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px">';
+    if(puedeSeleccionar){
+      accionesHTML+='<label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;color:var(--p);font-weight:600">'
+        +'<input type="checkbox" class="ob-check" '+(esSel?'checked':'')+' onchange="toggleSeleccion('+ob.id+')" onclick="event.stopPropagation()"/>'
+        +'Seleccionar para aprobación</label>';
+    }
+    if(waHref) accionesHTML+='<a class="btn-wa btn-sm" href="'+waHref+'" target="_blank">💬</a>';
+    if(ob.estado==='creada') accionesHTML+='<button class="btn-s btn-sm" onclick="abrirModalEditar('+ob.id+')">✏️ Editar</button>';
+    if(ob.estado==='creada') accionesHTML+='<button class="btn-p btn-sm" onclick="abrirConciliar('+ob.id+')">💳 Registrar transferencia</button>';
+    if(ob.estado==='aprobacion'&&_viewActual==='aprobar') accionesHTML+='<button class="btn-approve btn-sm" onclick="abrirAprobar('+ob.id+')">✅ Revisar y aprobar</button>';
+    if(ob.estado==='aprobado'&&ob.cobrar==='si') accionesHTML+='<button class="btn-p btn-sm" onclick="marcarCobrado('+ob.id+')">💜 Marcar cobrado</button>';
+    if(ob.estado==='rechazado') accionesHTML+='<button class="btn-s btn-sm" onclick="abrirModalEditar('+ob.id+')">🔄 Corregir y reenviar</button>';
+    accionesHTML+='<button class="btn-danger btn-sm" onclick="eliminarObligacion('+ob.id+')">🗑</button>';
+    accionesHTML+='</div>';
+
+    return'<div class="oblig-row'+(esSel?' seleccionada':'')+(venc?' vencida-border':'')+'">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px">'
+      +'<div style="flex:1">'
+      +'<div style="font-size:14px;font-weight:700;margin-bottom:3px">'
+      +'<span class="tipo-tag">'+hesc(ob.tipo)+'</span> '+hesc(ob.concepto)
+      +(venc?'<span class="vencido-pill">VENCIDO</span>':'')
+      +(ob.prioridad==='urgente'?'<span class="vencido-pill" style="background:#fef3c7;color:#78350f;border-color:#fde68a">URGENTE</span>':'')
+      +'</div>'
+      +'<div style="font-size:11.5px;color:var(--tm)">'
+      +hesc(ob.clienteNombre||ob.rut)
+      +(ob.periodo?' · '+ob.periodo:'')
+      +(ob.fechaLimite?' · Límite: '+ob.fechaLimite:'')
+      +(ob.cobrar==='si'?' · <strong style="color:var(--p)">Se cobra al cliente</strong>':'')
+      +'</div>'
+      +'</div>'
+      +'<div style="text-align:right;flex-shrink:0">'
+      +'<div style="font-size:19px;font-weight:700;color:var(--p)">'+ff(ob.monto)+'</div>'
+      +'<span class="badge '+est.cls+'" style="margin-top:4px;display:block;text-align:center">'+est.icon+' '+est.label+'</span>'
+      +'</div>'
+      +'</div>'
+      +'<div class="flujo">'+flujoHTML+'</div>'
+      +cartolaHTML
+      +trazaHTML
+      +(ob.obs?'<div style="font-size:11.5px;color:var(--tm);margin-top:6px;font-style:italic">'+hesc(ob.obs)+'</div>':'')
+      +accionesHTML
+      +'</div>';
+  }).join('');
+}
+
+function setView(v){
+  _viewActual=v;
+  document.querySelectorAll('.tab').forEach(function(el){el.classList.remove('on');});
+  var tab=document.querySelector('[onclick="setView(\''+v+'\')"]');
+  if(tab)tab.classList.add('on');
+  renderObligaciones();
+}
+
+function renderAll(){
+  popularSelectClientes();renderStats();renderObligaciones();
+}
+
+function exportarCSV(){
+  var arr=getObs();
+  var header=['Cliente','RUT','Tipo','Concepto','Monto','Período','Fecha límite','Estado','Creado por','Fecha creación','Conciliado por','Fecha cartola','Ref cartola','Aprobado/Rechazado por','Obs aprobación','Se cobra'];
+  var rows=arr.map(function(ob){
+    return[ob.clienteNombre,ob.rut,ob.tipo,ob.concepto,ob.monto||0,ob.periodo||'',ob.fechaLimite||'',ob.estado,ob.creadoPor||'',ob.tsCreado||'',
+      ob.conciliacion?ob.conciliacion.quien:'',ob.conciliacion?ob.conciliacion.fecha:'',ob.conciliacion?ob.conciliacion.ref:'',
+      ob.aprobacion?ob.aprobacion.quien:ob.rechazo?ob.rechazo.quien:'',
+      ob.aprobacion?ob.aprobacion.obs:ob.rechazo?ob.rechazo.obs:'',ob.cobrar
+    ].map(function(v){return'"'+String(v||'').replace(/"/g,'""')+'"';}).join(',');
+  });
+  var csv=[header.join(',')].concat(rows).join('\n');
+  var a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='pagos-contadoor-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+renderAll();
+</script>
+</body>
+</html>
