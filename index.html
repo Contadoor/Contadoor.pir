@@ -45,7 +45,6 @@ body{font-family:var(--sans);background:var(--deep);color:#f0ebff;min-height:100
 .badge{padding:3px 8px;border-radius:20px;font-size:9px;font-weight:700;}
 .b-activo{background:rgba(45,155,111,.2);color:#6ee7b7;border:1px solid rgba(45,155,111,.3);}
 .b-nuevo{background:rgba(144,72,145,.2);color:#d8b4fe;border:1px solid rgba(144,72,145,.3);}
-.b-dev{background:rgba(192,122,26,.2);color:#fcd34d;border:1px solid rgba(192,122,26,.3);}
 .b-plan{background:rgba(255,255,255,.06);color:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.1);}
 .mod-name{font-size:13px;font-weight:700;color:#fff;line-height:1.3;}
 .mod-desc{font-size:11px;color:rgba(255,255,255,.4);line-height:1.6;}
@@ -96,14 +95,14 @@ body{font-family:var(--sans);background:var(--deep);color:#f0ebff;min-height:100
 
 <div class="main">
 
-  <!-- BASE DE DATOS -->
+  <!-- BASE DE DATOS Y GESTIÓN -->
   <div class="section">
     <div class="sec-hd">
       <div class="sec-icon" style="background:rgba(144,72,145,.2)">👥</div>
-      <div><div class="sec-title">Base de Datos y Gestión</div><div class="sec-desc">Información central de clientes y reportes operativos</div></div>
+      <div><div class="sec-title">Base de Datos y Gestión</div><div class="sec-desc">Clientes, reportes operativos y facturación mensual</div></div>
     </div>
     <div class="sec-line"></div>
-    <div class="mod-grid g2">
+    <div class="mod-grid g3">
       <a class="mod" href="clientes/index.html" style="--mc:#904891">
         <div class="mod-top"><div class="mod-icon">👥</div><div class="mod-badges"><span class="badge b-activo">✅ Activo</span></div></div>
         <div><div class="mod-name">Base de Clientes</div><div class="mod-desc">Planes UF/CLP, equipo asignado, socios, credenciales, WhatsApp directo.</div></div>
@@ -112,10 +111,16 @@ body{font-family:var(--sans);background:var(--deep);color:#f0ebff;min-height:100
       </a>
       <a class="mod" href="reportes/index.html" style="--mc:#904891">
         <div class="mod-top"><div class="mod-icon">📋</div><div class="mod-badges"><span class="badge b-activo">✅ Activo</span></div></div>
-        <div><div class="mod-name">Reportes Mensuales</div><div class="mod-desc">RRHH + impuestos + honorarios + atrasos. Envío por email y WhatsApp. Historial y tendencias.</div></div>
-        <div class="mod-tags"><span class="mod-tag">PDF</span><span class="mod-tag">WhatsApp</span><span class="mod-tag">Tendencias</span></div>
+        <div><div class="mod-name">Reportes Mensuales</div><div class="mod-desc">RRHH + impuestos + honorarios + atrasos. Envío por email y WhatsApp.</div></div>
+        <div class="mod-tags"><span class="mod-tag">WhatsApp</span><span class="mod-tag">Email</span><span class="mod-tag">Tendencias</span></div>
         <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">reportes/</div></div>
       </a>
+      <div class="mod disabled" style="--mc:#904891">
+        <div class="mod-top"><div class="mod-icon">🧾</div><div class="mod-badges"><span class="badge b-plan">🔜 Próximo</span></div></div>
+        <div><div class="mod-name">Facturación</div><div class="mod-desc">Generador de archivo Haulmer. Planes fijos día 1, variables día 10. Alimenta CxC automáticamente.</div></div>
+        <div class="mod-tags"><span class="mod-tag">Haulmer</span><span class="mod-tag">UF día 1</span><span class="mod-tag">Planes fijos/variables</span></div>
+        <div class="mod-footer"><div class="mod-cta">En desarrollo</div><div class="mod-url">facturacion/</div></div>
+      </div>
     </div>
   </div>
 
@@ -123,32 +128,32 @@ body{font-family:var(--sans);background:var(--deep);color:#f0ebff;min-height:100
   <div class="section">
     <div class="sec-hd">
       <div class="sec-icon" style="background:rgba(192,122,26,.2)">💰</div>
-      <div><div class="sec-title">Módulo Financiero</div><div class="sec-desc">Pagos, conciliación bancaria, cobranza y convenios</div></div>
+      <div><div class="sec-title">Módulo Financiero</div><div class="sec-desc">Control de pagos, cobranza, conciliación bancaria y convenios</div></div>
     </div>
     <div class="sec-line"></div>
     <div class="mod-grid g4">
       <a class="mod" href="pagos/index.html" style="--mc:#C07A1A">
         <div class="mod-top"><div class="mod-icon">💰</div><div class="mod-badges"><span class="badge b-activo">✅ Activo</span></div></div>
         <div><div class="mod-name">Control de Pagos</div><div class="mod-desc">Flujo completo con aprobación de Luciano. Trazabilidad por analista.</div></div>
-        <div class="mod-tags"><span class="mod-tag">Creada→Aprobado</span><span class="mod-tag">Email aprobación</span></div>
+        <div class="mod-tags"><span class="mod-tag">Creada→Aprobado</span></div>
         <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">pagos/</div></div>
       </a>
       <a class="mod" href="conciliacion/index.html" style="--mc:#3B82F6">
         <div class="mod-top"><div class="mod-icon">🏦</div><div class="mod-badges"><span class="badge b-activo">✅ Activo</span></div></div>
-        <div><div class="mod-name">Conciliación Bancaria</div><div class="mod-desc">Carga cartola Itaú. Match automático por RUT+monto. Pivot financiero.</div></div>
-        <div class="mod-tags"><span class="mod-tag">Pivot</span><span class="mod-tag">RUT match</span><span class="mod-tag">Auto+manual</span></div>
+        <div><div class="mod-name">Conciliación Bancaria</div><div class="mod-desc">Carga cartola Itaú. Match automático por RUT+monto.</div></div>
+        <div class="mod-tags"><span class="mod-tag">Pivot</span><span class="mod-tag">RUT match</span></div>
         <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">conciliacion/</div></div>
       </a>
       <a class="mod" href="cobranza/index.html" style="--mc:#2D9B6F">
         <div class="mod-top"><div class="mod-icon">🧾</div><div class="mod-badges"><span class="badge b-activo">✅ Activo</span></div></div>
-        <div><div class="mod-name">CxC / Cobranza</div><div class="mod-desc">Facturas emitidas, importación desde SII, estado de cobro y vencimientos.</div></div>
-        <div class="mod-tags"><span class="mod-tag">Import SII</span><span class="mod-tag">WhatsApp</span><span class="mod-tag">Vencimientos</span></div>
+        <div><div class="mod-name">CxC / Cobranza</div><div class="mod-desc">Facturas emitidas, importación SII, estado de cobro y vencimientos.</div></div>
+        <div class="mod-tags"><span class="mod-tag">Import SII</span><span class="mod-tag">Emails auto</span></div>
         <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">cobranza/</div></div>
       </a>
       <a class="mod" href="convenios/index.html" style="--mc:#904891">
         <div class="mod-top"><div class="mod-icon">🤝</div><div class="mod-badges"><span class="badge b-activo">✅ Activo</span></div></div>
-        <div><div class="mod-name">Convenios de Pago</div><div class="mod-desc">TGR, Previred, SII, Municipalidad. Amortización, calendario mensual y KPI.</div></div>
-        <div class="mod-tags"><span class="mod-tag">Amortización</span><span class="mod-tag">Calendario</span><span class="mod-tag">KPI anual</span></div>
+        <div><div class="mod-name">Convenios de Pago</div><div class="mod-desc">TGR, Previred, SII, Municipalidad. Amortización y calendario.</div></div>
+        <div class="mod-tags"><span class="mod-tag">Amortización</span><span class="mod-tag">KPI</span></div>
         <div class="mod-footer"><div class="mod-cta">Abrir →</div><div class="mod-url">convenios/</div></div>
       </a>
     </div>
@@ -213,7 +218,7 @@ body{font-family:var(--sans);background:var(--deep);color:#f0ebff;min-height:100
   <div class="section">
     <div class="sec-hd">
       <div class="sec-icon" style="background:rgba(59,130,246,.2)">🎯</div>
-      <div><div class="sec-title">Módulo Comercial</div><div class="sec-desc">Captación, calificación y seguimiento de nuevos clientes</div></div>
+      <div><div class="sec-title">Módulo Comercial</div><div class="sec-desc">Captación, calificación, cotizaciones y seguimiento de clientes</div></div>
     </div>
     <div class="sec-line"></div>
     <div class="mod-grid g3">
@@ -224,14 +229,15 @@ body{font-family:var(--sans);background:var(--deep);color:#f0ebff;min-height:100
         <div class="mod-footer"><div class="mod-cta">Abrir ↗</div><div class="mod-url">agenda.contadoor.cl</div></div>
       </a>
       <div class="mod disabled" style="--mc:#3B82F6">
+        <div class="mod-top"><div class="mod-icon">📋</div><div class="mod-badges"><span class="badge b-plan">🔜 Próximo</span></div></div>
+        <div><div class="mod-name">Cotizaciones</div><div class="mod-desc">Propuestas comerciales profesionales con seguimiento y recordatorios automáticos.</div></div>
+        <div class="mod-tags"><span class="mod-tag">PDF branded</span><span class="mod-tag">Recordatorios</span></div>
+        <div class="mod-footer"><div class="mod-cta">En desarrollo</div><div class="mod-url">cotizaciones/</div></div>
+      </div>
+      <div class="mod disabled" style="--mc:#3B82F6">
         <div class="mod-top"><div class="mod-icon">💼</div><div class="mod-badges"><span class="badge b-plan">📋 Futuro</span></div></div>
         <div><div class="mod-name">CRM de Ventas</div><div class="mod-desc">Pipeline, guía de diagnóstico, propuestas y seguimiento post-reunión.</div></div>
         <div class="mod-footer"><div class="mod-cta">Próximamente</div><div class="mod-url">crm/</div></div>
-      </div>
-      <div class="mod disabled" style="--mc:#3B82F6">
-        <div class="mod-top"><div class="mod-icon">📄</div><div class="mod-badges"><span class="badge b-plan">📋 Futuro</span></div></div>
-        <div><div class="mod-name">Cotizaciones</div><div class="mod-desc">Propuestas comerciales profesionales con seguimiento y recordatorios automáticos.</div></div>
-        <div class="mod-footer"><div class="mod-cta">Próximamente</div><div class="mod-url">cotizaciones/</div></div>
       </div>
     </div>
   </div>
