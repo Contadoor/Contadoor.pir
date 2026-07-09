@@ -205,15 +205,36 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 
     <div class="search-bar">
       <input class="search-input" type="text" id="searchQ" placeholder="Buscar cliente, concepto, tipo..." oninput="renderObligaciones()"/>
+      <select class="filter-sel" id="filterArea" onchange="renderObligaciones()">
+        <option value="">Todas las áreas</option>
+        <option value="rrhh">👥 RRHH</option>
+        <option value="contable">📊 Contable</option>
+        <option value="pagos">💰 Pagos</option>
+        <option value="cobranza">🧾 Cobranza</option>
+      </select>
       <select class="filter-sel" id="filterTipo" onchange="renderObligaciones()">
         <option value="">Todos los tipos</option>
-        <option value="Finiquito">Finiquito</option>
-        <option value="Cotizaciones previsionales">Cotizaciones</option>
-        <option value="IVA / PPM / Impuestos SII">IVA / PPM / SII</option>
-        <option value="Honorarios a terceros">Honorarios</option>
-        <option value="Multas y recargos">Multas</option>
-        <option value="Cuotas créditos bancarios">Créditos</option>
-        <option value="Otro">Otro</option>
+        <optgroup label="RRHH">
+          <option value="Finiquito">Finiquito</option>
+          <option value="Cotizaciones previsionales">Cotizaciones previsionales</option>
+          <option value="Multas previsionales">Multas previsionales</option>
+        </optgroup>
+        <optgroup label="Contable">
+          <option value="Honorarios a terceros">Honorarios a terceros</option>
+          <option value="Proveedores">Proveedores</option>
+          <option value="Multas SII">Multas SII</option>
+          <option value="Cuotas créditos">Cuotas créditos</option>
+        </optgroup>
+        <optgroup label="Pagos">
+          <option value="Transferencia a tercero">Transferencia a tercero</option>
+          <option value="Obligación general">Obligación general</option>
+        </optgroup>
+        <optgroup label="Otros">
+          <option value="Otro">Otro</option>
+        </optgroup>
+      </select>
+      <select class="filter-sel" id="filterAnalista" onchange="renderObligaciones()">
+        <option value="">Todos los analistas</option>
       </select>
       <select class="filter-sel" id="filterCliente" onchange="renderObligaciones()">
         <option value="">Todos los clientes</option>
@@ -228,8 +249,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 <!-- MODAL NUEVA / EDITAR OBLIGACIÓN -->
 <div class="modal-bg" id="modal">
   <div class="modal">
-    <h2 id="modalTitle">Nueva Obligación</h2>
-    <div class="modal-sub">El analista que crea la obligación queda registrado automáticamente</div>
+    <h2 id="modalTitle">Nueva Obligación de Pago</h2>
+    <div class="modal-sub">Registra la obligación — quedará pendiente de aprobación de Luciano</div>
     <input type="hidden" id="f-id"/>
 
     <div class="card-hd">📋 Datos de la obligación</div>
@@ -239,19 +260,27 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
         <select id="f-cliente" onchange="onClienteChange()"><option value="">Seleccionar...</option></select>
       </div>
       <div class="fgroup">
-        <label>Tipo *</label>
-        <select id="f-tipo">
-          <option value="">Seleccionar...</option>
-          <option value="Finiquito">Finiquito</option>
-          <option value="Cotizaciones previsionales">Cotizaciones previsionales</option>
-          <option value="IVA / PPM / Impuestos SII">IVA / PPM / Impuestos SII</option>
-          <option value="Honorarios a terceros">Honorarios a terceros</option>
-          <option value="Multas y recargos">Multas y recargos</option>
-          <option value="Cuotas créditos bancarios">Cuotas créditos bancarios</option>
-          <option value="Otro">Otro pago especial</option>
+        <label>Área *</label>
+        <select id="f-area" onchange="onAreaChange()">
+          <option value="">Seleccionar área...</option>
+          <option value="rrhh">👥 RRHH</option>
+          <option value="contable">📊 Contable</option>
+          <option value="pagos">💰 Pagos</option>
+          <option value="cobranza">🧾 Cobranza</option>
         </select>
+        <span class="hint">Define el área responsable del pago</span>
       </div>
       <div class="fgroup">
+        <label>Tipo *</label>
+        <select id="f-tipo" onchange="onTipoChange()">
+          <option value="">Primero selecciona un área...</option>
+        </select>
+      </div>
+      <div class="fgroup" id="f-tipo-otro-wrap" style="display:none">
+        <label>Especificar tipo *</label>
+        <input type="text" id="f-tipo-otro" placeholder="Describe el tipo de pago..."/>
+      </div>
+      <div class="fgroup" style="grid-column:1/3">
         <label>Concepto / Descripción *</label>
         <input type="text" id="f-concepto" placeholder="Ej: Finiquito Juan Pérez nov-2025"/>
       </div>
@@ -267,22 +296,30 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
         <label>Fecha límite de pago</label>
         <input type="date" id="f-fecha-limite"/>
       </div>
-      <div class="fgroup" style="grid-column:1/3">
-        <label>Creado por (analista) *</label>
-        <input type="text" id="f-creado-por" placeholder="Tu nombre"/>
-      </div>
       <div class="fgroup">
-        <label>¿Se cobra al cliente?</label>
-        <select id="f-cobrar">
-          <option value="si">Sí — incluir en reporte</option>
-          <option value="no">No — gasto interno</option>
-        </select>
+        <label>Creado por *</label>
+        <input type="text" id="f-creado-por" placeholder="Auto desde sesión" readonly style="background:#f0f0f0"/>
       </div>
       <div class="fgroup">
         <label>Prioridad</label>
         <select id="f-prioridad">
           <option value="normal">Normal</option>
-          <option value="urgente">Urgente</option>
+          <option value="urgente">🔴 Urgente</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label>¿Incluir en reporte mensual?</label>
+        <select id="f-cobrar">
+          <option value="si">✅ Sí — incluir en reporte</option>
+          <option value="no">No — uso interno</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label>¿Quién gestiona el pago?</label>
+        <select id="f-quien-paga">
+          <option value="contadoor">Contadoor gestiona</option>
+          <option value="directo">Cliente paga directo</option>
+          <option value="mixto">Mixto</option>
         </select>
       </div>
       <div class="fgroup" style="grid-column:1/3">
@@ -361,16 +398,54 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────
-var MASTER_EMAIL = 'lucianoduartec65@gmail.com'; // Email para solicitudes
+var MASTER_EMAIL = 'lucianoduartec65@gmail.com';
 var MASTER_NOMBRE = 'Luciano';
 
+// Tipos de pago por área
+var TIPOS_POR_AREA = {
+  rrhh: [
+    'Finiquito',
+    'Cotizaciones previsionales',
+    'Multas previsionales',
+    'Bono o gratificación especial',
+    'Anticipo de sueldo',
+    'Otros RRHH'
+  ],
+  contable: [
+    'Honorarios a terceros',
+    'Proveedores',
+    'Multas SII',
+    'Cuotas créditos bancarios',
+    'Gastos operacionales',
+    'Otros Contable'
+  ],
+  pagos: [
+    'Transferencia a tercero',
+    'Obligación general',
+    'Cuota convenio',
+    'Devolución a cliente',
+    'Otros Pagos'
+  ],
+  cobranza: [
+    'Devolución abono',
+    'Nota de crédito',
+    'Ajuste saldo',
+    'Otros Cobranza'
+  ]
+};
+
+var AREA_LABELS = {
+  rrhh:'👥 RRHH', contable:'📊 Contable',
+  pagos:'💰 Pagos', cobranza:'🧾 Cobranza'
+};
+
 var ESTADOS = {
-  creada:      {label:'Creada',          cls:'b-creada',      icon:'✏️',  orden:0},
-  transferido: {label:'Transferido',     cls:'b-transferido', icon:'💳',  orden:1},
-  aprobacion:  {label:'En aprobación',   cls:'b-aprobacion',  icon:'⏳',  orden:2},
-  aprobado:    {label:'Aprobado',        cls:'b-aprobado',    icon:'✅',  orden:3},
-  rechazado:   {label:'Rechazado',       cls:'b-rechazado',   icon:'❌',  orden:1},
-  cobrado:     {label:'Cobrado',         cls:'b-cobrado',     icon:'💜',  orden:4}
+  creada:      {label:'Creada',         cls:'b-creada',      icon:'✏️',  orden:0},
+  transferido: {label:'Transferido',    cls:'b-transferido', icon:'💳',  orden:1},
+  aprobacion:  {label:'En aprobación', cls:'b-aprobacion',  icon:'⏳',  orden:2},
+  aprobado:    {label:'Aprobado',       cls:'b-aprobado',    icon:'✅',  orden:3},
+  rechazado:   {label:'Rechazado',      cls:'b-rechazado',   icon:'❌',  orden:1},
+  cobrado:     {label:'Cobrado',        cls:'b-cobrado',     icon:'💜',  orden:4}
 };
 var FLUJO_PASOS = ['creada','transferido','aprobacion','aprobado','cobrado'];
 
@@ -383,13 +458,37 @@ function nv(id){return parseFloat(sv(id))||0;}
 function hoy(){return new Date().toISOString().slice(0,10);}
 function esVencido(ob){return ob.estado==='creada'&&ob.fechaLimite&&ob.fechaLimite<hoy();}
 function ts(){return new Date().toLocaleString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+function getUsuario(){try{return JSON.parse(sessionStorage.getItem('usuario_activo')||'{}');}catch(e){return{};}}
 
 function getObs(){try{return JSON.parse(localStorage.getItem('pagos_bd')||'[]');}catch(e){return[];}}
 function setObs(arr){localStorage.setItem('pagos_bd',JSON.stringify(arr));renderAll();}
 function getClientes(){try{return JSON.parse(localStorage.getItem('clientes_bd')||'[]');}catch(e){return[];}}
 
+// ── TIPOS POR ÁREA ────────────────────────────────────────────────────────
+function onAreaChange(){
+  var area=sv('f-area');
+  var tipos=TIPOS_POR_AREA[area]||[];
+  var sel=document.getElementById('f-tipo');
+  sel.innerHTML='<option value="">Seleccionar tipo...</option>';
+  tipos.forEach(function(t){
+    var opt=document.createElement('option');
+    opt.value=t; opt.textContent=t;
+    sel.appendChild(opt);
+  });
+  onTipoChange();
+}
+
+function onTipoChange(){
+  var tipo=sv('f-tipo');
+  var esOtro=tipo.startsWith('Otros') || tipo==='Otro';
+  var wrap=document.getElementById('f-tipo-otro-wrap');
+  if(wrap) wrap.style.display=esOtro?'block':'none';
+}
+
+// ── POPULAR SELECTS ───────────────────────────────────────────────────────
 function popularSelectClientes(){
   var cl=getClientes();
+  var u=getUsuario();
   ['f-cliente','filterCliente'].forEach(function(sid){
     var sel=document.getElementById(sid);if(!sel)return;
     var cur=sel.value;
@@ -397,33 +496,66 @@ function popularSelectClientes(){
     cl.forEach(function(c){var o=document.createElement('option');o.value=c.rut;o.textContent=c.razon;sel.appendChild(o);});
     if(cur)sel.value=cur;
   });
+  // Popular filtro analistas
+  var obs=getObs();
+  var analistas=[...new Set(obs.map(function(o){return o.creadoPor;}).filter(Boolean))];
+  var fa=document.getElementById('filterAnalista');
+  if(fa){
+    var cur=fa.value;
+    fa.innerHTML='<option value="">Todos los analistas</option>';
+    analistas.forEach(function(a){
+      var o=document.createElement('option');o.value=a;o.textContent=a;fa.appendChild(o);
+    });
+    if(cur)fa.value=cur;
+  }
 }
 
 function onClienteChange(){
   var rut=sv('f-cliente');
   var c=getClientes().find(function(x){return x.rut===rut;});
+  // Auto-fill quién paga si está en ficha
+  if(c&&c.quienPaga) document.getElementById('f-quien-paga').value=c.quienPaga;
 }
 
 // ── MODAL NUEVA / EDITAR ──────────────────────────────────────────────────
 function resetForm(){
-  ['f-cliente','f-tipo','f-concepto','f-monto','f-periodo','f-fecha-limite','f-creado-por','f-obs'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  ['f-cliente','f-area','f-tipo','f-tipo-otro','f-concepto','f-monto',
+   'f-periodo','f-fecha-limite','f-obs'].forEach(function(id){
+    var e=document.getElementById(id);if(e)e.value='';
+  });
+  // Auto-fill analista desde sesión
+  var u=getUsuario();
+  var el=document.getElementById('f-creado-por');
+  if(el) el.value=u.nombre||'';
+  // Auto-fill área según rol
+  var areaEl=document.getElementById('f-area');
+  if(areaEl&&u.rol&&TIPOS_POR_AREA[u.rol]){
+    areaEl.value=u.rol;
+    onAreaChange();
+  }
   document.getElementById('f-cobrar').value='si';
   document.getElementById('f-prioridad').value='normal';
+  document.getElementById('f-quien-paga').value='contadoor';
+  var w=document.getElementById('f-tipo-otro-wrap');if(w)w.style.display='none';
 }
 
 function abrirModalNuevo(){
-  _editId=null;resetForm();popularSelectClientes();
-  document.getElementById('modalTitle').textContent='Nueva Obligación';
+  _editId=null;popularSelectClientes();resetForm();
+  document.getElementById('modalTitle').textContent='Nueva Obligación de Pago';
   document.getElementById('modal').classList.add('on');
 }
 
 function abrirModalEditar(id){
   var ob=getObs().find(function(x){return x.id===id;});if(!ob)return;
   if(ob.estado!=='creada'){alert('Solo se pueden editar obligaciones en estado Creada.');return;}
-  _editId=id;resetForm();popularSelectClientes();
+  _editId=id;popularSelectClientes();resetForm();
   document.getElementById('modalTitle').textContent='Editar Obligación';
   document.getElementById('f-cliente').value=ob.rut||'';
+  document.getElementById('f-area').value=ob.area||'';
+  onAreaChange();
   document.getElementById('f-tipo').value=ob.tipo||'';
+  onTipoChange();
+  if(ob.tipoOtro) document.getElementById('f-tipo-otro').value=ob.tipoOtro;
   document.getElementById('f-concepto').value=ob.concepto||'';
   document.getElementById('f-monto').value=ob.monto||'';
   document.getElementById('f-periodo').value=ob.periodo||'';
@@ -431,6 +563,7 @@ function abrirModalEditar(id){
   document.getElementById('f-creado-por').value=ob.creadoPor||'';
   document.getElementById('f-cobrar').value=ob.cobrar||'si';
   document.getElementById('f-prioridad').value=ob.prioridad||'normal';
+  document.getElementById('f-quien-paga').value=ob.quienPaga||'contadoor';
   document.getElementById('f-obs').value=ob.obs||'';
   document.getElementById('modal').classList.add('on');
 }
@@ -438,25 +571,32 @@ function abrirModalEditar(id){
 function closeModal(){document.getElementById('modal').classList.remove('on');}
 
 function guardarObligacion(){
-  var rut=sv('f-cliente'),concepto=sv('f-concepto'),tipo=sv('f-tipo'),quien=sv('f-creado-por');
-  if(!rut||!concepto||!tipo){alert('Cliente, tipo y concepto son obligatorios.');return;}
-  if(!quien){alert('Debes indicar quién crea esta obligación.');return;}
+  var rut=sv('f-cliente'),concepto=sv('f-concepto'),area=sv('f-area');
+  var tipo=sv('f-tipo'),tipoOtro=sv('f-tipo-otro');
+  var tipofinal=(tipo.startsWith('Otros')||tipo==='Otro')&&tipoOtro?tipoOtro:tipo;
+  var quien=sv('f-creado-por');
+  if(!rut||!concepto||!area){alert('Cliente, área y concepto son obligatorios.');return;}
+  if(!tipo){alert('Selecciona un tipo de pago.');return;}
+  if(!quien){alert('No se detectó el analista. Verifica tu sesión.');return;}
   var cl=getClientes().find(function(x){return x.rut===rut;});
   var arr=getObs();
   var ob={
     id:_editId||Date.now(),rut,
     clienteNombre:cl?cl.razon:'',clienteWa:cl?cl.wa:'',
-    tipo,concepto,monto:nv('f-monto'),
-    periodo:sv('f-periodo'),fechaLimite:sv('f-fecha-limite'),
-    obs:sv('f-obs'),cobrar:sv('f-cobrar'),prioridad:sv('f-prioridad'),
-    creadoPor:quien,tsCreado:ts(),
-    estado:'creada',ts:Date.now()
+    area, tipo:tipofinal, tipoOtro:tipoOtro||'',
+    concepto, monto:nv('f-monto'),
+    periodo:sv('f-periodo'), fechaLimite:sv('f-fecha-limite'),
+    obs:sv('f-obs'), cobrar:sv('f-cobrar'),
+    prioridad:sv('f-prioridad'),
+    quienPaga:sv('f-quien-paga'),
+    creadoPor:quien, tsCreado:ts(),
+    estado:'creada', ts:Date.now()
   };
   if(_editId){
     var idx=arr.findIndex(function(x){return x.id===_editId;});
     if(idx>=0){ob.conciliacion=arr[idx].conciliacion;arr[idx]=ob;}
     else arr.unshift(ob);
-  } else arr.unshift(ob);
+  }else arr.unshift(ob);
   setObs(arr);closeModal();
 }
 
@@ -600,15 +740,29 @@ function renderStats(){
 function filtrarObs(){
   var q=(sv('searchQ')||'').toLowerCase();
   var tipo=sv('filterTipo'),cliente=sv('filterCliente');
+  var area=sv('filterArea'),analista=sv('filterAnalista');
+  var u=getUsuario();
+
   var arr=getObs().filter(function(ob){
-    var mq=!q||(ob.clienteNombre||'').toLowerCase().includes(q)||(ob.concepto||'').toLowerCase().includes(q)||(ob.tipo||'').toLowerCase().includes(q)||(ob.creadoPor||'').toLowerCase().includes(q);
-    return mq&&(!tipo||ob.tipo===tipo)&&(!cliente||ob.rut===cliente);
+    // Filtro por área según rol — analistas solo ven su área
+    if(!u.esMaster && u.rol!=='admin' && u.rol!=='pagos'){
+      if(ob.area && ob.area!==u.rol) return false;
+    }
+    var mq=!q||(ob.clienteNombre||'').toLowerCase().includes(q)
+      ||(ob.concepto||'').toLowerCase().includes(q)
+      ||(ob.tipo||'').toLowerCase().includes(q)
+      ||(ob.creadoPor||'').toLowerCase().includes(q);
+    return mq
+      &&(!tipo||ob.tipo===tipo)
+      &&(!cliente||ob.rut===cliente)
+      &&(!area||ob.area===area)
+      &&(!analista||ob.creadoPor===analista);
   });
-  if(_viewActual==='creadas') arr=arr.filter(function(ob){return ob.estado==='creada';});
+  if(_viewActual==='creadas')     arr=arr.filter(function(ob){return ob.estado==='creada';});
   if(_viewActual==='transferido') arr=arr.filter(function(ob){return ob.estado==='transferido';});
-  if(_viewActual==='aprobacion') arr=arr.filter(function(ob){return ob.estado==='aprobacion';});
-  if(_viewActual==='aprobar') arr=arr.filter(function(ob){return ob.estado==='aprobacion';});
-  if(_viewActual==='historial') arr=arr.filter(function(ob){return['aprobado','rechazado','cobrado'].includes(ob.estado);});
+  if(_viewActual==='aprobacion')  arr=arr.filter(function(ob){return ob.estado==='aprobacion';});
+  if(_viewActual==='aprobar')     arr=arr.filter(function(ob){return ob.estado==='aprobacion';});
+  if(_viewActual==='historial')   arr=arr.filter(function(ob){return['aprobado','rechazado','cobrado'].includes(ob.estado);});
   return arr.sort(function(a,b){return(b.ts||0)-(a.ts||0);});
 }
 
@@ -680,11 +834,14 @@ function renderObligaciones(){
     return'<div class="oblig-row'+(esSel?' seleccionada':'')+(venc?' vencida-border':'')+'">'
       +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px">'
       +'<div style="flex:1">'
-      +'<div style="font-size:14px;font-weight:700;margin-bottom:3px">'
-      +'<span class="tipo-tag">'+hesc(ob.tipo)+'</span> '+hesc(ob.concepto)
+      +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap">'
+      +(ob.area?'<span style="padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:var(--pp);color:var(--pd)">'+hesc(AREA_LABELS[ob.area]||ob.area)+'</span>':'')
+      +'<span class="tipo-tag">'+hesc(ob.tipo)+'</span>'
       +(venc?'<span class="vencido-pill">VENCIDO</span>':'')
       +(ob.prioridad==='urgente'?'<span class="vencido-pill" style="background:#fef3c7;color:#78350f;border-color:#fde68a">URGENTE</span>':'')
+      +(ob.cobrar==='si'?'<span style="padding:2px 7px;border-radius:20px;font-size:9.5px;font-weight:600;background:#ecfdf5;color:#064e3b;border:1px solid #a7f3d0">En reporte</span>':'')
       +'</div>'
+      +'<div style="font-size:14px;font-weight:700;margin-bottom:3px">'+hesc(ob.concepto)+'</div>'
       +'<div style="font-size:11.5px;color:var(--tm)">'
       +hesc(ob.clienteNombre||ob.rut)
       +(ob.periodo?' · '+ob.periodo:'')
