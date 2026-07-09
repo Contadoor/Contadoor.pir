@@ -107,17 +107,21 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
     <div class="sb-sec">Reportes</div>
     <a class="sb-item" href="../reportes/index.html">📋 Nómina General</a>
     <a class="sb-item" href="../reportes-rrhh/index.html">👥 Vista RRHH</a>
-    <a class="sb-item" href="../reportes-contable/index.html" style="opacity:.45">📊 Vista Contable</a>
-    <a class="sb-item" href="../reportes-pagos/index.html" style="opacity:.45">💰 Vista Pagos</a>
+    <a class="sb-item" href="../reportes-contable/index.html" style="opacity:.4">📊 Vista Contable</a>
+    <a class="sb-item" href="../reportes-pagos/index.html" style="opacity:.4">💰 Vista Pagos</a>
+    <div class="sb-sec">Gestión Trabajadores</div>
+    <a class="sb-item" href="../trabajadores/index.html" style="opacity:.4">👷 Trabajadores</a>
+    <a class="sb-item" href="../calendario-rrhh/index.html" style="opacity:.4">📅 Calendario RRHH</a>
     <div class="sb-sec">Financiero</div>
+    <a class="sb-item" href="../facturacion/index.html" style="opacity:.4">🧾 Facturación</a>
     <a class="sb-item" href="../pagos/index.html">💰 Pagos</a>
     <a class="sb-item" href="../conciliacion/index.html">🏦 Conciliación</a>
-    <a class="sb-item" href="../cobranza/index.html">🧾 CxC</a>
+    <a class="sb-item" href="../cobranza/index.html">📋 CxC / Cobranza</a>
     <a class="sb-item" href="../convenios/index.html">🤝 Convenios</a>
     <div class="sb-sec">Tributario</div>
     <a class="sb-item" href="../pir/index.html">📊 PIR</a>
     <div class="sb-sec">Sistema</div>
-    <a class="sb-item" href="../performance/index.html" style="opacity:.45">📈 Performance</a>
+    <a class="sb-item" href="../performance/index.html" style="opacity:.4">📈 Performance</a>
     <a class="sb-item on" href="../admin/index.html">👤 Admin</a>
   </nav>
   <div class="sb-foot">Contadoor.app v1.0</div>
@@ -155,10 +159,34 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
         <label>Iniciales (para avatar)</label>
         <input type="text" id="f-iniciales" placeholder="Ej: MG" maxlength="2" oninput="this.value=this.value.toUpperCase()"/>
       </div>
-      <div class="fgroup" style="grid-column:1/3">
-        <label>Descripción del rol</label>
-        <input type="text" id="f-rol" placeholder="Ej: Analista Contable · Régimen 14D N°3"/>
-        <span class="hint">Texto libre — se muestra en la pantalla de login</span>
+      <div class="fgroup">
+        <label>Rol del sistema *</label>
+        <select id="f-rol" onchange="onRolChange()">
+          <option value="">Seleccionar rol...</option>
+          <option value="rrhh">👥 Analista RRHH</option>
+          <option value="contable">📊 Analista Contable</option>
+          <option value="pagos">💰 Analista Pagos</option>
+          <option value="cobranza">🧾 Analista Cobranza</option>
+          <option value="admin">🔐 Admin / Supervisor</option>
+        </select>
+        <span class="hint">Define la vista de inicio y los permisos base del usuario</span>
+      </div>
+      <div class="fgroup">
+        <label>Email</label>
+        <input type="email" id="f-email" placeholder="analista@contadoor.cl"/>
+        <span class="hint">Se usa como Reply-To en los reportes enviados</span>
+      </div>
+      <div class="fgroup">
+        <label>WhatsApp</label>
+        <input type="text" id="f-wa" placeholder="9XXXXXXXX"/>
+        <span class="hint">Sin +56 — aparece en los reportes al cliente</span>
+      </div>
+      <div class="fgroup">
+        <label>Estado</label>
+        <select id="f-activo">
+          <option value="1">✅ Activo</option>
+          <option value="0">❌ Inactivo</option>
+        </select>
       </div>
     </div>
 
@@ -172,18 +200,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
     </div>
 
     <div class="card-hd" style="margin-top:16px">📦 Módulos habilitados</div>
-    <div class="info-box">Selecciona a qué módulos tendrá acceso este usuario. Puedes modificarlo en cualquier momento.</div>
-    <div class="modulos-grid" id="modulosGrid"></div>
-
-    <div class="fg2" style="margin-top:14px">
-      <div class="fgroup">
-        <label>Estado</label>
-        <select id="f-activo">
-          <option value="1">Activo</option>
-          <option value="0">Inactivo (no puede acceder)</option>
-        </select>
-      </div>
+    <div class="info-box" style="margin-bottom:8px">
+      Los módulos se cargan automáticamente al seleccionar el rol. Puedes ajustarlos manualmente.
+      <span id="rolPresetInfo" style="color:var(--p);font-weight:600"></span>
     </div>
+    <div id="modulosGrid"></div>
 
     <div class="modal-footer">
       <button class="btn-s" onclick="closeModal()">Cancelar</button>
@@ -194,20 +215,64 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 
 <script>
 // ── MÓDULOS DISPONIBLES ───────────────────────────────────────────────────
+// ── MÓDULOS DEL SISTEMA ───────────────────────────────────────────────────
 var MODULOS_DISPONIBLES = [
-  {id:'dashboard',  nombre:'Dashboard',      icon:'🏠'},
-  {id:'clientes',   nombre:'Clientes',       icon:'👥'},
-  {id:'pir',        nombre:'PIR',            icon:'📊'},
-  {id:'reportes',   nombre:'Reportes',       icon:'📋'},
-  {id:'pagos',      nombre:'Pagos',          icon:'💰'},
-  {id:'conciliacion',nombre:'Conciliación',  icon:'🏦'},
-  {id:'cobranza',   nombre:'Cobranza',       icon:'🧾'},
-  {id:'crm',        nombre:'CRM',            icon:'💼'},
-  {id:'admin',      nombre:'Administración', icon:'🔐'}
+  // Base de datos
+  {id:'clientes',          nombre:'Clientes',          icon:'👥', grupo:'Base de Datos'},
+  // Reportes
+  {id:'reportes',          nombre:'Nómina General',    icon:'📋', grupo:'Reportes'},
+  {id:'reportes-rrhh',     nombre:'Vista RRHH',        icon:'👥', grupo:'Reportes'},
+  {id:'reportes-contable', nombre:'Vista Contable',    icon:'📊', grupo:'Reportes'},
+  {id:'reportes-pagos',    nombre:'Vista Pagos',       icon:'💰', grupo:'Reportes'},
+  // Gestión de Trabajadores
+  {id:'trabajadores',      nombre:'Trabajadores',      icon:'👷', grupo:'Gestión Trabajadores'},
+  {id:'calendario-rrhh',   nombre:'Calendario RRHH',  icon:'📅', grupo:'Gestión Trabajadores'},
+  // Financiero
+  {id:'facturacion',       nombre:'Facturación',       icon:'🧾', grupo:'Financiero'},
+  {id:'pagos',             nombre:'Pagos',             icon:'💰', grupo:'Financiero'},
+  {id:'conciliacion',      nombre:'Conciliación',      icon:'🏦', grupo:'Financiero'},
+  {id:'cobranza',          nombre:'CxC / Cobranza',    icon:'🧾', grupo:'Financiero'},
+  {id:'convenios',         nombre:'Convenios',         icon:'🤝', grupo:'Financiero'},
+  // Tributario
+  {id:'pir',               nombre:'PIR',               icon:'📊', grupo:'Tributario'},
+  // Sistema
+  {id:'performance',       nombre:'Performance',       icon:'📈', grupo:'Sistema'},
+  {id:'admin',             nombre:'Administración',    icon:'🔐', grupo:'Sistema'},
 ];
 
+// ── PLANTILLAS DE ROL ─────────────────────────────────────────────────────
+var ROL_TEMPLATES = {
+  admin: {
+    label:'Admin / Supervisor',
+    modulos:['clientes','reportes','reportes-rrhh','reportes-contable','reportes-pagos',
+             'trabajadores','calendario-rrhh','facturacion','pagos','conciliacion',
+             'cobranza','convenios','pir','performance','admin']
+  },
+  rrhh: {
+    label:'Analista RRHH',
+    modulos:['reportes-rrhh','trabajadores','calendario-rrhh']
+  },
+  contable: {
+    label:'Analista Contable',
+    modulos:['clientes','reportes-contable','facturacion','pagos','convenios','cobranza','pir']
+  },
+  pagos: {
+    label:'Analista Pagos',
+    modulos:['reportes-pagos','facturacion','pagos','conciliacion','cobranza','convenios']
+  },
+  cobranza: {
+    label:'Analista Cobranza',
+    modulos:['cobranza']
+  }
+};
+
 var USUARIOS_DEFAULT = [
-  {id:1,nombre:'Luciano Duarte',iniciales:'LD',rol:'Master · Acceso total',pin:'1234',esMaster:true,activo:true,modulos:['dashboard','clientes','pir','reportes','pagos','conciliacion','cobranza','crm','admin'],tsCreado:'Sistema'}
+  {id:1,nombre:'Luciano Duarte',iniciales:'LD',rol:'master',rolLabel:'Master · Acceso total',
+   pin:'1234',esMaster:true,activo:true,
+   modulos:['clientes','reportes','reportes-rrhh','reportes-contable','reportes-pagos',
+            'trabajadores','calendario-rrhh','facturacion','pagos','conciliacion',
+            'cobranza','convenios','pir','performance','admin'],
+   tsCreado:'Sistema'}
 ];
 
 var _editId=null;
@@ -224,27 +289,33 @@ function sv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
 function renderUsuarios(){
   var arr=getUsuarios();
   var cont=document.getElementById('listaUsuarios');
+  var ROL_COLORS={rrhh:'#1D9E75',contable:'#C07A1A',pagos:'#3B82F6',cobranza:'#904891',admin:'#5c4a5d',master:'#904891'};
   cont.innerHTML=arr.map(function(u){
-    var modsHTML=MODULOS_DISPONIBLES.map(function(m){
-      var tiene=(u.modulos||[]).includes(m.id);
-      return'<span class="u-mod-tag'+(tiene?'':' off')+'">'+m.icon+' '+m.nombre+'</span>';
+    // Solo módulos que tiene activos
+    var modsActivos=(u.modulos||[]);
+    var modsHTML=modsActivos.map(function(id){
+      var m=MODULOS_DISPONIBLES.find(function(x){return x.id===id;});
+      return m?'<span class="u-mod-tag">'+m.icon+' '+m.nombre+'</span>':'';
     }).join('');
+    var rolColor=ROL_COLORS[u.rol]||'#5c4a5d';
+    var rolLabel=u.rolLabel||u.rol||'—';
     return'<div class="usuario-card">'
       +'<div class="u-avatar'+(u.esMaster?' master':'')+'">'+hesc(u.iniciales||u.nombre.slice(0,2).toUpperCase())+'</div>'
-      +'<div class="u-info">'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">'
+      +'<div class="u-info" style="flex:1">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap">'
       +'<div class="u-nombre">'+hesc(u.nombre)+'</div>'
       +(u.esMaster?'<span class="master-badge">👑 Master</span>':'')
+      +'<span style="background:'+rolColor+'22;color:'+rolColor+';border:1px solid '+rolColor+'44;border-radius:20px;padding:1px 8px;font-size:10px;font-weight:700">'+hesc(rolLabel)+'</span>'
       +(!u.activo?'<span class="inactivo-badge">Inactivo</span>':'')
       +'</div>'
-      +'<div class="u-rol">'+hesc(u.rol)+'</div>'
-      +'<div class="u-modulos">'+modsHTML+'</div>'
+      +(u.email?'<div style="font-size:10px;color:var(--tm);margin-bottom:2px">✉️ '+hesc(u.email)+(u.wa?' · 💬 +56 '+hesc(u.wa):'')+'</div>':'')
+      +'<div class="u-modulos" style="margin-bottom:6px">'+modsHTML+'</div>'
       +'<div class="u-actions">'
       +'<span class="u-pin-badge">PIN: '+u.pin.replace(/./g,'●')+'</span>'
       +(!u.esMaster?'<button class="btn-s btn-sm" onclick="abrirModalEditar('+u.id+')">✏️ Editar</button>':'')
-      +(!u.esMaster?'<button class="btn-s btn-sm" onclick="cambiarPin('+u.id+')">🔑 Cambiar PIN</button>':'')
+      +(!u.esMaster?'<button class="btn-s btn-sm" onclick="cambiarPin('+u.id+')">🔑 PIN</button>':'')
       +(u.esMaster?'<button class="btn-s btn-sm" onclick="cambiarPinMaster()">🔑 Cambiar mi PIN</button>':'')
-      +(!u.esMaster?'<button class="btn-danger btn-sm" onclick="eliminarUsuario('+u.id+')">🗑 Eliminar</button>':'')
+      +(!u.esMaster?'<button class="btn-danger btn-sm" onclick="eliminarUsuario('+u.id+')">🗑</button>':'')
       +'</div>'
       +'</div>'
       +'</div>';
@@ -257,17 +328,42 @@ function renderUsuarios(){
   }catch(e){}
 }
 
-// ── MÓDULOS GRID ──────────────────────────────────────────────────────────
+// ── ROL CHANGE ────────────────────────────────────────────────────────────
+function onRolChange(){
+  var rol=document.getElementById('f-rol').value;
+  if(!rol) return;
+  var tmpl=ROL_TEMPLATES[rol];
+  if(!tmpl) return;
+  renderModulosGrid(tmpl.modulos);
+  var info=document.getElementById('rolPresetInfo');
+  if(info) info.textContent=' — '+tmpl.modulos.length+' módulos cargados desde plantilla '+tmpl.label;
+}
+
+// ── MÓDULOS GRID AGRUPADO ─────────────────────────────────────────────────
 function renderModulosGrid(seleccionados){
   var grid=document.getElementById('modulosGrid');
-  grid.innerHTML=MODULOS_DISPONIBLES.map(function(m){
-    var checked=(seleccionados||[]).includes(m.id);
-    return'<div class="mod-check-item">'
-      +'<input type="checkbox" id="mod-'+m.id+'" value="'+m.id+'"'+(checked?' checked':'')+'>'
-      +'<span class="mod-icon">'+m.icon+'</span>'
-      +'<label for="mod-'+m.id+'">'+m.nombre+'</label>'
-      +'</div>';
-  }).join('');
+  // Agrupar por grupo
+  var grupos={};
+  MODULOS_DISPONIBLES.forEach(function(m){
+    if(!grupos[m.grupo]) grupos[m.grupo]=[];
+    grupos[m.grupo].push(m);
+  });
+  var html='';
+  Object.keys(grupos).forEach(function(g){
+    html+='<div style="margin-bottom:12px">';
+    html+='<div style="font-size:9.5px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--bdr)">'+g+'</div>';
+    html+='<div class="modulos-grid">';
+    grupos[g].forEach(function(m){
+      var checked=(seleccionados||[]).includes(m.id);
+      html+='<div class="mod-check-item">'
+        +'<input type="checkbox" id="mod-'+m.id+'" value="'+m.id+'"'+(checked?' checked':'')+'>'
+        +'<span class="mod-icon">'+m.icon+'</span>'
+        +'<label for="mod-'+m.id+'">'+m.nombre+'</label>'
+        +'</div>';
+    });
+    html+='</div></div>';
+  });
+  grid.innerHTML=html;
 }
 
 function getModulosSeleccionados(){
@@ -302,20 +398,30 @@ function abrirModalNuevo(){
   document.getElementById('f-nombre').value='';
   document.getElementById('f-iniciales').value='';
   document.getElementById('f-rol').value='';
+  document.getElementById('f-email').value='';
+  document.getElementById('f-wa').value='';
   document.getElementById('f-activo').value='1';
+  var info=document.getElementById('rolPresetInfo');if(info)info.textContent='';
   setPin('');
-  renderModulosGrid(['dashboard']);
+  renderModulosGrid([]);
   document.getElementById('modal').classList.add('on');
 }
 
 function abrirModalEditar(id){
   var u=getUsuarios().find(function(x){return x.id===id;});if(!u)return;
   _editId=id;
-  document.getElementById('modalTitle').textContent='Editar usuario — '+u.nombre;
+  document.getElementById('modalTitle').textContent='Editar — '+u.nombre;
   document.getElementById('f-nombre').value=u.nombre||'';
   document.getElementById('f-iniciales').value=u.iniciales||'';
   document.getElementById('f-rol').value=u.rol||'';
+  document.getElementById('f-email').value=u.email||'';
+  document.getElementById('f-wa').value=u.wa||'';
   document.getElementById('f-activo').value=u.activo!==false?'1':'0';
+  var info=document.getElementById('rolPresetInfo');
+  if(info&&u.rol){
+    var tmpl=ROL_TEMPLATES[u.rol];
+    if(tmpl) info.textContent=' — Rol: '+tmpl.label;
+  }
   setPin(u.pin||'');
   renderModulosGrid(u.modulos||[]);
   document.getElementById('modal').classList.add('on');
@@ -326,18 +432,25 @@ function closeModal(){document.getElementById('modal').classList.remove('on');}
 function guardarUsuario(){
   var nombre=sv('f-nombre');
   if(!nombre){alert('El nombre es obligatorio.');return;}
+  var rol=sv('f-rol');
+  if(!rol){alert('Selecciona un rol.');return;}
   var pin=getPin();
   if(pin.length!==4){alert('El PIN debe ser de exactamente 4 dígitos.');return;}
   var modulos=getModulosSeleccionados();
   if(!modulos.length){alert('Selecciona al menos un módulo.');return;}
   var arr=getUsuarios();
+  var tmpl=ROL_TEMPLATES[rol];
   var u={
     id:_editId||Date.now(),
     nombre,
     iniciales:sv('f-iniciales')||nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase(),
-    rol:sv('f-rol')||'Analista',
+    rol:rol,
+    rolLabel:tmpl?tmpl.label:rol,
+    email:sv('f-email'),
+    wa:sv('f-wa'),
     pin,activo:sv('f-activo')==='1',
-    modulos,esMaster:false,tsCreado:new Date().toLocaleString('es-CL')
+    modulos,esMaster:false,
+    tsCreado:_editId?(getUsuarios().find(function(x){return x.id===_editId;})||{}).tsCreado||new Date().toLocaleString('es-CL'):new Date().toLocaleString('es-CL')
   };
   if(_editId){var idx=arr.findIndex(function(x){return x.id===_editId;});if(idx>=0)arr[idx]=u;else arr.push(u);}
   else arr.push(u);
