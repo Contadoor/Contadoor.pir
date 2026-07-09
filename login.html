@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -207,11 +208,28 @@ function verificarPin(){
       id:_usuarioSeleccionado.id,
       nombre:_usuarioSeleccionado.nombre,
       rol:_usuarioSeleccionado.rol,
+      email:_usuarioSeleccionado.email||'',
       esMaster:_usuarioSeleccionado.esMaster||false,
       modulos:_usuarioSeleccionado.modulos||[],
       tsLogin:Date.now()
     }));
-    window.location.href='index.html';
+    // Redirección por rol
+    var rol=_usuarioSeleccionado.rol;
+    var esMaster=_usuarioSeleccionado.esMaster||false;
+    var destino={
+      rrhh:     'reportes-rrhh/index.html',
+      contable: 'reportes-contable/index.html',
+      pagos:    'reportes-pagos/index.html',
+      cobranza: 'cobranza/index.html'
+    };
+    // Master y admin siempre van al dashboard
+    var redirect = (esMaster||rol==='admin') ? 'index.html' : (destino[rol]||'index.html');
+    // Si hay parámetro ?redirect= usarlo solo si es master/admin
+    var params=new URLSearchParams(window.location.search);
+    if(params.get('redirect')&&(esMaster||rol==='admin')){
+      redirect=decodeURIComponent(params.get('redirect'));
+    }
+    window.location.href=redirect;
   } else {
     document.getElementById('pinError').textContent='PIN incorrecto. Inténtalo de nuevo.';
     _pinActual='';actualizarDots();
