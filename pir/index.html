@@ -1609,12 +1609,14 @@ function verReporte(id){
   hdr.innerHTML='<span style="font-weight:700;font-size:14px">\u1f4ca '+hesc(r.razon||'--')+'  -  AT'+r.at+'</span>'
     +'<div style="display:flex;gap:8px">'
     +'<button onclick="window.print()" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">\u1f5a8\ufe0f Imprimir</button>'
-    +'<button onclick="editRepo('+r.id+');document.getElementById(\"verReporteModal\").remove()" style="background:#904891;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">\u270f\ufe0f Editar</button>'
+    +'<button onclick="var _mid=document.getElementById(\'verReporteModal\');if(_mid)_mid.remove();setTimeout(function(){editRepo('+r.id+');},50);" style="background:#904891;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">Editar</button>'
     +'<button onclick="document.getElementById(\"verReporteModal\").remove()" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer">\u2715 Cerrar</button>'
     +'</div>';
   var body=document.createElement('div');body.id='reportWrap';
   body.style.cssText='flex:1;overflow-y:auto;padding:20px;';
-  body.innerHTML=r.rptHtml;
+  // Limpiar botones de control del reporte (ya están en el header del modal)
+  var cleanHtml=r.rptHtml.replace(/<div class="prow">[\s\S]*?<\/div>\s*/,'');
+  body.innerHTML=cleanHtml||r.rptHtml;
   modal.appendChild(hdr);modal.appendChild(body);
   document.body.appendChild(modal);
 }
@@ -1654,8 +1656,19 @@ function editRepo(id){
     if(r.at){document.getElementById('c_at').value=r.at;onATChange();}
     if(r.socios&&r.socios.length){
       document.getElementById('sociosBody').innerHTML='';SC=0;
-      r.socios.forEach(function(s){addSocio(s.nombre,s.pct,s.retiros||0,s.otros||0);});
+      r.socios.forEach(function(s){addSocio(s.nombre,s.pct,s.retiros||0,s.otros||0,s.f22||0);});
     }
+    // Cargar ajustes tributarios
+    var _ajCard=document.getElementById('ajCard');
+    if(_ajCard)_ajCard.style.display='block';
+    if(r.rec!==undefined){var _rec=document.getElementById('aj_rec');if(_rec)_rec.value=r.rec||'';}
+    if(r.cm!==undefined){var _cm=document.getElementById('aj_cm');if(_cm)_cm.value=r.cm||'';}
+    if(r.per!==undefined){var _per=document.getElementById('aj_per');if(_per)_per.value=r.per||'';}
+    if(r.cred!==undefined){var _cred=document.getElementById('aj_cred');if(_cred)_cred.value=r.cred||'';}
+    if(r.uf){var _uf=document.getElementById('aj_uf');if(_uf)_uf.value=r.uf;}
+    if(r.rai!==undefined){var _rai=document.getElementById('aj_rai');if(_rai)_rai.value=r.rai||'';}
+    if(r.raiIdpc!==undefined){var _raiIdpc=document.getElementById('aj_rai_idpc');if(_raiIdpc)_raiIdpc.value=r.raiIdpc||'';}
+    chkReady();
     window._editingRepoId=id;
     var av=document.getElementById('editingAlert');
     if(!av){
