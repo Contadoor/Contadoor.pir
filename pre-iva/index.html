@@ -949,7 +949,19 @@ function leerLibro(file, tipo){
       var data = new Uint8Array(e.target.result);
       var wb = XLSX.read(data, {type:'array'});
       var ws = wb.Sheets[wb.SheetNames[0]];
-      var rows = XLSX.utils.sheet_to_json(ws, {defval:'', range:1}); // desde fila 2
+      // Buscar fila de encabezados dinámicamente
+      var ref = ws['!ref'];
+      var range = XLSX.utils.decode_range(ref);
+      var headerRow = 1; // default fila 2 (index 1)
+      // Buscar fila que tenga 'Periodo' o 'Rut' como primera celda con texto
+      for(var ri=0; ri<=Math.min(5, range.e.r); ri++){
+        var cell = ws[XLSX.utils.encode_cell({r:ri, c:0})];
+        if(cell && cell.v && String(cell.v).trim().toLowerCase()==='periodo'){
+          headerRow = ri;
+          break;
+        }
+      }
+      var rows = XLSX.utils.sheet_to_json(ws, {defval:'', range:headerRow});
 
       // Filtrar por período seleccionado
       var per = _periodoActual; // ej: '202507'
