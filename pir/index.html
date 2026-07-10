@@ -317,7 +317,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
             <button class="btn-s" id="btnAddSocio" style="margin-left:auto;font-size:11px;padding:5px 12px">+ Agregar socio</button>
           </div>
           <table class="socios-table">
-            <thead><tr><th width="4%">#</th><th>Nombre</th><th width="13%">% Participación</th><th width="18%">Retiros 14D3 (0=auto)</th><th width="18%">Otros ingresos anuales</th><th width="5%"></th></tr></thead>
+            <thead><tr><th width="4%">#</th><th>Nombre</th><th width="10%">% Part.</th><th width="14%">Retiros 14D3</th><th width="14%">Otros ingresos</th><th width="14%" style="color:#2D9B6F">Crédito F22</th><th width="5%"></th></tr></thead>
             <tbody id="sociosBody"></tbody>
           </table>
           <div class="pct-total err" id="pctTotal">Total: 0%</div>
@@ -359,6 +359,18 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
             </div>
             <div class="fgroup"><label>Valor UF (tope 14E)</label><input type="number" id="aj_uf" value="39700"/></div>
             <div class="fgroup"><label>Otros créditos (SENCE etc.)</label><input type="number" id="aj_cred" placeholder="0"/></div>
+          </div>
+          <div class="fg2" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr)">
+            <div class="fgroup">
+              <label>RAI disponible (saldo inicio período)</label>
+              <input type="number" id="aj_rai" placeholder="0"/>
+              <span class="hint">Se distribuye por % entre socios. Los retiros lo consumen primero.</span>
+            </div>
+            <div class="fgroup">
+              <label>Crédito IDPC total del RAI</label>
+              <input type="number" id="aj_rai_idpc" placeholder="0"/>
+              <span class="hint">Crédito proporcional al RAI efectivamente imputado por cada socio</span>
+            </div>
           </div>
         </div>
 
@@ -578,15 +590,22 @@ function calcIGC(renta,at){
   var l=t[t.length-1];return{imp:Math.max(0,renta*l[2]-l[3]),tramo:'40%',tasa:l[2]};
 }
 
-function calcIGCSocio(base,otros,reg,at,idpcEmp,ppmEmp,pct){
+function calcIGCSocio(base,otros,reg,at,idpcEmp,ppmEmp,pct,raiSocio,raiIdpcSocio,f22Socio){
   var factor=FACTOR_IDPC[parseInt(at)]||(12.5/87.5);
   var r={};
+  // RAI: los retiros consumen el RAI primero
+  r.raiDisponible=raiSocio||0;
+  r.raiImputado=Math.min(r.raiDisponible, base); // retiros no pueden superar RAI disponible
+  r.raiRemanente=Math.max(0, r.raiDisponible - base);
+  // Crédito IDPC del RAI: proporcional al RAI efectivamente imputado
+  r.creditoRAI=raiSocio>0?Math.round((r.raiImputado/raiSocio)*(raiIdpcSocio||0)):0;
+  r.creditoF22=f22Socio||0;
   if(reg==='14D3'){
     r.retiro=base;r.creditoIDPC=base*factor;r.incremento=r.creditoIDPC;
     r.rentaBruta=base+r.incremento+(otros||0);
     var igc=calcIGC(r.rentaBruta,at);
     r.igcBruto=igc.imp;r.tramo=igc.tramo;r.tasa=igc.tasa;
-    r.igcNeto=r.igcBruto-r.creditoIDPC;
+    r.igcNeto=r.igcBruto-r.creditoIDPC-r.creditoRAI-r.creditoF22;
     r.devolucion=r.igcNeto<0?Math.abs(r.igcNeto):0;
     r.apagar=r.igcNeto>0?r.igcNeto:0;
     r.tasaEfectiva=base>0?(r.igcNeto/base*100):0;
@@ -639,13 +658,14 @@ function onATChange(){
 
 // \u2500\u2500 SOCIOS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 var SC=0;
-function addSocio(nombre,pct,retiros,otros){
-  nombre=nombre||'';pct=(pct===undefined||pct===null)?'':pct;retiros=retiros||'';otros=otros||'';
+function addSocio(nombre,pct,retiros,otros,f22){
+  nombre=nombre||'';pct=(pct===undefined||pct===null)?'':pct;retiros=retiros||'';otros=otros||'';f22=f22||'';
   SC++;var id=SC;
   var tr=document.createElement('tr');tr.id='sr-'+id;
-  function mkI(type,val,ph,w){
+  function mkI(type,val,ph,w,color){
     var i=document.createElement('input');i.type=type;i.value=String(val);i.placeholder=ph;
     if(w)i.style.width=w;
+    if(color){i.style.borderColor='#a7f3d0';i.style.background='#f0fdf4';}
     i.addEventListener('input',function(){updatePct();chkReady();});
     return i;
   }
@@ -654,7 +674,8 @@ function addSocio(nombre,pct,retiros,otros){
   (function(sid){btn.addEventListener('click',function(){var r=document.getElementById('sr-'+sid);if(r)r.remove();updatePct();chkReady();});})(id);
   var tdBtn=document.createElement('td');tdBtn.appendChild(btn);
   [mkTd(String(id)),mkTd(mkI('text',nombre,'Nombre','')),mkTd(mkI('number',pct,'0','80px')),
-   mkTd(mkI('number',retiros,'0 (auto)','')),mkTd(mkI('number',otros,'0','')),tdBtn
+   mkTd(mkI('number',retiros,'0 (auto)','')),mkTd(mkI('number',otros,'0','')),
+   mkTd(mkI('number',f22,'0','',true)),tdBtn
   ].forEach(function(td){tr.appendChild(td);});
   document.getElementById('sociosBody').appendChild(tr);
   updatePct();
@@ -663,7 +684,8 @@ function getSocios(){
   return Array.from(document.querySelectorAll('#sociosBody tr')).map(function(tr){
     var i=tr.querySelectorAll('input');
     return{nombre:i[0]?i[0].value.trim():'',pct:i[1]?parseFloat(i[1].value)||0:0,
-           retiros:i[2]?parseFloat(i[2].value)||0:0,otros:i[3]?parseFloat(i[3].value)||0:0};
+           retiros:i[2]?parseFloat(i[2].value)||0:0,otros:i[3]?parseFloat(i[3].value)||0:0,
+           f22:i[4]?parseFloat(i[4].value)||0:0};
   }).filter(function(s){return s.pct>0;});
 }
 function updatePct(){
@@ -1034,7 +1056,8 @@ function guardarPerfil(){
   var rut=sv('c_rut');if(!rut)return;
   var c=getCli();
   c[rut]={rut:rut,razon:sv('c_razon'),giro:sv('c_giro'),nivel:sv('c_nivel'),
-    reg:sv('c_reg'),analista:sv('c_analista'),email:sv('c_email'),socios:getSocios(),ts:Date.now()};
+    reg:sv('c_reg'),analista:sv('c_analista'),email:sv('c_email'),socios:getSocios(),
+    rai:gv('aj_rai'),raiIdpc:gv('aj_rai_idpc'),ts:Date.now()};
   setCli(c);
 }
 function autoFill(c){
@@ -1044,6 +1067,8 @@ function autoFill(c){
   if(c.analista)document.getElementById('c_analista').value=c.analista;
   if(c.reg){document.getElementById('c_reg').value=c.reg;onRegChange();}
   var _em2=document.getElementById('c_email');if(_em2&&c.email)_em2.value=c.email;
+  var _rai=document.getElementById('aj_rai');if(_rai&&c.rai)_rai.value=c.rai;
+  var _raiIdpc=document.getElementById('aj_rai_idpc');if(_raiIdpc&&c.raiIdpc)_raiIdpc.value=c.raiIdpc;
   if(c.socios&&c.socios.length){
     document.getElementById('sociosBody').innerHTML='';SC=0;
     c.socios.forEach(function(s){addSocio(s.nombre,s.pct,s.retiros||0,s.otros||0);});
@@ -1096,11 +1121,16 @@ function generarReporte(){
     if(reg==='14D3'){impBruto=rliNet*(tasa/100);ppmEmp=acc.ppm;difEmp=impBruto-ppmEmp-cred;}
     var tasaEf=acc.totalGan>0?(impBruto/acc.totalGan*100):0;
     var nivel=sv('c_nivel');
+    var rai=gv('aj_rai'),raiIdpc=gv('aj_rai_idpc');
     var sc=socios.map(function(s){
       var rs=s.retiros>0?s.retiros:acc.retiros*(s.pct/100);
       var bs=reg==='14D3'?rs:rliPos*(s.pct/100);
+      // RAI proporcional al % del socio
+      var raiSocio=Math.round(rai*(s.pct/100));
+      var raiIdpcSocio=Math.round(raiIdpc*(s.pct/100));
       return{nombre:s.nombre,pct:s.pct,retiro:rs,otros:s.otros||0,
-             calc:calcIGCSocio(bs,s.otros||0,reg,at,impBruto,acc.ppm,s.pct)};
+             raiSocio:raiSocio,raiIdpcSocio:raiIdpcSocio,f22:s.f22||0,
+             calc:calcIGCSocio(bs,s.otros||0,reg,at,impBruto,acc.ppm,s.pct,raiSocio,raiIdpcSocio,s.f22||0)};
     });
     var params={reg:reg,at:at,tasa:tasa,rli:rli,rliPos:rliPos,rliNet:rliNet,
       impBruto:impBruto,ppmEmp:ppmEmp,difEmp:difEmp,reb14E:reb14E,tasaEf:tasaEf,
@@ -1288,7 +1318,7 @@ function render(acc,monthly,n,ia){
     h+='<div class="sdiv">Tributaci\u00f3n Socios</div>';
     h+='<div class="panel-full"><div class="ph"><h3>Resumen IGC por Socio</h3></div>';
     h+='<table class="dtable"><thead><tr><th>Socio</th><th style="text-align:right">%</th>';
-    if(reg==='14D3')h+='<th style="text-align:right">Retiros</th><th style="text-align:right">Renta Bruta</th><th style="text-align:right">IGC Bruto</th><th style="text-align:right">Cr\u00e9d. IDPC</th>';
+    if(reg==='14D3')h+='<th style="text-align:right">Retiros</th><th style="text-align:right">Renta Bruta</th><th style="text-align:right">IGC Bruto</th><th style="text-align:right">Cr\u00e9d. IDPC</th><th style="text-align:right;color:#2D9B6F">Cr\u00e9d. RAI</th><th style="text-align:right;color:#2D9B6F">Cr\u00e9d. F22</th>';
     else if(reg==='14D8')h+='<th style="text-align:right">Base Atribuida</th><th style="text-align:right">IGC Bruto</th><th style="text-align:right">Cr\u00e9d. PPM</th>';
     else h+='<th style="text-align:right">Base Atribuida</th><th style="text-align:right">IGC Bruto</th>';
     h+='<th style="text-align:right">Resultado</th></tr></thead><tbody>';
@@ -1296,7 +1326,10 @@ function render(acc,monthly,n,ia){
       var c=s.calc,cl=c.igcNeto<=0?'#2D9B6F':'#C0392B';
       var rl=c.igcNeto<=0?'Devol. '+ff(c.devolucion):'Paga '+ff(c.apagar);
       h+='<tr><td><b>'+hesc(s.nombre)+'</b></td><td class="num">'+s.pct.toFixed(1)+'%</td>';
-      if(reg==='14D3'){h+='<td class="num">'+ff(c.retiro)+'</td><td class="num">'+ff(c.rentaBruta)+'</td><td class="num">'+ff(c.igcBruto)+'</td><td class="num" style="color:#2D9B6F">'+ff(c.creditoIDPC)+'</td>';}
+      if(reg==='14D3'){h+='<td class="num">'+ff(c.retiro)+'</td><td class="num">'+ff(c.rentaBruta)+'</td><td class="num">'+ff(c.igcBruto)+'</td><td class="num" style="color:#2D9B6F">'+ff(c.creditoIDPC)+'</td>'
+        +(c.creditoRAI>0?'<td class="num" style="color:#2D9B6F">'+ff(c.creditoRAI)+'</td>':'<td class="num" style="color:var(--tm)">-</td>')
+        +(c.creditoF22>0?'<td class="num" style="color:#2D9B6F">'+ff(c.creditoF22)+'</td>':'<td class="num" style="color:var(--tm)">-</td>')
+        ;}
       else if(reg==='14D8'){h+='<td class="num">'+ff(c.baseAtribuida)+'</td><td class="num">'+ff(c.igcBruto)+'</td><td class="num" style="color:#2D9B6F">'+ff(c.creditoPPM)+'</td>';}
       else{h+='<td class="num">'+ff(c.baseAtribuida)+'</td><td class="num">'+ff(c.igcBruto)+'</td>';}
       h+='<td class="num" style="font-weight:700;color:'+cl+'">'+rl+'</td></tr>';
@@ -1354,6 +1387,12 @@ function render(acc,monthly,n,ia){
         h+='<div class="igc-divider"></div>';
         h+=mkStep('x','result',ff(c.igcBruto),'red','IGC seg\u00fan tabla (tramo '+hesc(c.tramo)+')','Renta Bruta x '+hesc(c.tramo)+' \u2212 cantidad a rebajar');
         h+=mkStep('-','minus',ff(c.creditoIDPC),'green','Cr\u00e9dito IDPC (impuesto pagado por la empresa)','100% imputable con posible devoluci\u00f3n en 14D3');
+        if(c.creditoRAI>0){
+          h+=mkStep('-','minus',ff(c.creditoRAI),'green','Cr\u00e9dito IDPC del RAI','RAI disponible: '+ff(s.raiSocio)+' \u2192 imputado: '+ff(Math.min(s.raiSocio,c.retiro))+' \u2192 cr\u00e9dito: '+ff(c.creditoRAI));
+        }
+        if(c.creditoF22>0){
+          h+=mkStep('-','minus',ff(c.creditoF22),'green','Cr\u00e9dito F22 a\u00f1o anterior','PPM en exceso u otros cr\u00e9ditos del F22 del per\u00edodo anterior');
+        }
         h+='<div class="igc-divider"></div>';
         if(esPago){
           h+=mkStep('=','total',ff(c.apagar),'bold red','IMPUESTO GLOBAL COMPLEMENTARIO A PAGAR','Declarar en F22 personal de '+hesc(s.nombre)+' en abril');
@@ -1653,6 +1692,8 @@ function resetForm(){
   document.getElementById('sociosBody').innerHTML='';SC=0;updatePct();
   document.getElementById('diarioOk').classList.remove('show');
   var fd=document.getElementById('fileDiario');if(fd)fd.value='';
+  var ajRai=document.getElementById('aj_rai');if(ajRai)ajRai.value='';
+  var ajRaiIdpc=document.getElementById('aj_rai_idpc');if(ajRaiIdpc)ajRaiIdpc.value='';
   document.getElementById('ajCard').style.display='none';
   document.getElementById('genBtn').disabled=true;
   document.getElementById('reportWrap').innerHTML='';
