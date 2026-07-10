@@ -960,19 +960,24 @@ function leerLibro(file, tipo){
       var totalNeto = 0;
       var rowCount = 0;
 
+      // Debug: ver keys de primera fila
+      if(rows.length>0){
+        console.log('Columnas detectadas:', Object.keys(rows[0]));
+        console.log('Primera fila:', rows[0]);
+      }
+
       rows.forEach(function(row){
-        // Intentar parsear fecha/periodo de la fila
+        // Filtrar por período
         var fecha = row['Fecha'] || row['Periodo'] || '';
         var inPeriod = false;
 
         if(fecha){
-          // Formato posible: DD/MM/YYYY, YYYY-MM-DD, numero Excel
           var d = null;
           if(typeof fecha === 'number'){
-            // Número serial de Excel
             d = new Date(Math.round((fecha - 25569)*86400*1000));
           } else {
-            var parts = String(fecha).split(/[\/\-]/);
+            var s = String(fecha).trim();
+            var parts = s.split(/[\/\-]/);
             if(parts.length === 3){
               if(parts[0].length === 4){
                 d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
@@ -986,10 +991,26 @@ function leerLibro(file, tipo){
           }
         }
 
-        // Si no hay fecha o no parsea, incluir todas las filas
         if(!fecha || inPeriod){
-          var iva = parseFloat(String(row['Iva']||row['IVA']||0).replace(/[^0-9\-]/g,''))||0;
-          var neto = parseFloat(String(row['Neto']||0).replace(/[^0-9\-]/g,''))||0;
+          // Buscar columna IVA con cualquier variante
+          var ivaRaw = null;
+          var keys = Object.keys(row);
+          for(var ki=0;ki<keys.length;ki++){
+            if(keys[ki].trim().toLowerCase()==='iva'){
+              ivaRaw = row[keys[ki]];
+              break;
+            }
+          }
+          var iva = 0;
+          if(ivaRaw !== null && ivaRaw !== undefined && ivaRaw !== ''){
+            if(typeof ivaRaw === 'number'){
+              iva = ivaRaw;
+            } else {
+              iva = parseFloat(String(ivaRaw).replace(/[^0-9.\-]/g,''))||0;
+            }
+          }
+          var netoRaw = row['Neto'] || row['neto'] || 0;
+          var neto = typeof netoRaw === 'number' ? netoRaw : parseFloat(String(netoRaw).replace(/[^0-9.\-]/g,''))||0;
           totalIva += iva;
           totalNeto += neto;
           rowCount++;
