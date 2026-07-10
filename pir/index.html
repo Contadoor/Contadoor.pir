@@ -765,21 +765,29 @@ function buildBalance(movs){
       var mr=Math.max(0,s.debe-s.haber);
       if(mr>0){retiros+=mr;retirosDetalle.push({cod:s.cod,cuenta:s.cuenta,monto:mr});}
     }
-    var esMerc=s.cod==='110103'||s.cod==='110112'||nom.indexOf('MERCAD')>=0||nom.indexOf('MATER')>=0||nom.indexOf('EXISTEN')>=0||nom.indexOf('STOCK')>=0;
-    if(pre2==='11'&&esMerc&&!EXCL_MERC[s.cod]&&nom.indexOf('RETIRO')<0){
-      var mm=Math.max(0,s.debe-s.haber);
+    // Mercaderías/existencias: cuentas de activo circulante (11xxxx) con saldo deudor
+    // Representan el costo de la mercadería al cierre del período
+    var esMerc=s.cod==='110103'||s.cod==='110112'
+      ||nom.indexOf('MERCAD')>=0||nom.indexOf('MATER')>=0
+      ||nom.indexOf('EXISTEN')>=0||nom.indexOf('STOCK')>=0
+      ||nom.indexOf('INSUMO')>=0||nom.indexOf('PRODUCTO')>=0;
+    if((pre2==='11'||s.cod.startsWith('110'))&&esMerc&&!EXCL_MERC[s.cod]&&nom.indexOf('RETIRO')<0){
+      var mm=Math.max(0,s.debe-s.haber); // saldo deudor = costo mercadería al cierre
       if(mm>0){comprasMerc+=mm;comprasMercDet.push({cod:s.cod,cuenta:s.cuenta,monto:mm});}
     }
+    // También detectar COSTO DE VENTAS en cuentas 41xxxx (ya en per, no sumar dos veces)
+    if(s.cod==='410101'&&Math.max(0,s.debe-s.haber)>0){
+      // Costo de ventas va en totalPer (categoría RESULTADO PÉRDIDA) - no duplicar
+    }
+    // Activo fijo: cuentas 12xxxx sin depreciación - son compras de AF del período
     var esDeprec=nom.indexOf('DEPREC')>=0||nom.indexOf('AMORT')>=0;
-    if(pre2==='12'&&!esDeprec){
-      var maf=Math.max(0,s.debe-s.haber);
+    var esAFNeto=pre2==='12'&&!esDeprec;
+    if(esAFNeto){
+      var maf=Math.max(0,s.debe-s.haber); // saldo deudor neto = compras AF período
       if(maf>0){comprasAF+=maf;comprasAFDet.push({cod:s.cod,cuenta:s.cuenta,monto:maf});}
     }
-    var esGastoRech=false;
-    if(cat.indexOf('RDIDA')>=0||cat.indexOf('GANANCIA')>=0||cat.indexOf('MIXTO')>=0){
-      var CODS_RECH={'410112':1};
-      esGastoRech=CODS_RECH[s.cod]===1||nom.indexOf('IMPUESTO')>=0||nom.indexOf('IRA PAGADO')>=0||nom.indexOf('REAJUSTE ART')>=0||nom.indexOf('ART. 72')>=0||nom.indexOf('ART.72')>=0||nom.indexOf('MULTA SII')>=0||nom.indexOf('MULTA TRIBUTARIA')>=0||nom.indexOf('GASTO RECHAZADO')>=0||nom.indexOf('GASTO NO ACEPTADO')>=0||nom.indexOf('NO ACEPTADO')>=0;
-    }
+    // Gastos no aceptados: SOLO 410112 y 410152
+    var esGastoRech=(s.cod==='410112'||s.cod==='410152');
     if(esGastoRech){
       var mRech=Math.max(0,s.debe-s.haber);
       if(mRech>0){_rechTotal+=mRech;_rechDet.push({cod:s.cod,cuenta:s.cuenta,monto:mRech});}
@@ -1134,7 +1142,14 @@ function generarReporte(){
             }
           }catch(e){}
         };
-        xhr.onerror=xhr.ontimeout=function(){};
+        xhr.onerror=xhr.ontimeout=function(){
+          // API no disponible - usar fallback local
+          try{
+            var fb=fbIA(acc,params);
+            var gp=document.querySelector('.g-info p');if(gp&&fb.resumen)gp.textContent=fb.resumen;
+            var nt=document.querySelector('.narr .txt');if(nt&&fb.analisis)nt.textContent=fb.analisis;
+          }catch(e){}
+        };
         xhr.send(JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:buildPrompt(acc,params)}]}));
       }catch(e){}
     }
@@ -1200,7 +1215,30 @@ function render(acc,monthly,n,ia){
   h+='<tr class="grp"><td></td><td colspan="2">INGRESOS PERCIBIDOS</td></tr>';
   h+='<tr class="sub"><td class="num" style="color:#904891;font-weight:700">[1410]</td><td><b>Total Ingresos Percibidos</b></td><td class="num"><b>'+ff(acc.totalGan)+'</b></td></tr>';
   h+='<tr class="grp"><td></td><td colspan="2">EGRESOS Y GASTOS PAGADOS</td></tr>';
+  // Mercaderías/existencias al cierre
+  if(acc.comprasMerc>0){
+    h+='<tr class="grp"><td></td><td colspan="2">COSTO MERCADER\u00cdAS / EXISTENCIAS AL CIERRE</td></tr>';
+    acc.comprasMercDet.forEach(function(g){
+      h+='<tr><td class="num" style="color:#1e40af;font-weight:700">'+hesc(g.cod)+'</td><td>'+hesc(g.cuenta)+'</td><td class="num">'+ff(g.monto)+'</td></tr>';
+    });
+    h+='<tr class="sub"><td></td><td><b>Subtotal Mercader\u00edas</b></td><td class="num"><b>'+ff(acc.comprasMerc)+'</b></td></tr>';
+  }
+  // Compras activo fijo
+  if(acc.comprasAF>0){
+    h+='<tr class="grp"><td></td><td colspan="2">COMPRAS ACTIVO FIJO DEL PER\u00cdODO</td></tr>';
+    acc.comprasAFDet.forEach(function(g){
+      h+='<tr><td class="num" style="color:#1e40af;font-weight:700">'+hesc(g.cod)+'</td><td>'+hesc(g.cuenta)+'</td><td class="num">'+ff(g.monto)+'</td></tr>';
+    });
+    h+='<tr class="sub"><td></td><td><b>Subtotal Activo Fijo</b></td><td class="num"><b>'+ff(acc.comprasAF)+'</b></td></tr>';
+  }
   h+='<tr class="sub"><td></td><td><b>Total Egresos y Gastos</b></td><td class="num" style="color:#C0392B"><b>'+ff(-acc.totalPer)+'</b></td></tr>';
+  if(acc.gastosRech>0){
+    h+='<tr class="grp"><td></td><td colspan="2" style="color:#C07A1A">GASTOS NO ACEPTADOS - solo informativo (ya excluidos del c\u00e1lculo)</td></tr>';
+    acc.gastosRechDet.forEach(function(g){
+      h+='<tr style="background:#fef9e7;"><td class="num" style="color:#C07A1A;font-weight:700">'+hesc(g.cod)+'</td><td style="color:#C07A1A">'+hesc(g.cuenta)+'</td><td class="num" style="color:#C07A1A">'+ff(g.monto)+'</td></tr>';
+    });
+    h+='<tr style="background:#fef3c7;"><td></td><td><b style="color:#C07A1A">Total no aceptados (Art. 33 LIR)</b></td><td class="num"><b style="color:#C07A1A">'+ff(acc.gastosRech)+'</b></td></tr>';
+  }
   if(n.rec||n.cm||n.per){
     h+='<tr class="grp"><td></td><td colspan="2">AJUSTES TRIBUTARIOS</td></tr>';
     if(n.rec)h+='<tr><td class="num" style="color:#904891;font-weight:700">[15]</td><td>(+) Gastos rechazados adicionales</td><td class="num">'+ff(n.rec)+'</td></tr>';
@@ -1443,10 +1481,14 @@ function descargarReporte(id){
     alert('Este an\u00e1lisis a\u00fan no tiene reporte generado. Carga el an\u00e1lisis y genera el reporte primero.');
     return;
   }
-  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>PIR '+hesc(r.razon||r.rut)+' AT'+r.at+'</title>'
-    +'<style>body{font-family:-apple-system,sans-serif;background:#f0ebff;padding:20px;}'
-    +'.report-wrap{max-width:1100px;margin:0 auto;}</style></head>'
-    +'<body><div class="report-wrap">'+r.rptHtml+'</div></body></html>';
+  var css=Array.from(document.styleSheets).reduce(function(acc,ss){
+    try{return acc+Array.from(ss.cssRules).map(function(r){return r.cssText;}).join('\n');}
+    catch(e){return acc;}
+  },'');
+  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'
+    +'<title>PIR '+hesc(r.razon||r.rut)+' AT'+r.at+'</title>'
+    +'<style>'+css+'</style></head>'
+    +'<body style="background:#f0ebff;padding:20px;"><div style="max-width:1100px;margin:0 auto;">'+r.rptHtml+'</div></body></html>';
   var blob=new Blob([html],{type:'text/html;charset=utf-8;'});
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a');a.href=url;
