@@ -5,6 +5,26 @@
 (function(){
   var LOGIN_PAGE = 'login.html';
 
+  // ── MODO DESARROLLO ─────────────────────────────────────────────────
+  // Si es localhost, file://, o preview → sesión master automática
+  var _hostname = window.location.hostname;
+  var _protocol = window.location.protocol;
+  var _isDevMode = (
+    _protocol === 'file:' ||
+    _hostname === 'localhost' ||
+    _hostname === '127.0.0.1' ||
+    _hostname.endsWith('.anthropic.com') ||
+    _hostname.endsWith('.claude.ai') ||
+    _hostname === ''
+  );
+  if(_isDevMode && !sessionStorage.getItem('usuario_activo')){
+    sessionStorage.setItem('usuario_activo', JSON.stringify({
+      nombre:'Luciano Duarte', rol:'master', rolLabel:'Master',
+      esMaster:true, modulos:['*'], tsLogin:Date.now()
+    }));
+  }
+  // ────────────────────────────────────────────────────────────────────
+
   // Detectar profundidad de ruta
   var path = window.location.pathname;
   var esRaiz = (path.endsWith('/') || path.endsWith('index.html')) &&
