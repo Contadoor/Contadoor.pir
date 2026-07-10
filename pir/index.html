@@ -1406,6 +1406,45 @@ function render(acc,monthly,n,ia){
     }
   }
 
+  // PPM ANÁLISIS POR PERÍODO
+  if(ppmData&&ppmData.length>0){
+    var ppmTotal=ppmData.reduce(function(s,m){return s+m.pagado;},0);
+    var ppmProy=n.impBruto>0?ppmTotal/n.impBruto*100:0;
+    var tasaVigente=sv('c_at')?gv('c_tasa'):12.5;
+    h+='<div class="sdiv">An\u00e1lisis PPM del Per\u00edodo</div>';
+    h+='<div class="panel-full"><div class="ph"><h3>Pagos Provisionales Mensuales [c\u00f3d. 67]</h3></div>';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:14px;background:var(--sur2);border-bottom:1px solid var(--bdr);">';
+    h+='<div><div style="font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">PPM Acumulado AT'+at+'</div><div style="font-size:20px;font-weight:700;color:#2D9B6F;font-family:monospace">'+ff(ppmTotal)+'</div></div>';
+    h+='<div><div style="font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Cobertura vs IDPC</div><div style="font-size:20px;font-weight:700;font-family:monospace;color:'+(ppmProy>=100?'#2D9B6F':'#C07A1A')+'">'+ppmProy.toFixed(1)+'%</div><div style="font-size:10px;color:var(--tm)">PPM cubre '+(ppmProy>=100?'todo el impuesto':'parcialmente el impuesto')+'</div></div>';
+    h+='<div><div style="font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Tasa promedio aplicada</div><div style="font-size:20px;font-weight:700;font-family:monospace;color:#904891">'+(acc.totalGan>0?(ppmTotal/acc.totalGan*100).toFixed(2):0)+'%</div><div style="font-size:10px;color:var(--tm)">Sobre ingresos totales</div></div>';
+    h+='</div>';
+    h+='<table class="dtable"><thead><tr><th>Per\u00edodo</th><th style="text-align:right">PPM pagado</th><th style="text-align:right">Acumulado</th></tr></thead><tbody>';
+    var ppmAcum=0;
+    ppmData.forEach(function(m){
+      ppmAcum+=m.pagado;
+      h+='<tr><td>'+MN[m.mes]+' '+m.anio+'</td><td class="num">'+ff(m.pagado)+'</td><td class="num" style="color:#904891">'+ff(ppmAcum)+'</td></tr>';
+    });
+    h+='<tr style="font-weight:700;border-top:2px solid var(--bdr)"><td>Total AT'+at+'</td><td class="num" style="color:#2D9B6F">'+ff(ppmTotal)+'</td><td class="num" style="color:#904891">'+ff(ppmTotal)+'</td></tr>';
+    h+='</tbody></table>';
+    // Proyección tasa
+    if(acc.totalGan>0){
+      var tasaReal=(ppmTotal/acc.totalGan*100).toFixed(2);
+      h+='<div style="padding:10px 14px;background:var(--sur2);border-top:1px solid var(--bdr);font-size:12px;color:var(--t2)">';
+      h+='<b>Proyecci\u00f3n tasa PPM:</b> Tasa aplicada este per\u00edodo: '+tasaReal+'%. ';
+      if(n.impBruto>0&&acc.totalGan>0){
+        var tasaIdeal=(n.impBruto/acc.totalGan*100).toFixed(2);
+        h+='Tasa ideal para cubrir IDPC ('+ff(n.impBruto)+' sobre '+ff(acc.totalGan)+'): <b style="color:#904891">'+tasaIdeal+'%</b>. ';
+        if(parseFloat(tasaReal)<parseFloat(tasaIdeal)){
+          h+='<span style="color:#C07A1A">&#9888; Tasa actual subestimada — diferencia a pagar en abril: '+ff(n.difEmp)+'</span>';
+        } else {
+          h+='<span style="color:#2D9B6F">&#10003; Tasa adecuada — PPM cubre el IDPC proyectado</span>';
+        }
+      }
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+
   // IGC CARDS DETALLADAS
   if(nivel!=='MICRO'&&n.sc.length>0){
     h+='<div class="sdiv">C\u00e1lculo Detallado IGC por Socio</div>';
