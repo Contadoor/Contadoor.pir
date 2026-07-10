@@ -527,8 +527,11 @@ function resetForm(){
   var prev=document.getElementById('logo-preview');
   if(prev)prev.innerHTML='🖼️';
   var fi=document.getElementById('f-logo');if(fi)fi.value='';
-  credBody=[];renderCreds();
-  sociosBody=[];renderSocios();
+  // Limpiar credenciales y socios
+  var cb=document.getElementById('credBody');if(cb)cb.innerHTML='';
+  var ce=document.getElementById('credEmpty');if(ce)ce.style.display='';
+  var sb=document.getElementById('sociosBody');if(sb)sb.innerHTML='';
+  CC=0;SC=0;updatePct();
   actualizarPreviewValor();
   poblarSelectsAnalistas();
 }
