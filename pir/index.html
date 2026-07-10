@@ -721,19 +721,35 @@ function chkReady(){
 }
 
 // \u2500\u2500 PARSE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+function esAsientoApertura(fecha){
+  // Excluir asiento de apertura en todos los formatos posibles
+  // 01-01-XXXX, 01/01/XXXX, 1/1/XXXX, 1-1-XXXX, 01.01.XXXX
+  var f=(fecha||'').trim().replace(/\./g,'-').replace(/\//g,'-');
+  return /^0?1-0?1-/.test(f)||f==='1-1';
+}
+
 function parseDiario(content){
   var doc=new DOMParser().parseFromString(content,'text/html'),mov=[];
+  // También detectar el glosa/descripción del asiento de apertura
+  var GLOSAS_APERTURA=['ASIENTO DE APERTURA','APERTURA DE LIBRO','SALDO INICIAL',
+                       'BALANCE INICIAL','SALDOS INICIALES','APERTURA'];
   doc.querySelectorAll('tr').forEach(function(tr){
-    var cells=Array.from(tr.querySelectorAll('td')).map(function(td){return td.textContent.replace(/\s+/g,' ').trim();});
+    var cells=Array.from(tr.querySelectorAll('td')).map(function(td){
+      return td.textContent.replace(/\s+/g,' ').trim();
+    });
     if(cells.length<8)return;
     var _fech=(cells[0]||'').trim();
-    if(_fech.startsWith('01-01-')||_fech.startsWith('01/01/')||_fech==='1/1'||_fech.startsWith('1/1/'))return;
+    if(_fech==='Fecha')return; // header row
+    // Excluir asiento de apertura por fecha
+    if(esAsientoApertura(_fech))return;
+    // Excluir por glosa/descripción si la columna existe
+    var glosa=(cells[2]||cells[3]||'').toUpperCase();
+    if(GLOSAS_APERTURA.some(function(g){return glosa.indexOf(g)>=0;}))return;
     var cod=cells[4].trim();
     if(!cod||!/^\d{6}/.test(cod))return;
     var debe=pn(cells[6]),haber=pn(cells[7]);
     if(debe===0&&haber===0)return;
-    if(cells[0].trim()==='Fecha')return;
-    mov.push({fecha:cells[0],cod:cod,cuenta:cells[5],debe:debe,haber:haber});
+    mov.push({fecha:_fech,cod:cod,cuenta:cells[5],debe:debe,haber:haber});
   });
   return mov;
 }
