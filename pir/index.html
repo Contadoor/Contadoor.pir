@@ -794,6 +794,14 @@ function buildBalance(movs){
   var tG=0,tP=0;
   Object.keys(gan).forEach(function(k){tG+=gan[k].saldo;});
   Object.keys(per).forEach(function(k){tP+=per[k].saldo;});
+  console.log('PIR buildBalance debug:',{
+    gan_keys:Object.keys(gan).length,
+    per_keys:Object.keys(per).length,
+    totalGan:tG,totalPer:tP,
+    comprasMerc:comprasMerc,comprasAF:comprasAF,
+    gastosRech:_rechTotal,
+    sample_per:Object.keys(per).slice(0,3).map(function(k){return per[k].cuenta+':'+per[k].saldo;})
+  });
   Object.keys(mx).forEach(function(k){var sd=mx[k].saldo;if(sd>0)tG+=sd;else tP+=Math.abs(sd);});
   tP+=comprasMerc+comprasAF;
   return{gan:gan,per:per,mx:mx,totalGan:tG,totalPer:tP,resultado:tG-tP,
