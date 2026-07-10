@@ -1,0 +1,1037 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pre-IVA · Proyección mensual · Contadoor</title>
+<style>
+:root{--p:#904891;--pd:#6D2E6E;--pm:#B06EB1;--pp:#F5EAF5;--deep:#08040f;--bg:#f0ebff;--sur:#fff;--sur2:#FAF7FA;--bdr:#E8DDE8;--t1:#1A0A1B;--t2:#5C4A5D;--tm:#9A849B;--green:#2D9B6F;--amber:#C07A1A;--red:#C0392B;--blue:#3B82F6;--mono:"SF Mono","Consolas",monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100vh;}
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:220px;background:var(--deep);display:flex;flex-direction:column;position:fixed;height:100vh;z-index:20;top:0;left:0;}
+.sb-logo{padding:16px 16px 12px;border-bottom:1px solid rgba(144,72,145,.3);flex-shrink:0;}
+.sb-logo img{width:130px;display:block;}
+.sb-tagline{font-size:9px;color:rgba(255,255,255,.28);letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
+.sb-nav{padding:10px 8px;flex:1;overflow-y:auto;overflow-x:hidden;}
+.sb-nav::-webkit-scrollbar{width:3px;}
+.sb-nav::-webkit-scrollbar-track{background:transparent;}
+.sb-nav::-webkit-scrollbar-thumb{background:rgba(144,72,145,.3);border-radius:3px;}
+.sb-sec{font-size:9px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.25);text-transform:uppercase;padding:10px 8px 4px;margin-top:4px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;font-size:12px;color:rgba(255,255,255,.55);transition:.15s;margin-bottom:1px;text-decoration:none;cursor:pointer;white-space:nowrap;overflow:hidden;}
+.sb-item:hover{background:rgba(144,72,145,.18);color:#fff;}
+.sb-item.on{background:rgba(144,72,145,.3);color:#fff;font-weight:600;}
+.sb-foot{padding:10px 14px;border-top:1px solid rgba(144,72,145,.25);font-size:9px;color:rgba(255,255,255,.3);flex-shrink:0;}
+.main{margin-left:220px;flex:1;min-height:100vh;}
+.sb-logo{padding:18px 16px 12px;border-bottom:1px solid rgba(144,72,145,.3);}
+.sb-logo img{width:140px;display:block;}
+.sb-tagline{font-size:9px;color:rgba(255,255,255,.28);letter-spacing:1px;text-transform:uppercase;margin-top:5px;}
+.sb-nav{padding:12px 8px;flex:1;overflow-y:auto;overflow-x:hidden;}
+.sb-sec{font-size:9px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.25);text-transform:uppercase;padding:10px 8px 4px;margin-top:4px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;font-size:12px;color:rgba(255,255,255,.55);transition:.15s;margin-bottom:1px;text-decoration:none;cursor:pointer;}
+.sb-item:hover{background:rgba(144,72,145,.18);color:#fff;}
+.sb-item.on{background:rgba(144,72,145,.3);color:#fff;font-weight:600;}
+.sb-foot{padding:12px 14px;border-top:1px solid rgba(144,72,145,.25);font-size:9px;color:rgba(255,255,255,.3);}
+.topbar{background:var(--deep);padding:10px 20px;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--p);position:sticky;top:0;z-index:10;}
+.tb-title{font-size:14px;font-weight:600;color:#fff;flex:1;}
+.content{padding:20px 24px;}
+.view{display:none;}.view.on{display:block;}
+.pir-tabs{display:flex;gap:3px;background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:3px;margin-bottom:18px;width:fit-content;}
+.pir-tab{padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;color:var(--t2);transition:.15s;display:flex;align-items:center;gap:5px;}
+.pir-tab:hover{color:var(--p);}
+.pir-tab.on{background:var(--p);color:#fff;font-weight:600;}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:18px 20px;margin-bottom:14px;}
+.card-hd{font-size:11px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.8px;margin-bottom:13px;display:flex;align-items:center;gap:7px;}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.fg4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+.fgroup{display:flex;flex-direction:column;gap:4px;}
+.fgroup label{font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.7px;}
+.fgroup input,.fgroup select{font-family:var(--sans);font-size:13px;border:1px solid var(--bdr);border-radius:7px;padding:7px 10px;color:var(--t1);background:var(--sur2);outline:none;transition:.15s;width:100%;}
+.fgroup input:focus,.fgroup select:focus{border-color:var(--p);}
+.fgroup .hint{font-size:10px;color:var(--tm);}
+.btn-p{background:var(--p);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;}
+.btn-p:hover{background:var(--pd);}.btn-p:disabled{opacity:.4;cursor:not-allowed;}
+.btn-s{background:transparent;color:var(--t1);border:1px solid var(--bdr);border-radius:8px;padding:8px 15px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;}
+.btn-s:hover{border-color:var(--p);color:var(--p);}
+.btn-danger{background:#FEE2E2;color:#B91C1C;border:1px solid #FECACA;border-radius:7px;padding:5px 10px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;}
+.row-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.upload-zone{border:2px dashed var(--bdr);border-radius:10px;padding:28px;text-align:center;cursor:pointer;transition:.2s;position:relative;background:var(--sur);}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--p);background:var(--pp);}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.file-ok{display:none;align-items:center;gap:10px;background:var(--sur);border:1px solid var(--bdr);border-left:3px solid var(--green);border-radius:8px;padding:10px 14px;margin-top:12px;}
+.file-ok.show{display:flex;}
+.socios-table{width:100%;border-collapse:collapse;margin-top:8px;}
+.socios-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--p);padding:7px 10px;background:var(--sur2);border-bottom:1px solid var(--bdr);text-align:left;}
+.socios-table td{padding:5px 8px;border-bottom:1px solid var(--bdr);}
+.socios-table input{border:1px solid var(--bdr);border-radius:5px;padding:5px 8px;font-size:12.5px;font-family:var(--sans);background:var(--sur2);outline:none;width:100%;}
+.socios-table input:focus{border-color:var(--p);}
+.pct-total{font-size:11px;font-weight:700;padding:6px 10px;}
+.pct-total.ok{color:var(--green);}.pct-total.err{color:var(--red);}
+.info-box{background:#EFF6FF;border:1px solid #BFDBFE;border-left:3px solid var(--blue);border-radius:8px;padding:10px 13px;font-size:12px;color:#1E40AF;line-height:1.5;}
+.warn-box{background:#FEF3C7;border:1px solid #FDE68A;border-left:3px solid var(--amber);border-radius:8px;padding:10px 13px;font-size:12px;color:#78350F;line-height:1.5;}
+.success-box{background:#ECFDF5;border:1px solid #A7F3D0;border-left:3px solid var(--green);border-radius:8px;padding:10px 13px;font-size:12px;color:#064E3B;line-height:1.5;}
+.loading{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:40px;text-align:center;display:none;}
+.loading.on{display:block;}
+.spinner{width:38px;height:38px;border:3px solid var(--bdr);border-top-color:var(--p);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.report-wrap{display:none;}.report-wrap.on{display:block;}
+.rpt-hdr{background:linear-gradient(135deg,#904891 0%,#6D2E6E 100%);border-radius:12px;padding:28px 36px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 24px rgba(144,72,145,.22);}
+.rpt-hdr img{width:180px;display:block;}
+.client-box{background:var(--sur);border:1px solid var(--bdr);border-left:4px solid var(--p);border-radius:10px;padding:13px 17px;margin-bottom:14px;}
+.client-row{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+.cf .lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tm);margin-bottom:2px;}
+.cf .val{font-size:13px;font-weight:700;color:var(--t1);}
+.regime-tag{display:inline-flex;align-items:center;border-radius:5px;padding:3px 9px;font-size:10.5px;font-weight:700;}
+.regime-tag.pyme{background:#ECFDF5;color:#064E3B;border:1px solid #A7F3D0;}
+.regime-tag.transp{background:#EFF6FF;color:#1E40AF;border:1px solid #BFDBFE;}
+.regime-tag.presunta{background:#FEF3C7;color:#78350F;border:1px solid #FDE68A;}
+.level-tag{display:inline-flex;align-items:center;border-radius:5px;padding:3px 9px;font-size:10.5px;font-weight:700;}
+.level-tag.pro{background:var(--pp);color:var(--pd);border:1px solid rgba(144,72,145,.3);}
+.level-tag.medium{background:#EFF6FF;color:#1E40AF;border:1px solid #BFDBFE;}
+.level-tag.micro{background:var(--sur2);color:var(--t2);border:1px solid var(--bdr);}
+.kpi-grid{display:grid;gap:12px;margin-bottom:14px;}
+.kpi-grid.k4{grid-template-columns:repeat(4,1fr);}
+.kpi{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;}
+.kpi::after{content:"";position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 10px 10px;}
+.kpi.cp::after{background:var(--p);}.kpi.ca::after{background:var(--amber);}.kpi.cr::after{background:var(--red);}.kpi.cg::after{background:var(--green);}.kpi.cb::after{background:var(--blue);}
+.kpi-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--tm);margin-bottom:7px;}
+.kpi-val{font-family:var(--mono);font-size:19px;font-weight:500;line-height:1;color:var(--t1);margin-bottom:3px;}
+.kpi-sub{font-size:10.5px;color:var(--t2);}
+.gauge-card{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:18px 20px;margin-bottom:14px;display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;}
+.g-lbl{font-size:10px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:1px;margin-top:5px;text-align:center;}
+.g-info h3{font-size:14px;font-weight:700;margin-bottom:7px;}
+.g-info p{font-size:12.5px;color:var(--t2);line-height:1.6;margin-bottom:9px;}
+.tasa-pill{display:inline-flex;align-items:center;gap:6px;background:var(--pp);border:1px solid rgba(144,72,145,.25);color:var(--pd);border-radius:6px;padding:6px 11px;font-size:12px;font-weight:600;}
+.sdiv{display:flex;align-items:center;gap:7px;margin:14px 0 10px;color:var(--tm);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+.sdiv::before,.sdiv::after{content:"";flex:1;height:1px;background:var(--bdr);}
+.panel-full{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;margin-bottom:14px;}
+.ph{padding:11px 15px;border-bottom:1px solid var(--bdr);background:var(--sur2);display:flex;align-items:center;justify-content:space-between;}
+.ph h3{font-size:12.5px;font-weight:700;}
+.ph .cnt{background:var(--p);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;}
+.dtable{width:100%;border-collapse:collapse;}
+.dtable th{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--p);padding:8px 14px;text-align:left;border-bottom:1px solid var(--bdr);background:var(--sur2);}
+.dtable td{padding:9px 14px;font-size:12px;border-bottom:1px solid var(--bdr);}
+.dtable tr:last-child td{border-bottom:none;}
+.dtable .num{font-family:var(--mono);text-align:right;font-size:11.5px;}
+.dtable .tr td{font-weight:700;background:var(--pp);color:var(--pd);font-size:12.5px;}
+.dtable .sub td{font-weight:600;background:var(--sur2);color:var(--t2);font-size:11px;}
+.dtable .grp td{font-weight:700;color:var(--p);background:#FBF5FB;font-size:11px;text-transform:uppercase;}
+.dtable .cero td{font-weight:700;background:#ECFDF5;color:#064E3B;}
+.dtable .pay td{font-weight:700;background:#FEF2F2;color:#991B1B;}
+.rec{display:flex;gap:10px;padding:11px 14px;border-bottom:1px solid var(--bdr);}
+.rec:last-child{border-bottom:none;}
+.rec-ico{width:27px;height:27px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:700;}
+.rec-ico.alta{background:#FDECEA;}.rec-ico.media{background:#FEF6E4;}.rec-ico.baja{background:#E8F5EE;}
+.rec h4{font-size:12px;font-weight:600;margin-bottom:2px;}
+.rec p{font-size:11px;color:var(--t2);line-height:1.5;}
+.pbadge{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;text-transform:uppercase;display:inline-block;margin-top:3px;}
+.pbadge.alta{background:#FDECEA;color:#B71C1C;}.pbadge.media{background:#FEF6E4;color:#7C4A00;}.pbadge.baja{background:#E8F5EE;color:#1B5E36;}
+.narr{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:17px 19px;margin-bottom:14px;}
+.narr h3{font-size:12.5px;font-weight:700;margin-bottom:10px;}
+.narr .txt{font-size:12.5px;line-height:1.75;color:var(--t2);white-space:pre-wrap;}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.chart-card{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:16px;}
+.chart-card h3{font-size:12px;font-weight:700;margin-bottom:10px;}
+.prow{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.prow-title{font-size:17px;font-weight:700;flex:1;}
+.repo-item{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;transition:.15s;}
+.repo-item:hover{border-color:var(--p);}
+.repo-icon{width:38px;height:38px;background:var(--pp);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.repo-info{flex:1;}
+.repo-name{font-size:13.5px;font-weight:700;}
+.repo-meta{font-size:11.5px;color:var(--tm);margin-top:2px;}
+.repo-badges{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;align-items:center;}
+.empty-state{text-align:center;padding:48px 24px;color:var(--tm);}
+.empty-state h3{font-size:14px;font-weight:600;margin-bottom:5px;}
+.search-bar{display:flex;gap:10px;align-items:center;margin-bottom:16px;}
+.search-input{flex:1;font-family:var(--sans);font-size:13px;border:1px solid var(--bdr);border-radius:8px;padding:8px 12px;outline:none;background:var(--sur);}
+.search-input:focus{border-color:var(--p);}
+.filter-sel{font-family:var(--sans);font-size:12.5px;border:1px solid var(--bdr);border-radius:7px;padding:7px 10px;outline:none;background:var(--sur);color:var(--t1);}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.stat-box{background:var(--sur);border:1px solid var(--bdr);border-radius:9px;padding:12px 14px;text-align:center;}
+.stat-box .sv{font-size:22px;font-weight:700;color:var(--p);font-family:var(--mono);}
+.stat-box .sl{font-size:10.5px;color:var(--tm);margin-top:2px;text-transform:uppercase;letter-spacing:.6px;}
+.client-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.client-card{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;transition:.15s;}
+.client-card:hover{border-color:var(--p);}
+.client-card .cn{font-size:13.5px;font-weight:700;margin-bottom:2px;}
+.client-card .cr{font-size:11.5px;color:var(--tm);margin-bottom:8px;}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none;align-items:center;justify-content:center;}
+.modal-bg.on{display:flex;}
+.modal{background:var(--sur);border-radius:14px;padding:24px;max-width:460px;width:90%;max-height:80vh;overflow-y:auto;}
+.modal h2{font-size:16px;font-weight:700;margin-bottom:16px;}
+.igc-card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;margin-bottom:16px;overflow:hidden;}
+.igc-card-hdr{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.igc-card-hdr:hover{background:rgba(144,72,145,.03);}
+.igc-resultado{text-align:right;}
+.igc-resultado .etiqueta{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--tm);}
+.igc-resultado .monto{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.1;}
+.igc-resultado .monto.pago{color:var(--red);}
+.igc-resultado .monto.devol{color:var(--green);}
+.igc-badge-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.igc-badge{padding:4px 10px;border-radius:6px;font-size:10.5px;font-weight:700;}
+.igc-badge.tramo{background:var(--pp);color:var(--pd);border:1px solid rgba(144,72,145,.2);}
+.igc-badge.tef{background:var(--sur2);color:var(--t2);border:1px solid var(--bdr);}
+.igc-badge.pago{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA;}
+.igc-badge.devol{background:#ECFDF5;color:#064E3B;border:1px solid #A7F3D0;}
+.igc-msg{padding:12px 20px;font-size:12.5px;line-height:1.65;}
+.igc-msg.pago{background:#FEF2F2;color:#991B1B;border-top:1px solid #FECACA;}
+.igc-msg.devol{background:#ECFDF5;color:#064E3B;border-top:1px solid #A7F3D0;}
+.igc-detalle{border-top:1px solid var(--bdr);overflow:hidden;max-height:0;transition:max-height .35s ease;}
+.igc-detalle.open{max-height:900px;}
+.igc-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;cursor:pointer;background:var(--sur2);font-size:11.5px;font-weight:600;color:var(--p);user-select:none;border-top:1px solid var(--bdr);}
+.igc-toggle:hover{background:var(--pp);}
+.igc-steps{padding:16px 20px;}
+.igc-step{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;}
+.igc-step-num{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700;}
+.igc-step-num.normal{background:var(--sur2);border:1px solid var(--bdr);color:var(--t2);}
+.igc-step-num.total{background:var(--p);color:#fff;}
+.igc-step-num.plus{background:#FEF3C7;border:1px solid #FDE68A;color:#78350F;}
+.igc-step-num.minus{background:#ECFDF5;border:1px solid #A7F3D0;color:#064E3B;}
+.igc-step-num.result{background:var(--sur2);border:1px solid var(--bdr);color:var(--t1);}
+.igc-step-body{flex:1;}
+.igc-step-label{font-size:12.5px;color:var(--t2);}
+.igc-step-label.bold{font-weight:700;color:var(--t1);}
+.igc-step-hint{font-size:10.5px;color:var(--tm);margin-top:2px;line-height:1.4;}
+.igc-step-val{font-family:var(--mono);font-size:13.5px;font-weight:500;white-space:nowrap;}
+.igc-step-val.bold{font-weight:700;font-size:15px;}
+.igc-step-val.red{color:var(--red);}
+.igc-step-val.green{color:var(--green);}
+.igc-step-val.amber{color:var(--amber);}
+.igc-divider{height:1px;background:var(--bdr);margin:6px 0;}
+.disclaimer{background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:11px 14px;margin-bottom:14px;font-size:11px;color:var(--tm);line-height:1.6;}
+.rpt-foot{background:var(--deep);border-radius:9px;padding:15px 24px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.rpt-foot .lft{font-size:11px;color:rgba(255,255,255,.4);line-height:1.5;}
+@media print{
+  .sidebar,.topbar,.pir-tabs,.view:not(.on),.prow .btn-s,.prow .btn-p{display:none!important;}
+  .main{margin-left:0;}.content{padding:0;}
+  .report-wrap,.view.on{display:block!important;}
+  body{background:#fff;}
+  .rpt-hdr,.rpt-foot{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+</style>
+<style>
+.preiva-header{background:var(--deep);border-bottom:2px solid var(--p);padding:0}
+.toolbar{background:var(--sur2);border-bottom:1px solid var(--bdr);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sel-box{background:var(--sur);border:1px solid var(--bdr);color:var(--t1);border-radius:6px;padding:6px 10px;font-size:12px;min-width:220px}
+.lbl-corte{font-size:11px;color:var(--tm);margin-left:4px}
+.btn-generar{background:var(--p);color:#fff;border:none;border-radius:7px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer}
+.btn-generar:hover{background:var(--pd)}
+.btn-calcular{background:var(--sur2);border:1px solid var(--bdr);color:var(--t1);border-radius:7px;padding:8px 14px;font-size:12px;cursor:pointer}
+.btn-calcular:hover{background:var(--pp)}
+.content-preiva{padding:20px 24px;max-width:960px}
+.panel-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--tm);gap:10px}
+.panel-empty-icon{font-size:36px;opacity:.4}
+.panel-empty-text{font-size:13px}
+.panel-simulacion{display:none}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.kpi-card{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px}
+.kpi-label{font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;font-weight:600}
+.kpi-value{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--t1)}
+.kpi-sub{font-size:10px;color:var(--tm);margin-top:3px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.panel-card{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.panel-card-header{padding:11px 16px;border-bottom:1px solid var(--bdr);font-size:12px;font-weight:600;color:var(--t1);display:flex;align-items:center;gap:6px}
+.panel-card-body{padding:14px 16px}
+.inp-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.inp-row:last-child{margin-bottom:0}
+.inp-label{font-size:11px;color:var(--tm);width:145px;flex-shrink:0}
+.inp-field{background:var(--sur2);border:1px solid var(--bdr);color:var(--t1);border-radius:6px;padding:6px 10px;font-size:12px;flex:1;font-variant-numeric:tabular-nums}
+.inp-field:focus{outline:none;border-color:var(--p)}
+.res-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bdr);font-size:12px}
+.res-row:last-child{border-bottom:none}
+.res-label{color:var(--t2)}
+.res-valor{font-weight:600;font-variant-numeric:tabular-nums;color:var(--t1)}
+.res-row.total{border-top:2px solid var(--bdr);padding-top:10px;margin-top:4px}
+.res-row.total .res-label{color:var(--t1);font-weight:700}
+.res-row.total .res-valor{color:var(--red);font-size:15px;font-weight:700}
+.res-row.remanente .res-valor{color:var(--green)}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar-label{font-size:11px;color:var(--tm);width:80px;flex-shrink:0}
+.bar-track{flex:1;height:5px;background:var(--bdr);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .4s}
+.bar-val{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--t1);min-width:100px;text-align:right}
+.accion{background:var(--sur2);border-radius:8px;padding:12px;border-left:3px solid;margin-bottom:8px}
+.accion:last-child{margin-bottom:0}
+.accion.verde{border-color:var(--green)}
+.accion.amarillo{border-color:var(--amber)}
+.accion.morado{border-color:var(--p)}
+.ac-titulo{font-size:12px;font-weight:600;color:var(--t1);margin-bottom:3px}
+.ac-desc{font-size:11px;color:var(--tm);line-height:1.5;margin-bottom:5px}
+.ac-monto{font-size:11px;font-weight:600}
+.accion.verde .ac-monto{color:var(--green)}
+.accion.amarillo .ac-monto{color:var(--amber)}
+.accion.morado .ac-monto{color:var(--p)}
+.remanente-info{background:var(--pp);border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--t2);display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.remanente-val{font-weight:700;color:var(--green);font-size:13px}
+.historial-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:11px}
+.historial-row:last-child{border-bottom:none}
+.sdiv{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--tm);text-transform:uppercase;padding:14px 0 6px;border-bottom:1px solid var(--bdr);margin-bottom:12px}
+@media(max-width:680px){.grid2{grid-template-columns:1fr}.kpi-row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-logo">
+    <img src="https://assets.cdn.filesafe.space/kfq1F3czdejkInyTMLkO/media/6982b1a12dd9857339e39ae1.png" alt="Contadoor"/>
+    <div class="sb-tagline">Sistema de Gestión</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Principal</div>
+    <a class="sb-item" href="../index.html">🏠 Dashboard</a>
+    <div class="sb-sec">Base de Datos</div>
+    <a class="sb-item" href="../clientes/index.html">👥 Clientes</a>
+    <div class="sb-sec">Reportes</div>
+    <a class="sb-item" href="../reportes/index.html">📋 Nómina General</a>
+    <a class="sb-item" href="../reportes-rrhh/index.html">👥 Vista RRHH</a>
+    <a class="sb-item" href="../reportes-contable/index.html" style="opacity:.4">📊 Vista Contable</a>
+    <a class="sb-item" href="../reportes-pagos/index.html" style="opacity:.4">💰 Vista Pagos</a>
+    <div class="sb-sec">Gestión Trabajadores</div>
+    <a class="sb-item" href="../trabajadores/index.html" style="opacity:.4">👷 Trabajadores</a>
+    <a class="sb-item" href="../calendario-rrhh/index.html" style="opacity:.4">📅 Calendario RRHH</a>
+    <div class="sb-sec">Financiero</div>
+    <a class="sb-item" href="../facturacion/index.html" style="opacity:.4">🧾 Facturación</a>
+    <a class="sb-item" href="../pagos/index.html">💰 Pagos</a>
+    <a class="sb-item" href="../conciliacion/index.html">🏦 Conciliación</a>
+    <a class="sb-item" href="../cobranza/index.html">📋 CxC / Cobranza</a>
+    <a class="sb-item" href="../convenios/index.html">🤝 Convenios</a>
+    <div class="sb-sec">Tributario</div>
+    <a class="sb-item" href="../pir/index.html">📊 PIR</a>
+    <a class="sb-item on" href="../pre-iva/index.html">📋 Pre-IVA</a>
+    <div class="sb-sec">Sistema</div>
+    <a class="sb-item" href="../performance/index.html" style="opacity:.4">📈 Performance</a>
+    <a class="sb-item" href="../admin/index.html">👤 Admin</a>
+  </nav>
+  <div class="sb-foot">Contadoor.app v1.0</div>
+</aside>
+
+
+<main class="main">
+  <div class="topbar">
+    <div class="tb-title">📋 Pre-IVA — Proyección mensual</div>
+    <span id="sb-usuario" style="font-size:11px;color:rgba(255,255,255,.45)"></span>
+  </div>
+
+  <div class="toolbar">
+    <select class="sel-box" id="sel-cliente" onchange="onClienteChange()">
+      <option value="">Seleccionar cliente...</option>
+    </select>
+    <input type="month" class="sel-box" id="sel-periodo" style="min-width:140px" onchange="onPeriodoChange()">
+    <span class="lbl-corte" id="lbl-corte"></span>
+    <button class="btn-calcular" onclick="calcular()">Recalcular</button>
+    <button class="btn-calcular" onclick="generarReporte()" style="margin-left:4px">👁️ Vista previa</button>
+    <button class="btn-generar" id="btn-enviar" onclick="enviarPreIVA()">✉️ Enviar Pre-IVA</button>
+  </div>
+
+  <div class="content-preiva">
+
+    <div class="panel-empty" id="panel-empty">
+      <div class="panel-empty-icon">📋</div>
+      <div class="panel-empty-text">Selecciona un cliente y período para generar la simulación</div>
+    </div>
+
+    <div class="panel-simulacion" id="panel-simulacion">
+
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-label">F29 proyectado</div>
+          <div class="kpi-value" id="kpi-f29" style="color:var(--red)">$0</div>
+          <div class="kpi-sub">A pagar el 20 del próximo mes</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">vs. mes anterior</div>
+          <div class="kpi-value" id="kpi-var">—</div>
+          <div class="kpi-sub">Comparativa F29</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Días para actuar</div>
+          <div class="kpi-value" id="kpi-dias" style="color:var(--p)">—</div>
+          <div class="kpi-sub">Hasta cierre del período</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Nuevo remanente</div>
+          <div class="kpi-value" id="kpi-remanente" style="color:var(--green)">$0</div>
+          <div class="kpi-sub">Si hay saldo a favor</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="panel-card">
+          <div class="panel-card-header">📅 Datos de entrada</div>
+          <div class="panel-card-body">
+            <div class="panel-card" style="margin-bottom:14px">
+          <div class="panel-card-header">📂 Cargar libros MasContable</div>
+          <div class="panel-card-body">
+            <div class="inp-row">
+              <span class="inp-label">Libro de ventas</span>
+              <input type="file" accept=".xlsx,.xls" class="inp-field" style="padding:4px"
+                onchange="onLibroChange(this,'ventas')">
+            </div>
+            <div style="font-size:11px;margin:2px 0 10px 145px" id="lbl-libro-ventas" style="color:var(--tm)">Sin archivo cargado</div>
+            <div class="inp-row">
+              <span class="inp-label">Libro de compras</span>
+              <input type="file" accept=".xlsx,.xls" class="inp-field" style="padding:4px"
+                onchange="onLibroChange(this,'compras')">
+            </div>
+            <div style="font-size:11px;margin:2px 0 0 145px" id="lbl-libro-compras" style="color:var(--tm)">Sin archivo cargado</div>
+          </div>
+        </div>
+        <div class="remanente-info">
+              Remanente de <strong id="lbl-periodo-ant">—</strong>:&nbsp;
+              <span class="remanente-val" id="lbl-remanente">$0</span>
+              <span style="color:var(--tm)">— leído automáticamente</span>
+            </div>
+            <div class="inp-row">
+              <span class="inp-label">Débito IVA registrado</span>
+              <input class="inp-field" type="number" id="inp-debito" placeholder="0" oninput="calcular()">
+            </div>
+            <div class="inp-row">
+              <span class="inp-label">Crédito IVA registrado</span>
+              <input class="inp-field" type="number" id="inp-credito" placeholder="0" oninput="calcular()">
+            </div>
+            <div class="inp-row">
+              <span class="inp-label">Días transcurridos</span>
+              <input class="inp-field" type="number" id="inp-dias-transc" value="22" min="1" max="31" oninput="calcular()">
+            </div>
+            <div class="inp-row">
+              <span class="inp-label">Días totales del mes</span>
+              <input class="inp-field" type="number" id="inp-dias-tot" value="31" min="28" max="31" oninput="calcular()">
+            </div>
+            <div class="inp-row">
+              <span class="inp-label">F29 mes anterior</span>
+              <input class="inp-field" type="number" id="inp-f29-ant" placeholder="Para comparativa" oninput="calcular()">
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-card-header">📊 Resultado proyectado al cierre</div>
+          <div class="panel-card-body">
+            <div class="bar-row">
+              <span class="bar-label">Débito IVA</span>
+              <div class="bar-track"><div class="bar-fill" id="bar-debito" style="width:0%;background:var(--p)"></div></div>
+              <span class="bar-val" id="res-debito">$0</span>
+            </div>
+            <div class="bar-row" style="margin-bottom:14px">
+              <span class="bar-label">Crédito IVA</span>
+              <div class="bar-track"><div class="bar-fill" id="bar-credito" style="width:0%;background:var(--green)"></div></div>
+              <span class="bar-val" id="res-credito">$0</span>
+            </div>
+            <div class="res-row remanente">
+              <span class="res-label">Remanente período anterior</span>
+              <span class="res-valor" id="res-remanente">$0</span>
+            </div>
+            <div class="res-row total">
+              <span class="res-label">F29 estimado a pagar</span>
+              <span class="res-valor" id="res-f29">$0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0 0;font-size:11px">
+              <span style="color:var(--tm)">Días restantes para actuar</span>
+              <span style="color:var(--p);font-weight:600" id="res-dias-rest">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <div class="panel-card-header">⚡ Zona de acción — sugerencias para el cliente</div>
+        <div class="panel-card-body">
+          <div id="acciones-grid"></div>
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <div class="panel-card-header">📨 Historial de envíos</div>
+        <div class="panel-card-body">
+          <div id="historial-envios"><div style="font-size:11px;color:var(--tm)">Sin envíos registrados para este cliente.</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script>
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function hesc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function sv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+function nv(id){return parseFloat(sv(id))||0;}
+function ff(n){return '$'+Math.round(Math.abs(n)||0).toLocaleString('es-CL');}
+function ts(){return new Date().toLocaleString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+
+function getClientes(){try{return JSON.parse(localStorage.getItem('clientes_bd')||'[]');}catch(e){return[];}}
+function getUsuarios(){try{return JSON.parse(localStorage.getItem('usuarios_sistema')||'[]');}catch(e){return[];}}
+function getRemanente(rut,periodo){try{var r=JSON.parse(localStorage.getItem('rpt_remanentes')||'{}');return r[rut]&&r[rut][periodo]?r[rut][periodo]:0;}catch(e){return 0;}}
+function getUsuario(){try{return JSON.parse(sessionStorage.getItem('usuario_activo')||'{}');}catch(e){return{};}}
+
+function getPeriodoAnterior(periodo){
+  var p=String(periodo);
+  var y=parseInt(p.substring(0,4));
+  var m=parseInt(p.substring(4,6));
+  m--;if(m<1){m=12;y--;}
+  return String(y)+(m<10?'0':'')+m;
+}
+
+function formatPeriodo(periodo){
+  var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var p=String(periodo);
+  var y=p.substring(0,4);
+  var m=parseInt(p.substring(4,6))-1;
+  return meses[m]+' '+y;
+}
+
+// ── ESTADO ────────────────────────────────────────────────────────────────
+var _clienteActual=null;
+var _periodoActual='';
+var _datos={debitoRegistrado:0,creditoRegistrado:0,remanente:0,diasTranscurridos:22,diasTotales:31};
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+function init(){
+  var u=getUsuario();
+  var sb=document.getElementById('sb-usuario');
+  if(sb) sb.textContent=(u.nombre||'Usuario')+' · '+(u.rolLabel||'Admin');
+
+  // Período actual por defecto
+  var now=new Date();
+  var y=now.getFullYear();
+  var m=now.getMonth()+1;
+  var periodo=String(y)+(m<10?'0':'')+m;
+  _periodoActual=periodo;
+  document.getElementById('sel-periodo').value=periodo;
+
+  // Poblar select clientes
+  cargarSelectClientes();
+  actualizarFechaCorte();
+}
+
+function cargarSelectClientes(){
+  var clientes=getClientes().filter(function(c){return c.estado==='activo';});
+  var sel=document.getElementById('sel-cliente');
+  sel.innerHTML='<option value="">Seleccionar cliente...</option>';
+  clientes.sort(function(a,b){return (a.razonSocial||'').localeCompare(b.razonSocial||'');});
+  clientes.forEach(function(c){
+    sel.innerHTML+='<option value="'+c.rut+'">'+hesc(c.razonSocial||c.nombre||c.rut)+'</option>';
+  });
+}
+
+function actualizarFechaCorte(){
+  var now=new Date();
+  document.getElementById('lbl-corte').textContent='Datos al '+now.getDate()+' de '+
+    ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][now.getMonth()];
+}
+
+function onClienteChange(){
+  var rut=sv('sel-cliente');
+  if(!rut){_clienteActual=null;mostrarPanel(false);return;}
+  var clientes=getClientes();
+  _clienteActual=clientes.find(function(c){return c.rut===rut;})||null;
+  if(_clienteActual){cargarDatos();renderHistorial();}
+}
+
+function onPeriodoChange(){
+  _periodoActual=sv('sel-periodo');
+  if(_clienteActual) cargarDatos();
+}
+
+function cargarDatos(){
+  if(!_clienteActual) return;
+  var rut=_clienteActual.rut;
+  var per=_periodoActual;
+  var perAnt=getPeriodoAnterior(per);
+
+  // Remanente del período anterior
+  var remanente=getRemanente(rut,perAnt);
+
+  // Cargar valores guardados si existen
+  var key='preiva_'+rut+'_'+per;
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem(key)||'{}');}catch(e){}
+
+  _datos.remanente=remanente;
+  _datos.debitoRegistrado=saved.debito||0;
+  _datos.creditoRegistrado=saved.credito||0;
+  _datos.diasTranscurridos=saved.diasTransc||22;
+  _datos.diasTotales=saved.diasTot||31;
+
+  document.getElementById('inp-debito').value=_datos.debitoRegistrado||'';
+  document.getElementById('inp-credito').value=_datos.creditoRegistrado||'';
+  document.getElementById('inp-dias-transc').value=_datos.diasTranscurridos;
+  document.getElementById('inp-dias-tot').value=_datos.diasTotales;
+  document.getElementById('lbl-remanente').textContent=ff(remanente);
+  document.getElementById('lbl-periodo-ant').textContent=formatPeriodo(perAnt);
+
+  mostrarPanel(true);
+  calcular();
+}
+
+function mostrarPanel(show){
+  var p=document.getElementById('panel-simulacion');
+  if(p) p.style.display=show?'block':'none';
+  var e=document.getElementById('panel-empty');
+  if(e) e.style.display=show?'none':'flex';
+}
+
+// ── CÁLCULO ───────────────────────────────────────────────────────────────
+function calcular(){
+  var debReg=nv('inp-debito');
+  var credReg=nv('inp-credito');
+  var diasT=nv('inp-dias-transc')||22;
+  var diasTot=nv('inp-dias-tot')||31;
+  var remanente=_datos.remanente;
+
+  var diasRest=Math.max(diasTot-diasT,0);
+  var tasaDiaria=diasT>0?debReg/diasT:0;
+  var tasaDiariaC=diasT>0?credReg/diasT:0;
+
+  var debProy=Math.round(debReg+(tasaDiaria*diasRest));
+  var credProy=Math.round(credReg+(tasaDiariaC*diasRest));
+  var f29=Math.max(debProy-credProy-remanente,0);
+  var nuevoRemanente=Math.max(credProy+remanente-debProy,0);
+
+  var f29Anterior=parseInt(document.getElementById('inp-f29-ant').value)||0;
+  var variacion=f29Anterior>0?Math.round((f29-f29Anterior)/f29Anterior*100):0;
+
+  // Actualizar UI
+  document.getElementById('res-debito').textContent=ff(debProy);
+  document.getElementById('res-credito').textContent=ff(credProy);
+  document.getElementById('res-remanente').textContent=ff(remanente);
+  document.getElementById('res-f29').textContent=ff(f29);
+  document.getElementById('res-dias-rest').textContent=diasRest;
+
+  // KPIs
+  document.getElementById('kpi-f29').textContent=ff(f29);
+  document.getElementById('kpi-var').textContent=(variacion>=0?'+':'')+variacion+'%';
+  document.getElementById('kpi-var').style.color=variacion>15?'#f87171':variacion<0?'#4ade80':'#facc15';
+  document.getElementById('kpi-dias').textContent=diasRest+' días';
+  document.getElementById('kpi-remanente').textContent=nuevoRemanente>0?ff(nuevoRemanente):'$0';
+
+  // Barra progreso
+  var maxVal=Math.max(debProy,credProy,1);
+  document.getElementById('bar-debito').style.width=Math.min(debProy/maxVal*100,100)+'%';
+  document.getElementById('bar-credito').style.width=Math.min(credProy/maxVal*100,100)+'%';
+
+  // Acciones
+  generarAcciones(debProy,credProy,remanente,f29,diasRest);
+
+  // Guardar estado
+  guardarEstado(debReg,credReg,diasT,diasTot);
+}
+
+function guardarEstado(deb,cred,diasT,diasTot){
+  if(!_clienteActual) return;
+  var key='preiva_'+_clienteActual.rut+'_'+_periodoActual;
+  localStorage.setItem(key,JSON.stringify({debito:deb,credito:cred,diasTransc:diasT,diasTot:diasTot,ts:ts()}));
+}
+
+// ── ACCIONES SUGERIDAS ────────────────────────────────────────────────────
+function generarAcciones(deb,cred,rem,f29,diasRest){
+  var acciones=[];
+
+  if(f29>500000){
+    var ahorroCompras=Math.round(f29*0.13);
+    acciones.push({tipo:'verde',titulo:'Adelantar compras del mes siguiente',
+      desc:'Registrar facturas de proveedores del próximo mes en este período genera crédito adicional y reduce el F29.',
+      monto:'Ahorro estimado hasta '+ff(ahorroCompras)});
+  }
+  if(diasRest>=5 && deb>0){
+    var impactoDif=Math.round((deb/22)*3*0.19);
+    acciones.push({tipo:'amarillo',titulo:'Diferir facturación de fin de mes',
+      desc:'Facturas emitidas el 1 del mes siguiente mueven débito al período siguiente.',
+      monto:'Impacto posible: '+ff(impactoDif)});
+  }
+  acciones.push({tipo:'morado',titulo:'Revisar facturas de proveedores pendientes',
+    desc:'Documentos recibidos y aún no registrados en el libro. Cada factura suma crédito fiscal.',
+    monto:'Consulta con tu analista'});
+  if(f29>1000000){
+    acciones.push({tipo:'amarillo',titulo:'Compra de activo fijo',
+      desc:'Si tienes activos planificados (equipos, vehículos), este período el IVA del activo genera crédito inmediato.',
+      monto:'Depende del monto del activo'});
+  }
+
+  var html='';
+  acciones.forEach(function(a){
+    html+='<div class="accion '+a.tipo+'">';
+    html+='<div class="ac-titulo">'+hesc(a.titulo)+'</div>';
+    html+='<div class="ac-desc">'+hesc(a.desc)+'</div>';
+    html+='<div class="ac-monto">'+hesc(a.monto)+'</div>';
+    html+='</div>';
+  });
+  document.getElementById('acciones-grid').innerHTML=html;
+}
+
+// ── GENERAR REPORTE HTML ──────────────────────────────────────────────────
+function buildReporteHTML(){
+  if(!_clienteActual) return null;
+  var c=_clienteActual;
+  var usuarios=getUsuarios();
+  var analista=usuarios.find(function(u){return u.nombre===c.analistaContable;})||null;
+
+  var debProy=document.getElementById('res-debito').textContent;
+  var credProy=document.getElementById('res-credito').textContent;
+  var f29=document.getElementById('res-f29').textContent;
+  var diasRest=document.getElementById('res-dias-rest').textContent;
+  var remanente=document.getElementById('res-remanente').textContent;
+  var periodo=formatPeriodo(_periodoActual);
+
+  var waNum=analista&&analista.wa?'56'+String(analista.wa).replace(/\D/g,''):'5697988189';
+  var emailAnalista=analista&&analista.email?analista.email:'info@contadoor.cl';
+  var waMsg=encodeURIComponent('Hola, soy '+(analista?hesc(analista.nombre):'tu analista Contadoor')+'. Vi tu proyecci\u00f3n IVA de '+periodo+'. \u00bfTienes dudas o quieres coordinar algo antes del cierre?');
+  var now=new Date();
+  var diasRestNum=parseInt(diasRest)||0;
+
+  var accionesHTML='';
+  document.querySelectorAll('#acciones-grid .accion').forEach(function(el){
+    var tipo=el.classList.contains('verde')?'verde':el.classList.contains('amarillo')?'amarillo':'morado';
+    var color=tipo==='verde'?'#4ade80':tipo==='amarillo'?'#facc15':'#c084fc';
+    var tit=el.querySelector('.ac-titulo')?el.querySelector('.ac-titulo').textContent:'';
+    var desc=el.querySelector('.ac-desc')?el.querySelector('.ac-desc').textContent:'';
+    var monto=el.querySelector('.ac-monto')?el.querySelector('.ac-monto').textContent:'';
+    accionesHTML+='<div style="background:#0f0a1a;border-radius:8px;padding:14px;border-left:3px solid '+color+';margin-bottom:10px">'
+      +'<div style="font-size:12px;font-weight:600;color:#f0ebff;margin-bottom:3px">'+tit+'</div>'
+      +'<div style="font-size:11px;color:#8b7aaa;line-height:1.5;margin-bottom:5px">'+desc+'</div>'
+      +'<div style="font-size:12px;font-weight:700;color:'+color+'">'+monto+'</div>'
+      +'</div>';
+  });
+
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>'
+  +'<body style="margin:0;padding:0;background:#08040f;color:#f0ebff;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">'
+  +'<div style="max-width:680px;margin:0 auto;padding:0 0 32px">'
+  +'<div style="background:#1a0f2e;border:1px solid #3d2460;border-radius:8px;padding:12px 16px;margin:20px 20px 0;font-size:11px;color:#c9a6e8">'
+  +'Simulaci\u00f3n pre-cierre &nbsp;\u00b7&nbsp; '+hesc(c.razonSocial||c.nombre)+' &nbsp;\u00b7&nbsp; RUT '+hesc(c.rut)+'</div>'
+  +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 20px 0">'
+  +'<div style="background:#120c1f;border:1px solid #2a1f3d;border-radius:10px;padding:14px"><div style="font-size:10px;color:#8b7aaa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">F29 proyectado</div><div style="font-size:18px;font-weight:700;color:#f87171">'+f29+'</div><div style="font-size:10px;color:#8b7aaa">Estimado al cierre</div></div>'
+  +'<div style="background:#120c1f;border:1px solid #2a1f3d;border-radius:10px;padding:14px"><div style="font-size:10px;color:#8b7aaa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Remanente aplicado</div><div style="font-size:18px;font-weight:700;color:#4ade80">'+remanente+'</div><div style="font-size:10px;color:#8b7aaa">Per\u00edodo anterior</div></div>'
+  +'<div style="background:#120c1f;border:1px solid #2a1f3d;border-radius:10px;padding:14px"><div style="font-size:10px;color:#8b7aaa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">D\u00edas para actuar</div><div style="font-size:18px;font-weight:700;color:#c084fc">'+diasRestNum+' d\u00edas</div><div style="font-size:10px;color:#8b7aaa">Hasta el '+now.getDate()+' cierra</div></div>'
+  +'</div>'
+  +'<div style="margin:14px 20px 0;background:#120c1f;border:1px solid #2a1f3d;border-radius:10px;overflow:hidden">'
+  +'<div style="padding:10px 14px;border-bottom:1px solid #2a1f3d;font-size:12px;font-weight:600;color:#f0ebff">Composici\u00f3n proyectada al cierre</div>'
+  +'<div style="padding:14px">'
+  +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
+  +'<tr><td style="padding:6px 0;color:#c9a6e8;border-bottom:1px solid #1a0f2e">D\u00e9bito IVA (ventas proyectadas)</td><td style="text-align:right;color:#f0ebff;font-variant-numeric:tabular-nums;border-bottom:1px solid #1a0f2e">'+debProy+'</td></tr>'
+  +'<tr><td style="padding:6px 0;color:#c9a6e8;border-bottom:1px solid #1a0f2e">Cr\u00e9dito IVA (compras proyectadas)</td><td style="text-align:right;color:#f0ebff;font-variant-numeric:tabular-nums;border-bottom:1px solid #1a0f2e">'+credProy+'</td></tr>'
+  +'<tr><td style="padding:6px 0;color:#c9a6e8;border-bottom:1px solid #1a0f2e">Remanente per\u00edodo anterior</td><td style="text-align:right;color:#4ade80;font-variant-numeric:tabular-nums;border-bottom:1px solid #1a0f2e">'+remanente+'</td></tr>'
+  +'<tr><td style="padding:8px 0;color:#f0ebff;font-weight:600">F29 estimado a pagar</td><td style="text-align:right;color:#f87171;font-weight:700;font-variant-numeric:tabular-nums">'+f29+'</td></tr>'
+  +'</table>'
+  +'<div style="font-size:10px;color:#4a3860;margin-top:6px">Proyecci\u00f3n basada en promedio diario al corte del '+now.getDate()+' de '+['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][now.getMonth()]+'</div>'
+  +'</div></div>'
+  +'<div style="margin:14px 20px 0;background:#120c1f;border:1px solid #2a1f3d;border-radius:10px;overflow:hidden">'
+  +'<div style="padding:10px 14px;border-bottom:1px solid #2a1f3d;font-size:12px;font-weight:600;color:#f0ebff">Zona de acci\u00f3n \u2014 quedan '+diasRestNum+' d\u00edas</div>'
+  +'<div style="padding:14px">'+accionesHTML+'</div>'
+  +'</div>'
+  +'<div style="margin:14px 20px 0;background:#120c1f;border:1px solid #3d2460;border-radius:10px;padding:16px">'
+  +'<div style="font-size:12px;font-weight:600;color:#f0ebff;margin-bottom:3px">\u00bfTienes dudas?</div>'
+  +'<div style="font-size:11px;color:#8b7aaa;margin-bottom:12px">Puedes responder este correo o escribirle directamente a '+(analista?hesc(analista.nombre):'tu analista')+'.</div>'
+  +'<a href="https://wa.me/'+waNum+'?text='+waMsg+'" style="display:inline-block;background:#25d366;color:#fff;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:600;text-decoration:none">WhatsApp</a>'
+  +'</div>'
+  +'</div>'
+  +'</body></html>';
+}
+
+function generarReporte(){
+  if(!_clienteActual){alert('Selecciona un cliente primero.');return;}
+  var html=buildReporteHTML();
+  var w=window.open('','_blank');
+  if(w){w.document.write(html);w.document.close();}
+  else{
+    var blob=new Blob([html],{type:'text/html'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='pre-iva-'+_clienteActual.rut+'-'+_periodoActual+'.html';
+    a.click();
+  }
+}
+
+// ── ENVIAR POR EMAIL ──────────────────────────────────────────────────────
+function enviarPreIVA(){
+  if(!_clienteActual){alert('Selecciona un cliente primero.');return;}
+
+  var c=_clienteActual;
+  var usuarios=getUsuarios();
+  var usuarioActual=getUsuario();
+  var analista=usuarios.find(function(u){return u.nombre===usuarioActual.nombre;})||null;
+
+  if(!analista||!analista.email){
+    alert('Tu usuario no tiene email configurado en el sistema. Configúralo en Admin \u2192 Usuarios.');
+    return;
+  }
+  if(!c.email){
+    alert('El cliente no tiene email registrado. Agrégalo en la ficha del cliente.');
+    return;
+  }
+
+  var periodo=formatPeriodo(_periodoActual);
+  var f29=document.getElementById('res-f29').textContent;
+
+  if(!confirm('\u00bfEnviar proyecci\u00f3n IVA de '+periodo+' a '+hesc(c.razonSocial||c.nombre)+'?\n\nDesde: '+analista.email+'\nPara: '+c.email+'\nF29 proyectado: '+f29)) return;
+
+  var btn=document.getElementById('btn-enviar');
+  if(btn){btn.disabled=true;btn.textContent='Enviando...';}
+
+  var htmlReporte=buildReporteHTML();
+
+  fetch('https://contafunnel-proxy.vercel.app/api/enviar-preiva',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      fromEmail:analista.email,
+      fromNombre:analista.nombre,
+      toEmail:c.email,
+      toNombre:c.razonSocial||c.nombre,
+      periodo:periodo,
+      htmlReporte:htmlReporte
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(data.ok){
+      mostrarToast('\u2705 Email enviado a '+c.email+' desde '+analista.email);
+      // Guardar registro de envío
+      var key='preiva_enviados_'+_clienteActual.rut;
+      var enviados=[];
+      try{enviados=JSON.parse(localStorage.getItem(key)||'[]');}catch(e){}
+      enviados.unshift({periodo:_periodoActual,fecha:ts(),to:c.email,from:analista.email,f29:f29});
+      localStorage.setItem(key,JSON.stringify(enviados.slice(0,12)));
+      renderHistorial();
+    } else {
+      alert('Error al enviar: '+(data.error||'Error desconocido'));
+    }
+  })
+  .catch(function(err){
+    alert('Error de conexi\u00f3n: '+err.message);
+  })
+  .finally(function(){
+    if(btn){btn.disabled=false;btn.textContent='\u2709\ufe0f Enviar Pre-IVA por email';}
+  });
+}
+
+function mostrarToast(msg){
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:24px;right:24px;background:#1a2e1a;border:1px solid #4ade80;color:#4ade80;padding:12px 18px;border-radius:8px;font-size:13px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.4)';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(function(){t.remove();},4000);
+}
+
+function renderHistorial(){
+  if(!_clienteActual) return;
+  var key='preiva_enviados_'+_clienteActual.rut;
+  var enviados=[];
+  try{enviados=JSON.parse(localStorage.getItem(key)||'[]');}catch(e){}
+  var el=document.getElementById('historial-envios');
+  if(!el) return;
+  if(!enviados.length){el.innerHTML='<div style="font-size:11px;color:var(--tm);padding:8px 0">Sin envíos registrados para este cliente.</div>';return;}
+  var html='';
+  enviados.forEach(function(e){
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:11px">'
+      +'<span style="color:var(--t2)">'+hesc(formatPeriodo(e.periodo))+'</span>'
+      +'<span style="color:var(--tm)">'+hesc(e.fecha)+'</span>'
+      +'<span style="color:#4ade80;font-weight:600">'+hesc(e.f29)+'</span>'
+      +'</div>';
+  });
+  el.innerHTML=html;
+}
+
+// ── GENERAR REPORTE (original) ────────────────────────────────────────────
+function generarReporte(){
+  if(!_clienteActual){alert('Selecciona un cliente primero.');return;}
+  var c=_clienteActual;
+  var usuarios=getUsuarios();
+  var analista=usuarios.find(function(u){return u.nombre===c.analistaContable;})||null;
+
+  var debProy=document.getElementById('res-debito').textContent;
+  var credProy=document.getElementById('res-credito').textContent;
+  var f29=document.getElementById('res-f29').textContent;
+  var diasRest=document.getElementById('res-dias-rest').textContent;
+  var remanente=document.getElementById('res-remanente').textContent;
+  var periodo=formatPeriodo(_periodoActual);
+
+  var waNum=analista&&analista.wa?'56'+analista.wa.replace(/\D/g,''):'569' ;
+  var waMsg=encodeURIComponent('Hola '+hesc(c.razonSocial||c.nombre)+', soy '+hesc(analista?analista.nombre:'tu analista Contadoor')+'. Vi tu proyección IVA de '+periodo+'. ¿Tienes dudas o quieres coordinar algo antes del cierre?');
+  var emailAnalista=analista&&analista.email?analista.email:'info@contadoor.cl';
+  var emailSubj=encodeURIComponent('Proyección IVA '+periodo+' · '+hesc(c.razonSocial||c.nombre));
+
+  var now=new Date();
+  var diasRestNum=parseInt(diasRest)||9;
+
+  // Obtener acciones del DOM
+  var accionesHTML='';
+  document.querySelectorAll('.accion').forEach(function(el){
+    var tipo=el.classList.contains('verde')?'verde':el.classList.contains('amarillo')?'amarillo':'morado';
+    var tit=el.querySelector('.ac-titulo')?el.querySelector('.ac-titulo').textContent:'';
+    var desc=el.querySelector('.ac-desc')?el.querySelector('.ac-desc').textContent:'';
+    var monto=el.querySelector('.ac-monto')?el.querySelector('.ac-monto').textContent:'';
+    var color=tipo==='verde'?'#4ade80':tipo==='amarillo'?'#facc15':'#c084fc';
+    accionesHTML+='<div style="background:#0f0a1a;border-radius:8px;padding:14px;border-left:3px solid '+color+';margin-bottom:10px">'
+      +'<div style="font-size:12px;font-weight:600;color:#f0ebff;margin-bottom:4px">'+tit+'</div>'
+      +'<div style="font-size:11px;color:#8b7aaa;line-height:1.5;margin-bottom:6px">'+desc+'</div>'
+      +'<div style="font-size:12px;font-weight:700;color:'+color+'">'+monto+'</div>'
+      +'</div>';
+  });
+
+  var html='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+  +'<title>Proyección IVA '+periodo+' · '+hesc(c.razonSocial||c.nombre)+'</title>'
+  +'<style>'
+  +'*{box-sizing:border-box;margin:0;padding:0}'
+  +'body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:#08040f;color:#f0ebff;min-height:100vh}'
+  +'a{color:inherit;text-decoration:none}'
+  +'.wrap{max-width:680px;margin:0 auto;padding:0 0 40px}'
+  +'</style></head><body>'
+  +'<div style="background:#08040f;border-bottom:1px solid #2a1f3d;padding:18px 28px;display:flex;align-items:center;justify-content:space-between">'
+  +'<div style="display:flex;align-items:center;gap:10px"><div style="width:9px;height:9px;background:#904891;border-radius:50%"></div>'
+  +'<span style="font-size:15px;font-weight:600;color:#f0ebff;letter-spacing:-.3px">Contadoor</span></div>'
+  +'<div style="background:#1a0f2e;border:1px solid #3d2460;color:#c9a6e8;font-size:11px;padding:4px 10px;border-radius:20px">Proyección IVA · '+periodo+'</div>'
+  +'</div>'
+  +'<div class="wrap" style="padding:28px 28px 40px">'
+  +'<div style="margin-bottom:24px">'
+  +'<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#904891;font-weight:600;margin-bottom:6px">Simulación pre-cierre</div>'
+  +'<div style="font-size:20px;font-weight:600;color:#f0ebff;margin-bottom:4px">'+hesc(c.razonSocial||c.nombre)+'</div>'
+  +'<div style="font-size:12px;color:#8b7aaa">RUT '+hesc(c.rut)+' &nbsp;·&nbsp; Datos al '+now.getDate()+' · F29 vence 20 del próximo mes</div>'
+  +'</div>'
+  +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">'
+  +'<div style="background:#120c1f;border:1px solid #2a1f3d;border-radius:12px;padding:14px 16px"><div style="font-size:10px;color:#8b7aaa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">F29 proyectado</div><div style="font-size:20px;font-weight:700;color:#f87171;font-variant-numeric:tabular-nums">'+f29+'</div><div style="font-size:10px;color:#8b7aaa;margin-top:2px">A pagar el 20 del próximo mes</div></div>'
+  +'<div style="background:#120c1f;border:1px solid #2a1f3d;border-radius:12px;padding:14px 16px"><div style="font-size:10px;color:#8b7aaa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Remanente aplicado</div><div style="font-size:20px;font-weight:700;color:#4ade80;font-variant-numeric:tabular-nums">'+remanente+'</div><div style="font-size:10px;color:#8b7aaa;margin-top:2px">Del período anterior</div></div>'
+  +'<div style="background:#120c1f;border:1px solid #2a1f3d;border-radius:12px;padding:14px 16px"><div style="font-size:10px;color:#8b7aaa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Días para actuar</div><div style="font-size:20px;font-weight:700;color:#c084fc;font-variant-numeric:tabular-nums">'+diasRestNum+' días</div><div style="font-size:10px;color:#8b7aaa;margin-top:2px">Hasta el cierre del período</div></div>'
+  +'</div>'
+  +'<div style="background:#120c1f;border:1px solid #2a1f3d;border-radius:12px;margin-bottom:16px;overflow:hidden">'
+  +'<div style="padding:12px 16px;border-bottom:1px solid #2a1f3d;font-size:13px;font-weight:600;color:#f0ebff">Composición proyectada al cierre</div>'
+  +'<div style="padding:16px">'
+  +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
+  +'<tr><th style="text-align:left;color:#8b7aaa;font-weight:500;padding:5px 0;border-bottom:1px solid #2a1f3d;font-size:11px;text-transform:uppercase">Concepto</th><th style="text-align:right;color:#8b7aaa;font-weight:500;padding:5px 0;border-bottom:1px solid #2a1f3d;font-size:11px;text-transform:uppercase">Monto</th></tr>'
+  +'<tr><td style="padding:8px 0;color:#c9a6e8;border-bottom:1px solid #1a0f2e">Débito IVA (ventas proyectadas)</td><td style="text-align:right;padding:8px 0;color:#f0ebff;font-variant-numeric:tabular-nums;border-bottom:1px solid #1a0f2e">'+debProy+'</td></tr>'
+  +'<tr><td style="padding:8px 0;color:#c9a6e8;border-bottom:1px solid #1a0f2e">Crédito IVA (compras proyectadas)</td><td style="text-align:right;padding:8px 0;color:#f0ebff;font-variant-numeric:tabular-nums;border-bottom:1px solid #1a0f2e">'+credProy+'</td></tr>'
+  +'<tr><td style="padding:8px 0;color:#c9a6e8;border-bottom:1px solid #1a0f2e">Remanente período anterior</td><td style="text-align:right;padding:8px 0;color:#4ade80;font-variant-numeric:tabular-nums;border-bottom:1px solid #1a0f2e">'+remanente+'</td></tr>'
+  +'<tr><td style="padding:8px 0;color:#f0ebff;font-weight:600;border-top:1px solid #3d2460">F29 estimado</td><td style="text-align:right;padding:8px 0;color:#f87171;font-weight:700;font-variant-numeric:tabular-nums;border-top:1px solid #3d2460">'+f29+'</td></tr>'
+  +'</table>'
+  +'<div style="font-size:10px;color:#4a3860;margin-top:8px">Proyección basada en promedio diario registrado al corte · puede variar al cierre del período</div>'
+  +'</div></div>'
+  +'<div style="background:#120c1f;border:1px solid #2a1f3d;border-radius:12px;margin-bottom:16px;overflow:hidden">'
+  +'<div style="padding:12px 16px;border-bottom:1px solid #2a1f3d;font-size:13px;font-weight:600;color:#f0ebff">Zona de acción — quedan '+diasRestNum+' días</div>'
+  +'<div style="padding:16px">'+accionesHTML+'</div>'
+  +'</div>'
+  +'<div style="background:#120c1f;border:1px solid #3d2460;border-radius:12px;padding:18px;margin-bottom:20px">'
+  +'<div style="font-size:12px;font-weight:600;color:#f0ebff;margin-bottom:4px">¿Tienes dudas o quieres coordinar algo?</div>'
+  +'<div style="font-size:12px;color:#8b7aaa;margin-bottom:14px">Tu analista '+(analista?hesc(analista.nombre):'Contadoor')+' está disponible para ayudarte antes del cierre.</div>'
+  +'<div style="display:flex;gap:10px">'
+  +'<a href="https://wa.me/'+waNum+'?text='+waMsg+'" style="flex:1;background:#25d366;color:#fff;border-radius:8px;padding:11px 16px;font-size:13px;font-weight:600;text-align:center;display:block">WhatsApp</a>'
+  +'<a href="mailto:'+emailAnalista+'?subject='+emailSubj+'" style="flex:1;background:transparent;color:#c9a6e8;border:1px solid #3d2460;border-radius:8px;padding:11px 16px;font-size:13px;text-align:center;display:block">Responder por email</a>'
+  +'</div></div>'
+  +'</div>'
+  +'<div style="text-align:center;padding:16px;font-size:10px;color:#4a3860;border-top:1px solid #1a0f2e">'
+  +'Preparado por Contadoor · Asesorías Contadoor Ltda. · info@contadoor.cl · Esta proyección es informativa y puede variar al cierre del período.'
+  +'</div>'
+  +'</body></html>';
+
+  // Abrir en nueva ventana
+  var w=window.open('','_blank');
+  if(w){w.document.write(html);w.document.close();}
+  else{
+    // Fallback: download
+    var blob=new Blob([html],{type:'text/html'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='pre-iva-'+_clienteActual.rut+'-'+_periodoActual+'.html';
+    a.click();
+  }
+}
+
+
+// ── CARGA LIBROS COMPRAS/VENTAS ───────────────────────────────────────────
+function leerLibro(file, tipo){
+  // tipo: 'compras' o 'ventas'
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var data = new Uint8Array(e.target.result);
+      var wb = XLSX.read(data, {type:'array'});
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(ws, {defval:'', range:1}); // desde fila 2
+
+      // Filtrar por período seleccionado
+      var per = _periodoActual; // ej: '202507'
+      var y = parseInt(per.substring(0,4));
+      var m = parseInt(per.substring(4,6));
+
+      var totalIva = 0;
+      var totalNeto = 0;
+      var rowCount = 0;
+
+      rows.forEach(function(row){
+        // Intentar parsear fecha/periodo de la fila
+        var fecha = row['Fecha'] || row['Periodo'] || '';
+        var inPeriod = false;
+
+        if(fecha){
+          // Formato posible: DD/MM/YYYY, YYYY-MM-DD, numero Excel
+          var d = null;
+          if(typeof fecha === 'number'){
+            // Número serial de Excel
+            d = new Date(Math.round((fecha - 25569)*86400*1000));
+          } else {
+            var parts = String(fecha).split(/[\/\-]/);
+            if(parts.length === 3){
+              if(parts[0].length === 4){
+                d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+              } else {
+                d = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+              }
+            }
+          }
+          if(d && !isNaN(d.getTime())){
+            inPeriod = (d.getFullYear()===y && d.getMonth()+1===m);
+          }
+        }
+
+        // Si no hay fecha o no parsea, incluir todas las filas
+        if(!fecha || inPeriod){
+          var iva = parseFloat(String(row['Iva']||row['IVA']||0).replace(/[^0-9\-]/g,''))||0;
+          var neto = parseFloat(String(row['Neto']||0).replace(/[^0-9\-]/g,''))||0;
+          totalIva += iva;
+          totalNeto += neto;
+          rowCount++;
+        }
+      });
+
+      // Actualizar campo correspondiente
+      if(tipo === 'compras'){
+        document.getElementById('inp-credito').value = totalIva;
+        document.getElementById('lbl-libro-compras').textContent =
+          rowCount + ' documentos · Crédito IVA: ' + ff(totalIva);
+        document.getElementById('lbl-libro-compras').style.color = 'var(--green)';
+      } else {
+        document.getElementById('inp-debito').value = totalIva;
+        document.getElementById('lbl-libro-ventas').textContent =
+          rowCount + ' documentos · Débito IVA: ' + ff(totalIva);
+        document.getElementById('lbl-libro-ventas').style.color = 'var(--p)';
+      }
+
+      calcular();
+    } catch(err){
+      alert('Error leyendo el archivo: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function onLibroChange(input, tipo){
+  var file = input.files[0];
+  if(!file) return;
+  if(!_clienteActual){
+    alert('Selecciona un cliente primero.');
+    input.value='';
+    return;
+  }
+  leerLibro(file, tipo);
+}
+
+// ── ARRANQUE ──────────────────────────────────────────────────────────────
+init();
+
+
+</script>
+</body>
+</html>
