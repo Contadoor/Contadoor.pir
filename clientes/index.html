@@ -272,10 +272,52 @@ tr:hover td{background:#faf5ff;}
 
     <div class="card-hd">💼 Nuestros Servicios</div>
     <div class="fg4" style="margin-bottom:10px">
-      <div class="fgroup"><label>Base UF mensual</label><input type="number" id="f-hon-uf" placeholder="3.5" step="0.1" oninput="calcPreview()"/></div>
-      <div class="fgroup"><label>Variable por trabajador $</label><input type="number" id="f-hon-variable" placeholder="7000" oninput="calcPreview()"/></div>
-      <div class="fgroup"><label>N° trabajadores</label><input type="number" id="f-trabajadores" placeholder="0" oninput="calcPreview()"/></div>
-      <div class="fgroup"><label>Vista previa</label><div class="preview-box" id="preview-box">—</div></div>
+      <div class="fgroup">
+        <label>Moneda del plan</label>
+        <select id="f-moneda-plan" onchange="calcPreview()">
+          <option value="UF">UF (estándar)</option>
+          <option value="CLP">CLP (plan antiguo)</option>
+          <option value="mixto">Mixto (UF base + CLP variable)</option>
+        </select>
+        <span class="hint">Nuevos planes siempre en UF</span>
+      </div>
+      <div class="fgroup">
+        <label>Monto base mensual</label>
+        <input type="number" id="f-hon-uf" placeholder="3.5" step="0.1" oninput="calcPreview()"/>
+        <span class="hint" id="f-hon-uf-hint">En UF</span>
+      </div>
+      <div class="fgroup">
+        <label>Trabajadores incluidos en plan</label>
+        <input type="number" id="f-trab-incluidos" placeholder="5" oninput="calcPreview()"/>
+        <span class="hint">Sin costo adicional hasta este N°</span>
+      </div>
+      <div class="fgroup">
+        <label>Valor por trabajador adicional</label>
+        <input type="number" id="f-hon-variable" placeholder="0.3" step="0.1" oninput="calcPreview()"/>
+        <span class="hint" id="f-variable-hint">Por trabajador sobre el mínimo</span>
+      </div>
+    </div>
+    <div class="fg4" style="margin-bottom:10px">
+      <div class="fgroup">
+        <label>Tipo de descuento</label>
+        <select id="f-desc-tipo" onchange="calcPreview()">
+          <option value="">Sin descuento</option>
+          <option value="pct">% Porcentaje</option>
+          <option value="monto">Monto fijo</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label>Valor descuento</label>
+        <input type="number" id="f-desc-valor" placeholder="0" step="0.1" oninput="calcPreview()"/>
+      </div>
+      <div class="fgroup">
+        <label>Obs. de precio</label>
+        <input type="text" id="f-precio-obs" placeholder="Ej: precio especial hasta dic 2025"/>
+      </div>
+      <div class="fgroup">
+        <label>Vista previa</label>
+        <div class="preview-box" id="preview-box">—</div>
+      </div>
     </div>
 
     <div class="card-hd">👥 Equipo asignado</div>
@@ -362,7 +404,7 @@ var PLANES={cumplimiento:'📋 Cumplimiento',asesoria:'📊 Asesoría',estrategi
 var ESTADOS={activo:{l:'Activo',c:'badge-activo'},onboarding:{l:'Onboarding',c:'badge-onboarding'},suspendido:{l:'Suspendido',c:'badge-suspendido'},inactivo:{l:'Inactivo',c:'badge-inactivo'}};
 var REGMAP={'14D3':'PYME 14D N°3','14D8':'Transparente 14D N°8','presunta':'Renta Presunta'};
 
-function h(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function h(s){var r=String(s||'');r=r.split('&').join('&');r=r.split('<').join('<');r=r.split('>').join('>');return r;}
 function sv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
 function nv(id){return parseFloat(sv(id))||0;}
 function ff(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
@@ -372,13 +414,24 @@ function getUsuarios(){try{return JSON.parse(localStorage.getItem('usuarios_sist
 
 // ── PREVIEW ────────────────────────────────────────────────────────────────
 function calcPreview(){
-  var uf=nv('f-hon-uf'),varU=nv('f-hon-variable'),trab=nv('f-trabajadores');
+  var moneda=sv('f-moneda-plan')||'UF';
+  var base=nv('f-hon-uf');
+  var incl=nv('f-trab-incluidos');
+  var varU=nv('f-hon-variable');
+  var descTipo=sv('f-desc-tipo');
+  var descVal=nv('f-desc-valor');
   var pb=document.getElementById('preview-box');if(!pb)return;
-  if(!uf&&!varU){pb.textContent='—';return;}
-  var txt='';
-  if(uf)txt+=uf+' UF';
-  if(varU&&trab)txt+=(txt?' + ':'')+trab+'×'+ff(varU);
-  pb.textContent=txt||'—';
+  // Update hints
+  var hintUF=document.getElementById('f-hon-uf-hint');
+  var hintVar=document.getElementById('f-variable-hint');
+  if(hintUF)hintUF.textContent='En '+( moneda==='mixto'?'UF':moneda);
+  if(hintVar)hintVar.textContent='Por trabajador adicional en '+(moneda==='mixto'?'CLP':moneda);
+  if(!base){pb.textContent='—';return;}
+  var txt=base+(moneda==='CLP'?'':' UF')+' base';
+  if(incl)txt+=' · '+incl+' incluidos';
+  if(varU)txt+=' · +'+varU+(moneda==='CLP'||moneda==='mixto'?'':' UF')+'/trab adicional';
+  if(descTipo&&descVal)txt+=' · Desc. '+(descTipo==='pct'?descVal+'%':descVal+(moneda==='CLP'?'':' UF'));
+  pb.textContent=txt;
 }
 
 // ── LOGO ──────────────────────────────────────────────────────────────────
@@ -467,10 +520,13 @@ function updatePct(){
 // ── RESET FORM ────────────────────────────────────────────────────────────
 function resetForm(){
   ['f-razon','f-rut','f-giro','f-email','f-tel','f-wa','f-ciudad',
-   'f-hon-uf','f-hon-variable','f-trabajadores','f-inicio','f-obs-trib','f-obs'].forEach(function(id){
+   'f-hon-uf','f-hon-variable','f-trab-incluidos','f-desc-valor',
+   'f-precio-obs','f-inicio','f-obs-trib','f-obs'].forEach(function(id){
     var e=document.getElementById(id);if(e)e.value='';
   });
   document.getElementById('f-plan').value='';
+  document.getElementById('f-moneda-plan').value='UF';
+  document.getElementById('f-desc-tipo').value='';
   document.getElementById('f-estado').value='activo';
   document.getElementById('f-reg').value='';
   document.getElementById('f-at').value='2026';
@@ -503,9 +559,13 @@ function abrirModalEditar(id){
     var el=document.getElementById('f-'+k);if(el)el.value=c[k.replace('-','')]||c[k]||'';
   });
   document.getElementById('f-obs-trib').value=c.obsTrib||'';
+  document.getElementById('f-moneda-plan').value=c.monedaPlan||'UF';
   document.getElementById('f-hon-uf').value=c.honUF||'';
   document.getElementById('f-hon-variable').value=c.honVariable||'';
-  document.getElementById('f-trabajadores').value=c.trabajadores||'';
+  document.getElementById('f-trab-incluidos').value=c.trabIncluidos||'';
+  document.getElementById('f-desc-tipo').value=c.descTipo||'';
+  document.getElementById('f-desc-valor').value=c.descValor||'';
+  document.getElementById('f-precio-obs').value=c.precioObs||'';
   document.getElementById('f-plan').value=c.plan||'';
   document.getElementById('f-estado').value=c.estado||'activo';
   document.getElementById('f-reg').value=c.reg||'';
@@ -544,7 +604,10 @@ function guardarCliente(){
     email:sv('f-email'),tel:sv('f-tel'),wa:sv('f-wa'),ciudad:sv('f-ciudad'),
     plan:sv('f-plan'),estado:sv('f-estado')||'activo',inicio:sv('f-inicio'),
     reg:sv('f-reg'),at:sv('f-at'),obsTrib:sv('f-obs-trib'),
-    honUF:nv('f-hon-uf'),honVariable:nv('f-hon-variable'),trabajadores:nv('f-trabajadores'),
+    monedaPlan:sv('f-moneda-plan')||'UF',
+    honUF:nv('f-hon-uf'),honVariable:nv('f-hon-variable'),
+    trabIncluidos:nv('f-trab-incluidos'),
+    descTipo:sv('f-desc-tipo'),descValor:nv('f-desc-valor'),precioObs:sv('f-precio-obs'),
     analistaRrhh:sv('f-rrhh'),analistaContable:sv('f-contador'),analistaPagos:sv('f-analista-pagos'),
     prioridadContable:sv('f-prioridad-contable')||'media',
     logoBase64:document.getElementById('f-logo-b64').value||'',
@@ -578,7 +641,7 @@ function renderClientes(){
   document.getElementById('tabla-meta').textContent=arr.length+' cliente'+(arr.length!==1?'s':'')+' encontrado'+(arr.length!==1?'s':'');
 
   if(!arr.length){
-    document.getElementById('tablaBody').innerHTML='<table><tbody><tr><td colspan="6" style="padding:32px;text-align:center;color:var(--tm)">Sin clientes. Haz clic en "+ Nuevo cliente" para agregar.</td></tr></tbody></table>';
+    document.getElementById('tablaBody').innerHTML='<table><tbody><tr><td colspan="6" style="padding:32px;text-align:center;color:#9a849b">Sin clientes. Haz clic en "+ Nuevo cliente" para agregar.</td></tr></tbody></table>';
     return;
   }
 
@@ -588,22 +651,25 @@ function renderClientes(){
     var planBadge=c.plan==='estrategico'?'badge-plan-e':c.plan==='asesoria'?'badge-plan-a':'badge-plan-c';
     var prio=c.prioridadContable||'media';
     var prioDot='<span class="prio-dot prio-'+prio+'"></span>';
-    var mrr=Math.round((c.honUF||0)*UF+(c.honVariable||0)*(c.trabajadores||0));
+    var mrr=Math.round((c.honUF||0)*UF);
     html+='<tr>';
     html+='<td>';
-    if(c.logoBase64)html+='<img src="'+c.logoBase64+'" style="width:28px;height:28px;border-radius:5px;object-fit:contain;vertical-align:middle;margin-right:8px;border:1px solid var(--bdr)"/>';
-    html+='<strong>'+h(c.razon)+'</strong><br/><span style="font-size:10px;color:var(--tm)">'+h(c.rut)+(c.ciudad?' · '+h(c.ciudad):'')+'</span></td>';
-    html+='<td><span class="badge '+planBadge+'">'+(PLANES[c.plan]||h(c.plan)||'—')+'</span><br/><span style="font-size:10px;color:var(--tm)">'+prioDot+(prio.charAt(0).toUpperCase()+prio.slice(1))+' prioridad</span></td>';
-    html+='<td style="font-size:11px;color:var(--t2);line-height:1.8;">';
+    if(c.logoBase64)html+='<img src="'+c.logoBase64+'" style="width:28px;height:28px;border-radius:5px;object-fit:contain;vertical-align:middle;margin-right:8px;border:1px solid #e8dde8"/>';
+    html+='<strong>'+h(c.razon)+'</strong><br/><span style="font-size:10px;color:#9a849b">'+h(c.rut)+(c.ciudad?' · '+h(c.ciudad):'')+'</span></td>';
+    html+='<td><span class="badge '+planBadge+'">'+(PLANES[c.plan]||h(c.plan)||'—')+'</span><br/><span style="font-size:10px;color:#9a849b">'+prioDot+(prio.charAt(0).toUpperCase()+prio.slice(1))+' prioridad</span></td>';
+    html+='<td style="font-size:11px;color:#5c4a5d;line-height:1.8;">';
     if(c.analistaRrhh)html+='👥 '+h(c.analistaRrhh)+'<br/>';
     if(c.analistaContable)html+='📊 '+h(c.analistaContable)+'<br/>';
     if(c.analistaPagos)html+='💰 '+h(c.analistaPagos);
-    if(!c.analistaRrhh&&!c.analistaContable&&!c.analistaPagos)html+='<span style="color:var(--tm)">Sin asignar</span>';
+    if(!c.analistaRrhh&&!c.analistaContable&&!c.analistaPagos)html+='<span style="color:#9a849b">Sin asignar</span>';
     html+='</td>';
     html+='<td style="font-size:11px;">';
-    if(c.honUF)html+='<span style="font-weight:600">'+c.honUF+' UF</span> base<br/>';
-    if(c.honVariable&&c.trabajadores)html+=''+c.trabajadores+' × '+ff(c.honVariable)+'<br/>';
-    if(mrr)html+='<span style="color:var(--p);font-weight:700">≈ '+ff(mrr)+'</span>';
+    var mon=c.monedaPlan||'UF';
+    if(c.honUF)html+='<span style="font-weight:600">'+c.honUF+(mon==='CLP'?'':' UF')+'</span> base<br/>';
+    if(c.trabIncluidos)html+='<span style="color:#9a849b">'+c.trabIncluidos+' incluidos</span><br/>';
+    if(c.honVariable)html+='+'+c.honVariable+(mon==='CLP'||mon==='mixto'?'':' UF')+'/trab adicional<br/>';
+    if(c.descTipo&&c.descValor)html+='<span style="color:#C07A1A">Desc. '+(c.descTipo==='pct'?c.descValor+'%':c.descValor+(mon==='CLP'?'':' UF'))+'</span><br/>';
+    if(mrr)html+='<span style="color:#904891;font-weight:700">≈ '+ff(mrr)+'</span>';
     html+='</td>';
     html+='<td><span class="badge '+est.c+'">'+(est.l)+'</span></td>';
     html+='<td style="text-align:right"><button class="btn-s btn-sm" onclick="verDetalle('+c.id+')">👁 Ver</button> <button class="btn-p btn-sm" onclick="abrirModalEditar('+c.id+')">✏️</button></td>';
@@ -618,11 +684,11 @@ function verDetalle(id){
   var c=getClientes().find(function(x){return x.id===id;});if(!c)return;
   _detalleId=id;
   var est=ESTADOS[c.estado]||ESTADOS.inactivo;
-  var mrr=Math.round((c.honUF||0)*UF+(c.honVariable||0)*(c.trabajadores||0));
+  var mrr=Math.round((c.honUF||0)*UF);
   var html='';
   if(c.logoBase64)html+='<img src="'+c.logoBase64+'" style="height:48px;object-fit:contain;margin-bottom:12px;display:block"/>';
-  html+='<h2 style="color:var(--p);font-size:18px;margin-bottom:4px">'+h(c.razon)+'</h2>';
-  html+='<div style="font-size:12px;color:var(--tm);margin-bottom:14px">'+h(c.rut)+(c.giro?' · '+h(c.giro):'')+'</div>';
+  html+='<h2 style="color:#904891;font-size:18px;margin-bottom:4px">'+h(c.razon)+'</h2>';
+  html+='<div style="font-size:12px;color:#9a849b;margin-bottom:14px">'+h(c.rut)+(c.giro?' · '+h(c.giro):'')+'</div>';
   html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">';
   html+='<span class="badge '+(c.plan==='estrategico'?'badge-plan-e':c.plan==='asesoria'?'badge-plan-a':'badge-plan-c')+'">'+(PLANES[c.plan]||c.plan||'—')+'</span>';
   html+='<span class="badge '+est.c+'">'+est.l+'</span>';
@@ -630,12 +696,19 @@ function verDetalle(id){
   html+='</div>';
   html+='<div class="det-grid">';
   html+='<div class="det-item"><div class="det-lbl">Email</div><div class="det-val">'+h(c.email||'—')+'</div></div>';
-  html+='<div class="det-item"><div class="det-lbl">WhatsApp</div><div class="det-val">'+(c.wa?'<a href="https://wa.me/56'+c.wa+'" target="_blank" style="color:var(--green)">+56 '+h(c.wa)+'</a>':'—')+'</div></div>';
+  html+='<div class="det-item"><div class="det-lbl">WhatsApp</div><div class="det-val">'+(c.wa?'<a href="https://wa.me/56'+c.wa+'" target="_blank" style="color:#2D9B6F">+56 '+h(c.wa)+'</a>':'—')+'</div></div>';
   html+='<div class="det-item"><div class="det-lbl">Analista RRHH</div><div class="det-val">'+h(c.analistaRrhh||'Sin asignar')+'</div></div>';
   html+='<div class="det-item"><div class="det-lbl">Analista Contable</div><div class="det-val">'+h(c.analistaContable||'Sin asignar')+'</div></div>';
   html+='<div class="det-item"><div class="det-lbl">Analista Pagos</div><div class="det-val">'+h(c.analistaPagos||'Sin asignar')+'</div></div>';
   html+='<div class="det-item"><div class="det-lbl">Prioridad contable</div><div class="det-val">'+(c.prioridadContable||'Media')+'</div></div>';
-  html+='<div class="det-item"><div class="det-lbl">Nuestros Servicios</div><div class="det-val">'+(c.honUF?c.honUF+' UF base':'—')+(c.honVariable?' + '+ff(c.honVariable)+'/trab':'')+(mrr?' ≈ '+ff(mrr):'')+'</div></div>';
+  var _mon=c.monedaPlan||'UF';
+  var _svcTxt=c.honUF?c.honUF+(_mon==='CLP'?'':' UF')+' base':'—';
+  if(c.trabIncluidos)_svcTxt+=' · '+c.trabIncluidos+' incluidos';
+  if(c.honVariable)_svcTxt+=' · +'+c.honVariable+(_mon==='CLP'||_mon==='mixto'?'':' UF')+'/trab adicional';
+  if(c.descTipo&&c.descValor)_svcTxt+=' · Desc. '+(c.descTipo==='pct'?c.descValor+'%':c.descValor+(_mon==='CLP'?'':' UF'));
+  if(c.precioObs)_svcTxt+=' ('+c.precioObs+')';
+  if(mrr)_svcTxt+=' ≈ '+ff(mrr);
+  html+='<div class="det-item"><div class="det-lbl">Nuestros Servicios</div><div class="det-val">'+_svcTxt+'</div></div>';
   html+='<div class="det-item"><div class="det-lbl">Trabajadores</div><div class="det-val">'+(c.trabajadores||0)+'</div></div>';
   html+='</div>';
   if(c.obs)html+='<div style="background:#fef3c7;border-radius:8px;padding:10px 12px;font-size:12px;margin-top:8px"><b>Obs:</b> '+h(c.obs)+'</div>';
