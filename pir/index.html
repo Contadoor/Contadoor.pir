@@ -299,10 +299,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
               </select>
             </div>
             <div class="fgroup"><label>Año Tributario</label>
-              <select id="c_at" onchange="onATChange()">
+              <select id="c_at" onchange="onATChangeWithProfile()">
                 <option value="2025">AT 2025 (año com. 2024)</option>
-                <option value="2026" selected>AT 2026 (año com. 2025)</option>
-                <option value="2027">AT 2027 (año com. 2026)</option>
+                <option value="2026">AT 2026 (año com. 2025)</option>
+                <option value="2027" selected>AT 2027 (año com. 2026)</option>
                 <option value="2028">AT 2028 (año com. 2027)</option>
               </select>
             </div>
@@ -350,7 +350,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
           <div class="fg3" style="margin-bottom:10px">
             <div class="fgroup"><label>(+) Gastos Rechazados Art.33</label><input type="number" id="aj_rec" placeholder="0"/></div>
             <div class="fgroup"><label>(+/-) Corrección Monetaria</label><input type="number" id="aj_cm" placeholder="0"/></div>
-            <div class="fgroup"><label>(-) Pérdidas de arrastre</label><input type="number" id="aj_per" placeholder="0"/></div>
+            <div class="fgroup"><label>(-) Pérdidas ejercicios anteriores [F22 cód. 1426]</label><input type="number" id="aj_per" placeholder="0"/><span class="hint">Ingreso manual desde F22 presentado</span></div>
           </div>
           <div class="fg3">
             <div class="fgroup" id="g14e"><label>Incentivo Ahorro Art.14E</label>
@@ -1052,26 +1052,69 @@ function buildPrompt(acc,n){
 
 // \u2500\u2500 PERFIL CLIENTE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function onRutChange(){var rut=sv('c_rut');var c=getCli();if(c[rut])autoFill(c[rut]);}
+function onATChangeWithProfile(){
+  onATChange();
+  var rut=sv('c_rut');var c=getCli();
+  if(rut&&c[rut])autoFill(c[rut]);
+}
 function guardarPerfil(){
   var rut=sv('c_rut');if(!rut)return;
+  var at=sv('c_at');
   var c=getCli();
-  c[rut]={rut:rut,razon:sv('c_razon'),giro:sv('c_giro'),nivel:sv('c_nivel'),
-    reg:sv('c_reg'),analista:sv('c_analista'),email:sv('c_email'),socios:getSocios(),
-    rai:gv('aj_rai'),raiIdpc:gv('aj_rai_idpc'),ts:Date.now()};
+  // Guardar datos base del cliente (sin AT) para autoFill de datos fijos
+  if(!c[rut])c[rut]={};
+  c[rut].rut=rut;c[rut].razon=sv('c_razon');c[rut].giro=sv('c_giro');
+  c[rut].nivel=sv('c_nivel');c[rut].reg=sv('c_reg');
+  c[rut].analista=sv('c_analista');c[rut].email=sv('c_email');
+  c[rut].socios=getSocios();c[rut].ts=Date.now();
+  // Guardar ajustes tributarios por AT — historial independiente
+  if(!c[rut].historico)c[rut].historico={};
+  c[rut].historico[at]={
+    at:at,
+    rai:gv('aj_rai'),raiIdpc:gv('aj_rai_idpc'),
+    per:gv('aj_per'),rec:gv('aj_rec'),cm:gv('aj_cm'),cred:gv('aj_cred'),
+    uf:gv('aj_uf')||39700,use14e:sv('aj_14e'),
+    socios:getSocios(),ts:Date.now()
+  };
   setCli(c);
 }
 function autoFill(c){
+  // Datos fijos del cliente
   if(c.razon)document.getElementById('c_razon').value=c.razon;
   if(c.giro)document.getElementById('c_giro').value=c.giro;
   if(c.nivel)document.getElementById('c_nivel').value=c.nivel;
   if(c.analista)document.getElementById('c_analista').value=c.analista;
   if(c.reg){document.getElementById('c_reg').value=c.reg;onRegChange();}
   var _em2=document.getElementById('c_email');if(_em2&&c.email)_em2.value=c.email;
-  var _rai=document.getElementById('aj_rai');if(_rai&&c.rai)_rai.value=c.rai;
-  var _raiIdpc=document.getElementById('aj_rai_idpc');if(_raiIdpc&&c.raiIdpc)_raiIdpc.value=c.raiIdpc;
+  // Cargar ajustes del AT seleccionado, o el más reciente disponible
+  var atSel=sv('c_at')||'2027';
+  var hist=c.historico||{};
+  // Buscar: primero el AT seleccionado, si no el más reciente
+  var datos=hist[atSel];
+  if(!datos){
+    var ats=Object.keys(hist).sort();
+    if(ats.length)datos=hist[ats[ats.length-1]];
+  }
+  if(datos){
+    var _rai=document.getElementById('aj_rai');if(_rai)_rai.value=datos.rai||'';
+    var _raiIdpc=document.getElementById('aj_rai_idpc');if(_raiIdpc)_raiIdpc.value=datos.raiIdpc||'';
+    var _per=document.getElementById('aj_per');if(_per)_per.value=datos.per||'';
+    var _rec=document.getElementById('aj_rec');if(_rec)_rec.value=datos.rec||'';
+    var _cm=document.getElementById('aj_cm');if(_cm)_cm.value=datos.cm||'';
+    var _cred=document.getElementById('aj_cred');if(_cred)_cred.value=datos.cred||'';
+    var _uf=document.getElementById('aj_uf');if(_uf)_uf.value=datos.uf||39700;
+    var _14e=document.getElementById('aj_14e');if(_14e&&datos.use14e)_14e.value=datos.use14e;
+    // Socios del AT guardado (con F22)
+    if(datos.socios&&datos.socios.length){
+      document.getElementById('sociosBody').innerHTML='';SC=0;
+      datos.socios.forEach(function(s){addSocio(s.nombre,s.pct,s.retiros||0,s.otros||0,s.f22||0);});
+      return;
+    }
+  }
+  // Si no hay historial, cargar socios base
   if(c.socios&&c.socios.length){
     document.getElementById('sociosBody').innerHTML='';SC=0;
-    c.socios.forEach(function(s){addSocio(s.nombre,s.pct,s.retiros||0,s.otros||0);});
+    c.socios.forEach(function(s){addSocio(s.nombre,s.pct,s.retiros||0,s.otros||0,s.f22||0);});
   }
 }
 function abrirModal(){
@@ -1260,6 +1303,13 @@ function render(acc,monthly,n,ia){
   h+='<table class="dtable"><thead><tr><th>C\u00f3d. F22</th><th>Concepto</th><th style="text-align:right">Monto CLP</th></tr></thead><tbody>';
   h+='<tr class="grp"><td></td><td colspan="2">INGRESOS PERCIBIDOS</td></tr>';
   h+='<tr class="sub"><td class="num" style="color:#904891;font-weight:700">[1410]</td><td><b>Total Ingresos Percibidos</b></td><td class="num"><b>'+ff(acc.totalGan)+'</b></td></tr>';
+  // [1420] Gastos operacionales (egresos 41xxxx)
+  h+='<tr class="grp"><td></td><td colspan="2">[1420] GASTOS Y COSTOS DEL EJERCICIO</td></tr>';
+  // Detalle egresos ya viene antes en la tabla
+  // [1415] Costo mercaderías si hay
+  if(acc.comprasMerc>0){
+    h+='<tr><td class="num" style="color:#1e40af;font-weight:700">[1415]</td><td>(-) Costo de Mercader\u00edas y Existencias al cierre</td><td class="num" style="color:#C0392B">'+ff(-acc.comprasMerc)+'</td></tr>';
+  }
   h+='<tr class="grp"><td></td><td colspan="2">EGRESOS Y GASTOS PAGADOS</td></tr>';
   // Mercaderías/existencias al cierre
   if(acc.comprasMerc>0){
@@ -1289,9 +1339,10 @@ function render(acc,monthly,n,ia){
     h+='<tr class="grp"><td></td><td colspan="2">AJUSTES TRIBUTARIOS</td></tr>';
     if(n.rec)h+='<tr><td class="num" style="color:#904891;font-weight:700">[15]</td><td>(+) Gastos rechazados adicionales</td><td class="num">'+ff(n.rec)+'</td></tr>';
     if(n.cm)h+='<tr><td class="num" style="color:#904891;font-weight:700">[32]</td><td>(+/-) Correcci\u00f3n Monetaria Neta</td><td class="num">'+ff(n.cm)+'</td></tr>';
-    if(n.per)h+='<tr><td class="num" style="color:#904891;font-weight:700">[1430]</td><td>(-) P\u00e9rdidas tributarias de arrastre</td><td class="num" style="color:#C0392B">'+ff(-n.per)+'</td></tr>';
+    if(n.per)h+='<tr><td class="num" style="color:#904891;font-weight:700">[1426]</td><td>(-) P\u00e9rdidas tributarias de ejercicios anteriores</td><td class="num" style="color:#C0392B">'+ff(-n.per)+'</td></tr>';
   }
   h+='<tr class="tr"><td class="num" style="color:#6D2E6E;font-weight:700">[1440]</td><td><b>RENTA L\u00cdQUIDA IMPONIBLE AFECTA A IDPC</b></td><td class="num"><b>'+ff(n.rli)+'</b></td></tr>';
+
   if(reg==='14D3'){
     if(n.use14E&&n.reb14E>0){
       h+='<tr><td class="num" style="color:#904891;font-weight:700">[1432]</td><td>(-) Incentivo Art. 14E  -  50% de (RLI \u2212 retiros)</td><td class="num" style="color:#2D9B6F">'+ff(-n.reb14E)+'</td></tr>';
