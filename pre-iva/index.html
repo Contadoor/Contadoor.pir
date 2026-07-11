@@ -330,7 +330,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
     </div>
     <input type="month" class="sel-box" id="sel-periodo" style="min-width:140px" onchange="onPeriodoChange()">
     <span class="lbl-corte" id="lbl-corte"></span>
-    <button class="btn-calcular" onclick="calcular()">Recalcular</button>
+    <button class="btn-calcular" onclick="limpiarSimulacion()">🔄 Nueva simulación</button>
     <button class="btn-calcular" onclick="generarReporte()" style="margin-left:4px">👁️ Vista previa</button>
     <button class="btn-generar" id="btn-enviar" onclick="enviarPreIVA()">✉️ Enviar Pre-IVA</button>
   </div>
@@ -858,7 +858,7 @@ function buildReporteHTML(){
 
   // Intro
   +'<div style="padding:22px 28px;border-bottom:1px solid #eee">'
-  +'<div style="font-size:10px;color:#904891;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Simulación pre-cierre</div>'
+  +'<div style="font-size:10px;color:#904891;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Proyección de IVA</div>'
   +'<div style="font-size:18px;font-weight:700;color:#1a0a1b;margin-bottom:3px">'+hesc(c.razonSocial||c.nombre)+'</div>'
   +'<div style="font-size:11px;color:#9a849b">RUT '+hesc(c.rut)+' · Plan '+planLabel+' · Datos al '+now.getDate()+' de '+['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][now.getMonth()]+'</div>'
   +'</div>'
@@ -1077,7 +1077,7 @@ function generarReporte(){
   +'</div>'
   +'<div class="wrap" style="padding:28px 28px 40px">'
   +'<div style="margin-bottom:24px">'
-  +'<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#904891;font-weight:600;margin-bottom:6px">Simulación pre-cierre</div>'
+  +'<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#904891;font-weight:600;margin-bottom:6px">Proyección de IVA</div>'
   +'<div style="font-size:20px;font-weight:600;color:#f0ebff;margin-bottom:4px">'+hesc(c.razonSocial||c.nombre)+'</div>'
   +'<div style="font-size:12px;color:#8b7aaa">RUT '+hesc(c.rut)+' &nbsp;·&nbsp; Datos al '+now.getDate()+' · F29 vence 20 del próximo mes</div>'
   +'</div>'
@@ -1417,6 +1417,50 @@ function volverNomina(){
     var nom=document.getElementById('anchor-nomina');
     if(nom) nom.scrollIntoView({behavior:'smooth',block:'start'});
   },100);
+}
+
+
+// ── LIMPIAR / NUEVA SIMULACIÓN ────────────────────────────────────────────
+function limpiarSimulacion(){
+  // Limpiar inputs de datos
+  document.getElementById('inp-debito').value='';
+  document.getElementById('inp-credito').value='';
+  document.getElementById('inp-dias-transc').value=22;
+  document.getElementById('inp-dias-tot').value=31;
+  document.getElementById('inp-f29-ant').value='';
+  // NO limpiar tasa PPM — se mantiene por cliente
+
+  // Limpiar labels de libros
+  var lv=document.getElementById('lbl-libro-ventas');
+  var lc=document.getElementById('lbl-libro-compras');
+  var dv=document.getElementById('desg-ventas');
+  var dc=document.getElementById('desg-compras');
+  if(lv){lv.textContent='Sin archivo cargado';lv.style.color='var(--tm)';}
+  if(lc){lc.textContent='Sin archivo cargado';lc.style.color='var(--tm)';}
+  if(dv){dv.textContent='';dv.style.display='none';}
+  if(dc){dc.textContent='';dc.style.display='none';}
+
+  // Limpiar inputs de archivo
+  document.querySelectorAll('input[type="file"]').forEach(function(f){f.value='';});
+
+  // Resetear KPIs y resultados
+  document.getElementById('kpi-f29').textContent='$0';
+  document.getElementById('kpi-ppm').textContent='$0';
+  document.getElementById('kpi-var').textContent='—';
+  document.getElementById('kpi-dias').textContent='—';
+  document.getElementById('kpi-remanente').textContent='$0';
+  document.getElementById('res-debito').textContent='$0';
+  document.getElementById('res-credito').textContent='$0';
+  document.getElementById('res-remanente').textContent='$0';
+  document.getElementById('res-ppm').textContent='$0';
+  document.getElementById('res-f29').textContent='$0';
+  document.getElementById('res-dias-rest').textContent='—';
+  document.getElementById('bar-debito').style.width='0%';
+  document.getElementById('bar-credito').style.width='0%';
+  document.getElementById('acciones-grid').innerHTML='';
+  _datos.debitoRegistrado=0;
+  _datos.creditoRegistrado=0;
+  _datos.ppm=0;
 }
 
 // ── ARRANQUE ──────────────────────────────────────────────────────────────
