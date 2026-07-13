@@ -119,11 +119,12 @@ var USUARIOS_DEFAULT = [
   {
     id: 1,
     nombre: 'Luciano Duarte',
-    rol: 'Master · Acceso total',
+    rol: 'master',
+    rolLabel: 'Master',
     iniciales: 'LD',
     pin: '1234',
     esMaster: true,
-    modulos: ['dashboard','clientes','pir','reportes','pagos','conciliacion','cobranza','crm','admin']
+    modulos: ['*']
   }
 ];
 
@@ -136,6 +137,15 @@ function getUsuarios(){
     }
     return u;
   }catch(e){return USUARIOS_DEFAULT;}
+}
+
+// Si ya hay sesión activa, ir al dashboard
+if(sessionStorage.getItem('usuario_activo')){
+  try{
+    var _params=new URLSearchParams(window.location.search);
+    var _red=_params.get('redirect');
+    window.location.href=_red&&_red.includes('Contadoor.app')?_red:'index.html';
+  }catch(e){ window.location.href='index.html'; }
 }
 
 var _usuarioSeleccionado=null, _pinActual='';
@@ -208,6 +218,7 @@ function verificarPin(){
       id:_usuarioSeleccionado.id,
       nombre:_usuarioSeleccionado.nombre,
       rol:_usuarioSeleccionado.rol,
+      rolLabel:_usuarioSeleccionado.rolLabel||_usuarioSeleccionado.rol,
       email:_usuarioSeleccionado.email||'',
       esMaster:_usuarioSeleccionado.esMaster||false,
       modulos:_usuarioSeleccionado.modulos||[],
