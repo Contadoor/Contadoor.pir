@@ -135,6 +135,16 @@ function getUsuarios(){
       localStorage.setItem('usuarios_sistema',JSON.stringify(USUARIOS_DEFAULT));
       return USUARIOS_DEFAULT;
     }
+    // Migrar usuarios con formato antiguo (rol con texto largo)
+    var migrado=false;
+    u=u.map(function(usr){
+      if(usr.esMaster&&(usr.rol.length>20||!usr.rolLabel)){
+        migrado=true;
+        return Object.assign({},usr,{rol:'master',rolLabel:'Master',modulos:['*']});
+      }
+      return usr;
+    });
+    if(migrado) localStorage.setItem('usuarios_sistema',JSON.stringify(u));
     return u;
   }catch(e){return USUARIOS_DEFAULT;}
 }
