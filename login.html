@@ -230,18 +230,7 @@ function verificarPin(){
       modulos:_usuarioSeleccionado.modulos||[],
       tsLogin:Date.now()
     }));
-    // Redirección por rol
-    var rol=_usuarioSeleccionado.rol;
-    var esMaster=_usuarioSeleccionado.esMaster||false;
-    var destino={
-      rrhh:     'reportes-rrhh/index.html',
-      contable: 'reportes-contable/index.html',
-      pagos:    'reportes-pagos/index.html',
-      cobranza: 'cobranza/index.html'
-    };
-    // Master y admin siempre van al dashboard
-    var redirect = (esMaster||rol==='admin') ? 'index.html' : (destino[rol]||'index.html');
-    window.location.href=redirect;
+    window.location.href='index.html';
   } else {
     document.getElementById('pinError').textContent='PIN incorrecto. Inténtalo de nuevo.';
     _pinActual='';actualizarDots();
