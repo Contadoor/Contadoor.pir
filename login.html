@@ -151,11 +151,7 @@ function getUsuarios(){
 
 // Si ya hay sesión activa, ir al dashboard
 if(sessionStorage.getItem('usuario_activo')){
-  try{
-    var _params=new URLSearchParams(window.location.search);
-    var _red=_params.get('redirect');
-    window.location.href=_red&&_red.includes('Contadoor.app')?_red:'index.html';
-  }catch(e){ window.location.href='index.html'; }
+  window.location.href='index.html';
 }
 
 var _usuarioSeleccionado=null, _pinActual='';
@@ -245,11 +241,6 @@ function verificarPin(){
     };
     // Master y admin siempre van al dashboard
     var redirect = (esMaster||rol==='admin') ? 'index.html' : (destino[rol]||'index.html');
-    // Si hay parámetro ?redirect= usarlo solo si es master/admin
-    var params=new URLSearchParams(window.location.search);
-    if(params.get('redirect')&&(esMaster||rol==='admin')){
-      redirect=decodeURIComponent(params.get('redirect'));
-    }
     window.location.href=redirect;
   } else {
     document.getElementById('pinError').textContent='PIN incorrecto. Inténtalo de nuevo.';
