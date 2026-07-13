@@ -1,1 +1,871 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Planes · Gestoor</title>
+<style>
+:root{
+  --p:#904891;--pd:#6D2E6E;--pp:#F5EAF5;--deep:#08040f;--bg:#f0ebff;
+  --sur:#fff;--sur2:#faf7fa;--bdr:#e8dde8;--t1:#1a0a1b;--t2:#5c4a5d;--tm:#9a849b;
+  --green:#2D9B6F;--amber:#C07A1A;--red:#C0392B;--blue:#1e40af;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+  --mono:'SF Mono','Fira Mono','Courier New',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--t1);display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--deep);display:flex;flex-direction:column;position:fixed;height:100vh;z-index:20;top:0;left:0;}
+.sb-logo{padding:16px 14px 10px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sb-logo img{height:24px;opacity:.9;}
+.sb-nav{padding:12px 8px;flex:1;overflow-y:auto;}
+.sb-nav::-webkit-scrollbar{width:3px;}
+.sb-nav::-webkit-scrollbar-thumb{background:rgba(144,72,145,.3);border-radius:3px;}
+.sb-sec{font-size:9px;font-weight:700;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1.2px;padding:12px 8px 5px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;color:rgba(255,255,255,.55);font-size:12px;cursor:pointer;text-decoration:none;transition:.15s;margin-bottom:1px;}
+.sb-item:hover{background:rgba(255,255,255,.07);color:#fff;}
+.sb-item.on{background:rgba(144,72,145,.25);color:#fff;font-weight:600;}
+.sb-foot{padding:12px 14px;border-top:1px solid rgba(255,255,255,.06);font-size:11px;color:rgba(255,255,255,.35);}
+
+/* LAYOUT */
+.wrap{margin-left:220px;flex:1;}
+.topbar{background:var(--deep);padding:10px 20px;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--p);position:sticky;top:0;z-index:10;}
+.tb-title{font-size:14px;font-weight:700;color:#fff;flex:1;}
+.content{padding:20px;max-width:1100px;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:5px;margin-bottom:16px;}
+.tab{flex:1;padding:8px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;text-align:center;color:var(--tm);border:none;background:transparent;transition:.15s;}
+.tab.on{background:var(--p);color:#fff;}
+.tab-section{display:none;}
+.tab-section.on{display:block;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.stat{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:10px 14px;}
+.sv{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--p);}
+.sl{font-size:9.5px;color:var(--tm);text-transform:uppercase;letter-spacing:.6px;margin-top:2px;}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+.toolbar input{font-family:var(--sans);font-size:12px;border:1px solid var(--bdr);border-radius:8px;padding:7px 12px;background:var(--sur);color:var(--t1);outline:none;flex:1;min-width:160px;}
+.toolbar input:focus{border-color:var(--p);}
+.btn-p{background:var(--p);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.btn-s{background:transparent;color:var(--t2);border:1px solid var(--bdr);border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer;white-space:nowrap;}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:6px;}
+.btn-danger{background:#fee2e2;color:#991b1b;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;}
+
+/* PLANES GRID */
+.planes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.plan-card{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;transition:.15s;}
+.plan-card:hover{box-shadow:0 4px 16px rgba(144,72,145,.1);border-color:var(--p);}
+.plan-card.estandar{border-top:3px solid var(--p);}
+.plan-card.personalizado{border-top:3px solid var(--blue);}
+.pc-hdr{padding:14px 16px;border-bottom:1px solid var(--bdr);}
+.pc-tipo{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;}
+.pc-tipo.estandar{color:var(--p);}
+.pc-tipo.personalizado{color:var(--blue);}
+.pc-nombre{font-size:16px;font-weight:700;color:var(--t1);margin-bottom:4px;}
+.pc-desc{font-size:11.5px;color:var(--tm);line-height:1.5;}
+.pc-body{padding:14px 16px;}
+.pc-precio{display:flex;align-items:baseline;gap:6px;margin-bottom:10px;}
+.pc-monto{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--p);}
+.pc-moneda{font-size:11px;color:var(--tm);}
+.pc-incluidos{font-size:11px;color:var(--t2);margin-bottom:10px;padding:6px 10px;background:var(--pp);border-radius:7px;}
+.pc-adicional{font-size:11px;color:var(--t2);margin-bottom:10px;}
+.pc-features{list-style:none;display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.pc-features li{font-size:11.5px;color:var(--t2);display:flex;align-items:center;gap:7px;}
+.pc-features li::before{content:'✓';color:var(--green);font-weight:700;font-size:12px;flex-shrink:0;}
+.pc-reuniones{background:var(--sur2);border-radius:7px;padding:7px 10px;font-size:11px;color:var(--t2);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
+.pc-reuniones span{font-weight:700;color:var(--p);}
+.pc-footer{padding:10px 16px;border-top:1px solid var(--bdr);display:flex;gap:6px;justify-content:flex-end;background:var(--sur2);}
+.pc-clientes{font-size:10px;color:var(--tm);display:flex;align-items:center;gap:4px;}
+.badge-estandar{background:var(--pp);color:var(--pd);padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;}
+.badge-personalizado{background:#eff6ff;color:var(--blue);padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;}
+.badge-activo{background:#ecfdf5;color:#064e3b;padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;}
+.badge-inactivo{background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;}
+.descuento-badge{background:#fef3c7;color:#78350f;padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;}
+
+/* SERVICIOS */
+.tabla-wrap{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;}
+.tabla-hdr{background:linear-gradient(135deg,var(--pd),var(--p));padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.tabla-titulo{font-size:13px;font-weight:700;color:#fff;}
+.tabla-meta{font-size:10px;color:rgba(255,255,255,.5);margin-top:2px;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--tm);padding:9px 14px;background:var(--sur2);border-bottom:1px solid var(--bdr);text-align:left;}
+td{padding:10px 14px;border-bottom:1px solid var(--bdr);font-size:12px;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#faf5ff;}
+.cat-badge{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center;padding:16px;}
+.modal-bg.on{display:flex;}
+.modal{background:var(--sur);border-radius:14px;padding:22px;max-width:600px;width:100%;max-height:92vh;overflow-y:auto;}
+.modal h2{font-size:16px;font-weight:700;color:var(--p);margin-bottom:4px;}
+.modal-sub{font-size:12px;color:var(--tm);margin-bottom:16px;}
+.card-hd{font-size:10px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--bdr);}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.fgroup{display:flex;flex-direction:column;gap:4px;}
+.fgroup label{font-size:11px;font-weight:600;color:var(--t2);}
+.fgroup input,.fgroup select,.fgroup textarea{font-family:var(--sans);font-size:13px;border:1px solid var(--bdr);border-radius:7px;padding:7px 10px;color:var(--t1);background:var(--sur2);outline:none;width:100%;}
+.fgroup input:focus,.fgroup select:focus,.fgroup textarea:focus{border-color:var(--p);}
+.hint{font-size:10px;color:var(--tm);}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--bdr);}
+.info-box{background:var(--pp);border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;font-size:11.5px;color:var(--pd);margin-bottom:12px;}
+.preview-plan{background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;padding:12px 14px;margin-top:12px;}
+.preview-titulo{font-size:9.5px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;}
+.preview-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;}
+.preview-total{display:flex;justify-content:space-between;font-size:14px;font-weight:700;color:var(--p);border-top:1px solid var(--bdr);padding-top:8px;margin-top:6px;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-logo">
+    <img src="../assets/logo_blanco_new.png" alt="Contadoor" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
+    <span style="display:none;color:#fff;font-size:14px;font-weight:700;">CONTADOOR</span>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Principal</div>
+    <a class="sb-item" href="../index.html">🏠 Dashboard</a>
+    <div class="sb-sec">Base de Datos</div>
+    <a class="sb-item" href="../clientes/index.html">👥 Clientes</a>
+    <div class="sb-sec">Reportes</div>
+    <a class="sb-item" href="../reportes/index.html">📋 Panel de Control</a>
+    <a class="sb-item" href="../reportes-rrhh/index.html">👥 Remuneraciones</a>
+    <a class="sb-item" href="../reportes-contable/index.html">📊 Tributario/Contable</a>
+    <a class="sb-item" href="../reportes-pagos/index.html">💰 Vista Pagos</a>
+    <div class="sb-sec">Financiero</div>
+    <a class="sb-item" href="../pagos/index.html">💰 Pagos</a>
+    <a class="sb-item" href="../conciliacion/index.html">🏦 Conciliación</a>
+    <a class="sb-item" href="../cobranza/index.html">📋 CxC / Cobranza</a>
+    <a class="sb-item" href="../convenios/index.html">🤝 Convenios</a>
+    <div class="sb-sec">Tributario</div>
+    <a class="sb-item" href="../pir/index.html">📊 PIR</a>
+    <a class="sb-item" href="../pre-iva/index.html">📋 Pre-IVA</a>
+    <div class="sb-sec">Sistema</div>
+    <a class="sb-item on">📦 Planes y Servicios</a>
+    <a class="sb-item" href="../admin/index.html">👤 Admin</a>
+  </nav>
+  <div class="sb-foot" id="sb-usuario">Gestoor v1.0</div>
+</aside>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="tb-title">📦 Planes y Servicios</div>
+    <div id="notBtn" onclick="if(window.toggleNotPanel)toggleNotPanel(event)" style="position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.08);flex-shrink:0;">
+      <span style="font-size:18px">🔔</span>
+      <div id="notBadge" style="display:none;position:absolute;top:2px;right:2px;min-width:16px;height:16px;background:#C0392B;border-radius:20px;font-size:9px;font-weight:700;color:#fff;align-items:center;justify-content:center;padding:0 4px;border:1.5px solid #08040f;"></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat"><div class="sv" id="st-estandar">3</div><div class="sl">Planes estándar</div></div>
+      <div class="stat"><div class="sv" id="st-personalizados">0</div><div class="sl">Personalizados</div></div>
+      <div class="stat"><div class="sv" id="st-servicios">0</div><div class="sl">Servicios adicionales</div></div>
+      <div class="stat"><div class="sv" id="st-asignados">0</div><div class="sl">Clientes con plan</div></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab on" onclick="switchTab('planes')">📋 Planes de asesoría</button>
+      <button class="tab" onclick="switchTab('servicios')">🛠️ Servicios adicionales</button>
+    </div>
+
+    <!-- ═══ TAB PLANES ═══ -->
+    <div class="tab-section on" id="tab-planes">
+
+      <!-- Estándar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--t1);">Planes estándar</div>
+          <div style="font-size:11px;color:var(--tm);">Predefinidos por Contadoor — base para todos los clientes</div>
+        </div>
+      </div>
+      <div class="planes-grid" id="planesEstandarGrid"></div>
+
+      <!-- Personalizados -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;margin-top:8px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--t1);">Planes personalizados</div>
+          <div style="font-size:11px;color:var(--tm);">Creados para clientes con condiciones especiales</div>
+        </div>
+        <button class="btn-p" onclick="abrirModalPlan()">+ Nuevo plan personalizado</button>
+      </div>
+      <div class="planes-grid" id="planesPersonGrid">
+        <div style="background:var(--sur);border:2px dashed var(--bdr);border-radius:14px;padding:32px;text-align:center;color:var(--tm);grid-column:1/-1;" id="sinPersonalizados">
+          <div style="font-size:24px;margin-bottom:8px">📋</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Sin planes personalizados aún</div>
+          <div style="font-size:11px;margin-bottom:12px;">Crea un plan personalizado para clientes con condiciones especiales</div>
+          <button class="btn-p" onclick="abrirModalPlan()">+ Crear plan personalizado</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══ TAB SERVICIOS ═══ -->
+    <div class="tab-section" id="tab-servicios">
+      <div class="toolbar">
+        <input type="text" id="searchServicio" placeholder="🔍 Buscar servicio..." oninput="renderServicios()"/>
+        <select id="filterCat" onchange="renderServicios()" style="font-family:var(--sans);font-size:12px;border:1px solid var(--bdr);border-radius:8px;padding:7px 12px;background:var(--sur);color:var(--t2);outline:none;">
+          <option value="">Todas las categorías</option>
+          <option value="tributario">Tributario</option>
+          <option value="laboral">Laboral</option>
+          <option value="societario">Societario</option>
+          <option value="contable">Contable</option>
+          <option value="otro">Otro</option>
+        </select>
+        <button class="btn-p" onclick="abrirModalServicio()">+ Nuevo servicio</button>
+      </div>
+      <div class="tabla-wrap">
+        <div class="tabla-hdr">
+          <div>
+            <div class="tabla-titulo">🛠️ Catálogo de servicios adicionales</div>
+            <div class="tabla-meta" id="servicios-meta">Para cotizaciones y cobros puntuales</div>
+          </div>
+        </div>
+        <div id="serviciosBody"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL PLAN PERSONALIZADO -->
+<div class="modal-bg" id="modalPlan">
+  <div class="modal">
+    <h2 id="modalPlanTitulo">Nuevo plan personalizado</h2>
+    <div class="modal-sub">Basado en un plan estándar con condiciones ajustadas</div>
+    <input type="hidden" id="fp-id"/>
+
+    <div class="card-hd">📋 Identificación</div>
+    <div class="fg2" style="margin-bottom:10px">
+      <div class="fgroup" style="grid-column:1/3">
+        <label>Nombre del plan *</label>
+        <input type="text" id="fp-nombre" placeholder="Ej: Plan Especial Transportes del Sur"/>
+      </div>
+      <div class="fgroup">
+        <label>Basado en plan</label>
+        <select id="fp-base">
+          <option value="cumplimiento">📋 Cumplimiento</option>
+          <option value="asesoria">📊 Asesoría</option>
+          <option value="estrategico">⭐ Estratégico</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label>Estado</label>
+        <select id="fp-estado">
+          <option value="activo">✅ Activo</option>
+          <option value="inactivo">❌ Inactivo</option>
+        </select>
+      </div>
+      <div class="fgroup" style="grid-column:1/3">
+        <label>Descripción</label>
+        <textarea id="fp-desc" rows="2" placeholder="Condiciones especiales, acuerdo con el cliente..."></textarea>
+      </div>
+    </div>
+
+    <div class="card-hd">💰 Precio mensual</div>
+    <div class="fg3" style="margin-bottom:10px">
+      <div class="fgroup">
+        <label>Moneda</label>
+        <select id="fp-moneda" onchange="calcPreviewPlan()">
+          <option value="UF">UF</option>
+          <option value="CLP">CLP</option>
+          <option value="mixto">Mixto (UF base + CLP variable)</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label>Monto base</label>
+        <input type="number" id="fp-base-monto" placeholder="3.5" step="0.1" oninput="calcPreviewPlan()"/>
+        <span class="hint" id="fp-base-hint">En UF</span>
+      </div>
+      <div class="fgroup">
+        <label>Vigencia hasta</label>
+        <input type="date" id="fp-vigencia"/>
+        <span class="hint">Vacío = indefinida</span>
+      </div>
+    </div>
+
+    <div class="card-hd">👥 Trabajadores</div>
+    <div class="fg3" style="margin-bottom:10px">
+      <div class="fgroup">
+        <label>Trabajadores incluidos</label>
+        <input type="number" id="fp-trab-incluidos" placeholder="5" oninput="calcPreviewPlan()"/>
+        <span class="hint">Incluidos sin costo adicional</span>
+      </div>
+      <div class="fgroup">
+        <label>Valor por trabajador adicional</label>
+        <input type="number" id="fp-trab-adicional" placeholder="0" oninput="calcPreviewPlan()"/>
+        <span class="hint" id="fp-adicional-hint">Por trabajador sobre el mínimo</span>
+      </div>
+      <div class="fgroup">
+        <label>Moneda adicional</label>
+        <select id="fp-moneda-adicional" onchange="calcPreviewPlan()">
+          <option value="UF">UF</option>
+          <option value="CLP">CLP</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card-hd">🎁 Descuento</div>
+    <div class="fg3" style="margin-bottom:10px">
+      <div class="fgroup">
+        <label>Tipo de descuento</label>
+        <select id="fp-desc-tipo" onchange="calcPreviewPlan()">
+          <option value="">Sin descuento</option>
+          <option value="pct">% Porcentaje</option>
+          <option value="monto">Monto fijo</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label>Valor descuento</label>
+        <input type="number" id="fp-desc-valor" placeholder="0" oninput="calcPreviewPlan()"/>
+      </div>
+      <div class="fgroup">
+        <label>Observación descuento</label>
+        <input type="text" id="fp-desc-obs" placeholder="Ej: precio especial hasta dic 2025"/>
+      </div>
+    </div>
+
+    <div class="card-hd">📅 Reuniones incluidas</div>
+    <div class="fg2" style="margin-bottom:10px">
+      <div class="fgroup">
+        <label>Reuniones por mes</label>
+        <input type="number" id="fp-reuniones" placeholder="2"/>
+        <span class="hint">Incluidas sin costo adicional</span>
+      </div>
+      <div class="fgroup">
+        <label>Valor reunión adicional</label>
+        <input type="number" id="fp-reunion-adicional" placeholder="0"/>
+        <span class="hint">En UF por reunión extra</span>
+      </div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="preview-plan" id="previewPlan" style="display:none">
+      <div class="preview-titulo">Vista previa del plan</div>
+      <div id="previewRows"></div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-s" type="button" onclick="closeModalPlan()">Cancelar</button>
+      <button class="btn-p" type="button" onclick="guardarPlan()">💾 Guardar plan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR PLAN ESTÁNDAR -->
+<div class="modal-bg" id="modalEditEstandar">
+  <div class="modal" style="max-width:560px">
+    <h2 id="pee-titulo">Editar plan estándar</h2>
+    <p class="modal-sub">Los cambios se guardan localmente y persisten entre sesiones.</p>
+    <input type="hidden" id="pee-id"/>
+    <div class="fg2" style="margin-bottom:10px">
+      <div class="fgroup"><label>Nombre del plan</label><input type="text" id="pee-nombre"/></div>
+      <div class="fgroup"><label>Moneda</label>
+        <select id="pee-moneda"><option value="UF">UF</option><option value="CLP">CLP</option></select>
+      </div>
+    </div>
+    <div class="fgroup" style="margin-bottom:10px">
+      <label>Descripción</label>
+      <textarea id="pee-desc" rows="2"></textarea>
+    </div>
+    <div class="fg3" style="margin-bottom:10px">
+      <div class="fgroup"><label>Monto base</label><input type="number" id="pee-monto" step="0.1"/></div>
+      <div class="fgroup"><label>Trabajadores incluidos</label><input type="number" id="pee-trab"/></div>
+      <div class="fgroup"><label>Adicional por trab.</label><input type="number" id="pee-trab-adic" step="0.1"/></div>
+    </div>
+    <div class="fgroup" style="margin-bottom:10px">
+      <label>Reuniones incluidas / mes</label>
+      <input type="number" id="pee-reuniones"/>
+    </div>
+    <div class="fgroup" style="margin-bottom:14px">
+      <label>Características (una por línea)</label>
+      <textarea id="pee-features" rows="5" placeholder="F29 mensual&#10;Cotizaciones previsionales&#10;..."></textarea>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button class="btn-danger-sm" onclick="resetEditEstandar()">Restaurar original</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn-s" onclick="cerrarEditEstandar()">Cancelar</button>
+        <button class="btn-p" onclick="guardarEditEstandar()">💾 Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SERVICIO -->
+<div class="modal-bg" id="modalServicio">
+  <div class="modal" style="max-width:520px">
+    <h2 id="modalServicioTitulo">Nuevo servicio adicional</h2>
+    <div class="modal-sub">Servicios puntuales para cotizaciones y cobros</div>
+    <input type="hidden" id="fs-id"/>
+
+    <div class="card-hd">📋 Identificación</div>
+    <div style="margin-bottom:10px">
+      <div class="fgroup" style="margin-bottom:10px">
+        <label>Nombre del servicio *</label>
+        <input type="text" id="fs-nombre" placeholder="Ej: Declaración de Renta Anual"/>
+      </div>
+      <div class="fg2">
+        <div class="fgroup">
+          <label>Categoría</label>
+          <select id="fs-cat">
+            <option value="tributario">📋 Tributario</option>
+            <option value="laboral">👥 Laboral</option>
+            <option value="societario">🏢 Societario</option>
+            <option value="contable">📊 Contable</option>
+            <option value="otro">📌 Otro</option>
+          </select>
+        </div>
+        <div class="fgroup">
+          <label>Estado</label>
+          <select id="fs-estado">
+            <option value="activo">✅ Activo</option>
+            <option value="inactivo">❌ Inactivo</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="fgroup" style="margin-bottom:10px">
+      <label>Descripción</label>
+      <textarea id="fs-desc" rows="2" placeholder="¿Qué incluye este servicio?"></textarea>
+    </div>
+
+    <div class="card-hd">💰 Precio</div>
+    <div class="fg3" style="margin-bottom:10px">
+      <div class="fgroup">
+        <label>Moneda</label>
+        <select id="fs-moneda">
+          <option value="UF">UF</option>
+          <option value="CLP">CLP</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label>Precio base</label>
+        <input type="number" id="fs-precio" placeholder="0" step="0.1"/>
+      </div>
+      <div class="fgroup">
+        <label>Precio máximo</label>
+        <input type="number" id="fs-precio-max" placeholder="0" step="0.1"/>
+        <span class="hint">Opcional — para rangos</span>
+      </div>
+    </div>
+
+    <div class="fgroup" style="margin-bottom:10px">
+      <label>Obs. de precio</label>
+      <input type="text" id="fs-precio-obs" placeholder="Ej: varía según complejidad"/>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-s" type="button" onclick="closeModalServicio()">Cancelar</button>
+      <button class="btn-p" type="button" onclick="guardarServicio()">💾 Guardar servicio</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATOS ────────────────────────────────────────────────────────────────────
+var PLANES_ESTANDAR = [
+  {
+    id:'cumplimiento', tipo:'estandar', nombre:'Cumplimiento',
+    desc:'Gestión de obligaciones tributarias y laborales básicas. Ideal para microempresas y emprendedores.',
+    moneda:'UF', baseMonto:2.5, trabIncluidos:3, trabAdicional:0.2, monedaAdicional:'UF',
+    reuniones:1, reunionAdicional:0.5,
+    descTipo:'', descValor:0,
+    features:['F29 mensual','Cotizaciones previsionales','Liquidaciones de sueldo','Libro de remuneraciones','Atención por email']
+  },
+  {
+    id:'asesoria', tipo:'estandar', nombre:'Asesoría',
+    desc:'Cumplimiento más asesoría tributaria activa. Para empresas en crecimiento que necesitan apoyo constante.',
+    moneda:'UF', baseMonto:4.0, trabIncluidos:5, trabAdicional:0.3, monedaAdicional:'UF',
+    reuniones:2, reunionAdicional:0.5,
+    descTipo:'', descValor:0,
+    features:['Todo Cumplimiento','Asesoría tributaria mensual','Planificación fiscal','Revisión de contratos','Atención prioritaria','PIR anual incluido']
+  },
+  {
+    id:'estrategico', tipo:'estandar', nombre:'Estratégico',
+    desc:'Servicio integral con acompañamiento permanente. Para empresas consolidadas que buscan optimización.',
+    moneda:'UF', baseMonto:7.0, trabIncluidos:10, trabAdicional:0.4, monedaAdicional:'UF',
+    reuniones:4, reunionAdicional:0.5,
+    descTipo:'', descValor:0,
+    features:['Todo Asesoría','Reuniones mensuales','Dashboard financiero','Optimización tributaria','Asesor dedicado','Respuesta en 24h','PIR y proyecciones incluidas']
+  }
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function hesc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function sv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+function nv(id){return parseFloat(sv(id))||0;}
+function iv(id){return parseInt(sv(id))||0;}
+function ts(){return new Date().toLocaleString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+function getClientes(){try{return JSON.parse(localStorage.getItem('clientes_bd')||'[]');}catch(e){return[];}}
+function getUsuario(){try{return JSON.parse(sessionStorage.getItem('usuario_activo')||'{}');}catch(e){return{};}}
+
+function getPlanes(){
+  try{return JSON.parse(localStorage.getItem('planes_personalizados')||'[]');}catch(e){return[];}
+}
+function setPlanes(arr){localStorage.setItem('planes_personalizados',JSON.stringify(arr));}
+function getServicios(){
+  try{return JSON.parse(localStorage.getItem('servicios_adicionales')||'[]');}catch(e){return[];}
+}
+function setServicios(arr){localStorage.setItem('servicios_adicionales',JSON.stringify(arr));}
+
+function ff(n,moneda){
+  var v=Math.round(Math.abs(n)||0);
+  if(moneda==='UF') return v.toFixed(2)+' UF';
+  return '$'+v.toLocaleString('es-CL');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function init(){
+  // Aplicar overrides guardados a planes estándar
+  try{
+    var ov=JSON.parse(localStorage.getItem('pe_overrides')||'{}');
+    PLANES_ESTANDAR.forEach(function(p){if(ov[p.id])Object.assign(p,ov[p.id]);});
+  }catch(e){}
+
+  var u=getUsuario();
+  var sb=document.getElementById('sb-usuario');
+  if(sb) sb.textContent=(u.nombre||'Usuario')+' · '+(u.rolLabel||'Admin');
+  var tb=document.getElementById('tb-usuario');
+  if(tb) tb.textContent=u.nombre||'Admin';
+
+  renderPlanesEstandar();
+  renderPlanesPersonalizados();
+  renderServicios();
+  actualizarStats();
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+function actualizarStats(){
+  var clientes=getClientes();
+  var planes=getPlanes();
+  var servicios=getServicios();
+
+  var cntC=clientes.filter(function(c){return c.plan==='cumplimiento';}).length;
+  var cntA=clientes.filter(function(c){return c.plan==='asesoria';}).length;
+  var cntE=clientes.filter(function(c){return c.plan==='estrategico';}).length;
+  var cntP=planes.length;
+
+  var e=document.getElementById('st-cumplimiento');if(e)e.textContent=cntC;
+  var e2=document.getElementById('st-asesoria');if(e2)e2.textContent=cntA;
+  var e3=document.getElementById('st-estrategico');if(e3)e3.textContent=cntE;
+  var e4=document.getElementById('st-personalizados');if(e4)e4.textContent=cntP;
+  var e5=document.getElementById('st-servicios');if(e5)e5.textContent=servicios.length;
+}
+
+// ── RENDER PLANES ESTÁNDAR ────────────────────────────────────────────────────
+function renderPlanesEstandar(){
+  var clientes=getClientes();
+  var html='';
+  var iconos={cumplimiento:'📋',asesoria:'📊',estrategico:'⭐'};
+
+  PLANES_ESTANDAR.forEach(function(p){
+    var cnt=clientes.filter(function(c){return c.plan===p.id;}).length;
+    var icon=iconos[p.id]||'📋';
+    html+='<div class="plan-card estandar">';
+    html+='<div class="pc-hdr">';
+    html+='<div class="pc-tipo estandar">Plan estándar <span class="badge-estandar">Predefinido</span></div>';
+    html+='<div class="pc-nombre">'+icon+' '+hesc(p.nombre)+'</div>';
+    html+='<div class="pc-desc">'+hesc(p.desc)+'</div>';
+    html+='</div><div class="pc-body">';
+    html+='<div class="pc-precio"><span class="pc-monto">'+p.baseMonto+'</span><span class="pc-moneda">'+p.moneda+' / mes</span></div>';
+    html+='<div class="pc-incluidos">👥 '+p.trabIncluidos+' trabajadores incluidos · Adicional: '+p.trabAdicional+' '+p.monedaAdicional+'/trab</div>';
+    html+='<div class="pc-reuniones">Reuniones incluidas <span>'+p.reuniones+'/mes</span></div>';
+    html+='<ul class="pc-features">';
+    p.features.forEach(function(f){html+='<li>'+hesc(f)+'</li>';});
+    html+='</ul>';
+    html+='</div><div class="pc-footer">';
+    html+='<span class="pc-clientes">👥 '+cnt+' cliente'+(cnt!==1?'s':'')+' asignado'+(cnt!==1?'s':'')+'</span>';
+    html+='<div style="display:flex;gap:6px">';
+    html+='<button class="btn-s btn-sm" onclick="verDetalleEstandar(\''+p.id+'\')">Ver detalle</button>';
+    html+='<button class="btn-s btn-sm" onclick="editarEstandar(\''+p.id+'\')">✏️ Editar</button>';
+    html+='</div>';
+    html+='</div></div>';
+  });
+
+  var el=document.getElementById('planesEstandarGrid');
+  if(el) el.innerHTML=html;
+}
+
+// ── VER DETALLE ESTÁNDAR ──────────────────────────────────────────────────────
+function verDetalleEstandar(id){
+  var p=PLANES_ESTANDAR.find(function(x){return x.id===id;});
+  if(!p) return;
+  var clientes=getClientes();
+  var cnt=clientes.filter(function(c){return c.plan===id;}).length;
+  var iconos={cumplimiento:'📋',asesoria:'📊',estrategico:'⭐'};
+
+  alert('Plan '+iconos[id]+' '+p.nombre+'\n\n'
+    +'Base: '+p.baseMonto+' '+p.moneda+'/mes\n'
+    +'Trabajadores incluidos: '+p.trabIncluidos+'\n'
+    +'Adicional por trabajador: '+p.trabAdicional+' '+p.monedaAdicional+'\n'
+    +'Reuniones: '+p.reuniones+'/mes\n'
+    +'Clientes asignados: '+cnt+'\n\n'
+    +'Características:\n• '+p.features.join('\n• '));
+}
+
+// ── EDITAR PLAN ESTÁNDAR ──────────────────────────────────────────────────────
+function editarEstandar(id){
+  var p=PLANES_ESTANDAR.find(function(x){return x.id===id;});
+  if(!p) return;
+
+  document.getElementById('pee-id').value=id;
+  document.getElementById('pee-nombre').value=p.nombre;
+  document.getElementById('pee-desc').value=p.desc;
+  document.getElementById('pee-monto').value=p.baseMonto;
+  document.getElementById('pee-moneda').value=p.moneda;
+  document.getElementById('pee-trab').value=p.trabIncluidos;
+  document.getElementById('pee-trab-adic').value=p.trabAdicional;
+  document.getElementById('pee-reuniones').value=p.reuniones;
+  document.getElementById('pee-features').value=p.features.join('\n');
+  document.getElementById('pee-titulo').textContent='✏️ Editar plan: '+p.nombre;
+  document.getElementById('modalEditEstandar').classList.add('on');
+}
+
+function guardarEditEstandar(){
+  var id=sv('pee-id');
+  if(!id) return;
+  var override={
+    nombre:sv('pee-nombre'),
+    desc:sv('pee-desc'),
+    baseMonto:parseFloat(sv('pee-monto'))||0,
+    moneda:sv('pee-moneda'),
+    trabIncluidos:parseInt(sv('pee-trab'))||0,
+    trabAdicional:parseFloat(sv('pee-trab-adic'))||0,
+    reuniones:parseInt(sv('pee-reuniones'))||0,
+    features:sv('pee-features').split('\n').map(function(f){return f.trim();}).filter(Boolean)
+  };
+  // Guardar override persistente
+  var overrides={};
+  try{overrides=JSON.parse(localStorage.getItem('pe_overrides')||'{}');}catch(e){}
+  overrides[id]=override;
+  localStorage.setItem('pe_overrides',JSON.stringify(overrides));
+  // Aplicar al array en memoria
+  var idx=PLANES_ESTANDAR.findIndex(function(x){return x.id===id;});
+  if(idx>=0) Object.assign(PLANES_ESTANDAR[idx],override);
+  cerrarEditEstandar();
+  renderPlanesEstandar();
+  actualizarStats();
+}
+
+function resetEditEstandar(){
+  var id=sv('pee-id');
+  if(!id||!confirm('¿Restaurar el plan "'+id+'" a sus valores originales?\n\nEsto borrará todos tus cambios guardados.')) return;
+  var overrides={};
+  try{overrides=JSON.parse(localStorage.getItem('pe_overrides')||'{}');}catch(e){}
+  delete overrides[id];
+  localStorage.setItem('pe_overrides',JSON.stringify(overrides));
+  cerrarEditEstandar();
+  location.reload();
+}
+
+function cerrarEditEstandar(){
+  document.getElementById('modalEditEstandar').classList.remove('on');
+}
+
+// ── RENDER PLANES PERSONALIZADOS ──────────────────────────────────────────────
+function renderPlanesPersonalizados(){
+  var planes=getPlanes();
+  var clientes=getClientes();
+  var html='';
+
+  if(!planes.length){
+    html='<div style="padding:32px;text-align:center;color:var(--tm);font-size:13px">'+
+      'No hay planes personalizados aún.<br>Crea el primero con el botón de arriba.</div>';
+  } else {
+    planes.forEach(function(p){
+      var cnt=clientes.filter(function(c){return c.plan===p.id;}).length;
+      var base=p.planBase?PLANES_ESTANDAR.find(function(x){return x.id===p.planBase;}):null;
+      html+='<div class="plan-card personalizado">';
+      html+='<div class="pc-hdr">';
+      html+='<div class="pc-tipo personalizado">Plan personalizado</div>';
+      if(base) html+='<div style="font-size:10px;color:var(--tm);margin-bottom:4px">Basado en: '+hesc(base.nombre)+'</div>';
+      html+='<div class="pc-nombre">'+hesc(p.nombre)+'</div>';
+      html+='<div class="pc-desc">'+hesc(p.desc||'')+'</div>';
+      html+='</div><div class="pc-body">';
+      html+='<div class="pc-precio"><span class="pc-monto">'+p.monto+'</span><span class="pc-moneda">'+p.moneda+' / mes</span></div>';
+      if(p.trabIncluidos) html+='<div class="pc-incluidos">👥 '+p.trabIncluidos+' trab. incluidos · Adicional: '+p.adicional+' '+p.moneda+'/trab</div>';
+      if(p.reuniones) html+='<div class="pc-reuniones">Reuniones incluidas <span>'+p.reuniones+'/mes</span></div>';
+      if(p.descObs) html+='<div style="font-size:11px;color:var(--tm);margin-top:4px;font-style:italic">'+hesc(p.descObs)+'</div>';
+      html+='</div><div class="pc-footer">';
+      html+='<span class="pc-clientes">👥 '+cnt+' cliente'+(cnt!==1?'s':'')+' asignado'+(cnt!==1?'s':'')+'</span>';
+      html+='<div style="display:flex;gap:5px">';
+      html+='<button class="btn-s btn-sm" onclick="editarPlan(\''+p.id+'\')">✏️ Editar</button>';
+      html+='<button class="btn-danger-sm" onclick="eliminarPlan(\''+p.id+'\')">🗑</button>';
+      html+='</div>';
+      html+='</div></div>';
+    });
+  }
+  var el=document.getElementById('planesPersonalizadosGrid');
+  if(el) el.innerHTML=html;
+}
+
+// ── MODAL PLAN PERSONALIZADO ──────────────────────────────────────────────────
+function abrirModalPlan(){
+  document.getElementById('fp-id').value='';
+  document.getElementById('fp-nombre').value='';
+  document.getElementById('fp-desc').value='';
+  document.getElementById('fp-base').value='';
+  document.getElementById('fp-monto').value='';
+  document.getElementById('fp-moneda').value='UF';
+  document.getElementById('fp-trab').value='';
+  document.getElementById('fp-adicional').value='';
+  document.getElementById('fp-reuniones').value='';
+  document.getElementById('fp-desc-obs').value='';
+  document.getElementById('modalPlan-titulo').textContent='Nuevo plan personalizado';
+  document.getElementById('modalPlan').classList.add('on');
+}
+
+function editarPlan(id){
+  var p=getPlanes().find(function(x){return x.id===id;});
+  if(!p) return;
+  document.getElementById('fp-id').value=p.id;
+  document.getElementById('fp-nombre').value=p.nombre||'';
+  document.getElementById('fp-desc').value=p.desc||'';
+  document.getElementById('fp-base').value=p.planBase||'';
+  document.getElementById('fp-monto').value=p.monto||'';
+  document.getElementById('fp-moneda').value=p.moneda||'UF';
+  document.getElementById('fp-trab').value=p.trabIncluidos||'';
+  document.getElementById('fp-adicional').value=p.adicional||'';
+  document.getElementById('fp-reuniones').value=p.reuniones||'';
+  document.getElementById('fp-desc-obs').value=p.descObs||'';
+  document.getElementById('modalPlan-titulo').textContent='Editar plan: '+p.nombre;
+  document.getElementById('modalPlan').classList.add('on');
+}
+
+function guardarPlan(){
+  var nombre=sv('fp-nombre');
+  if(!nombre){alert('El nombre del plan es obligatorio.');return;}
+  var arr=getPlanes();
+  var id=sv('fp-id')||('plan_'+Date.now());
+  var p={
+    id:id, tipo:'personalizado', nombre:nombre,
+    planBase:sv('fp-base'), desc:sv('fp-desc'),
+    monto:nv('fp-monto'), moneda:sv('fp-moneda'),
+    trabIncluidos:iv('fp-trab'), adicional:nv('fp-adicional'),
+    reuniones:iv('fp-reuniones'), descObs:sv('fp-desc-obs'),
+    tsActualizado:ts()
+  };
+  var idx=arr.findIndex(function(x){return x.id===id;});
+  if(idx>=0) arr[idx]=p; else arr.push(p);
+  setPlanes(arr);
+  closeModalPlan();
+  renderPlanesPersonalizados();
+  actualizarStats();
+}
+
+function eliminarPlan(id){
+  if(!confirm('¿Eliminar este plan personalizado?')) return;
+  var arr=getPlanes().filter(function(x){return x.id!==id;});
+  setPlanes(arr);
+  renderPlanesPersonalizados();
+  actualizarStats();
+}
+
+function closeModalPlan(){document.getElementById('modalPlan').classList.remove('on');}
+
+// ── RENDER SERVICIOS ADICIONALES ──────────────────────────────────────────────
+function renderServicios(){
+  var servicios=getServicios();
+  var html='';
+
+  if(!servicios.length){
+    html='<div style="padding:32px;text-align:center;color:var(--tm);font-size:13px">'+
+      'No hay servicios adicionales aún.</div>';
+  } else {
+    servicios.forEach(function(s){
+      var categorias={tributario:'🏛️ Tributario',laboral:'👷 Laboral',contable:'📊 Contable',legal:'⚖️ Legal',otro:'📌 Otro'};
+      var cat=categorias[s.categoria]||s.categoria;
+      html+='<div class="servicio-card">';
+      html+='<div style="display:flex;justify-content:space-between;align-items:flex-start">';
+      html+='<div>';
+      html+='<div style="font-size:11px;color:var(--tm);margin-bottom:3px">'+hesc(cat)+'</div>';
+      html+='<div style="font-size:14px;font-weight:700">'+hesc(s.nombre)+'</div>';
+      if(s.desc) html+='<div style="font-size:12px;color:var(--t2);margin-top:3px">'+hesc(s.desc)+'</div>';
+      html+='</div>';
+      html+='<div style="text-align:right">';
+      html+='<div style="font-size:16px;font-weight:700;color:var(--p)">'+ff(s.precio,s.moneda)+'</div>';
+      html+='<div style="font-size:10px;color:var(--tm)">'+hesc(s.unidad||'por servicio')+'</div>';
+      html+='</div></div>';
+      html+='<div style="display:flex;gap:5px;margin-top:10px;justify-content:flex-end">';
+      html+='<button class="btn-s btn-sm" onclick="editarServicio(\''+s.id+'\')">✏️ Editar</button>';
+      html+='<button class="btn-danger-sm" onclick="eliminarServicio(\''+s.id+'\')">🗑</button>';
+      html+='</div>';
+      html+='</div>';
+    });
+  }
+  var el=document.getElementById('serviciosGrid');
+  if(el) el.innerHTML=html;
+}
+
+// ── MODAL SERVICIO ────────────────────────────────────────────────────────────
+function abrirModalServicio(){
+  document.getElementById('fs-id').value='';
+  document.getElementById('fs-nombre').value='';
+  document.getElementById('fs-desc').value='';
+  document.getElementById('fs-categoria').value='tributario';
+  document.getElementById('fs-precio').value='';
+  document.getElementById('fs-moneda').value='CLP';
+  document.getElementById('fs-unidad').value='';
+  document.getElementById('modalServicio').classList.add('on');
+}
+
+function editarServicio(id){
+  var s=getServicios().find(function(x){return x.id===id;});
+  if(!s) return;
+  document.getElementById('fs-id').value=s.id;
+  document.getElementById('fs-nombre').value=s.nombre||'';
+  document.getElementById('fs-desc').value=s.desc||'';
+  document.getElementById('fs-categoria').value=s.categoria||'tributario';
+  document.getElementById('fs-precio').value=s.precio||'';
+  document.getElementById('fs-moneda').value=s.moneda||'CLP';
+  document.getElementById('fs-unidad').value=s.unidad||'';
+  document.getElementById('modalServicio').classList.add('on');
+}
+
+function guardarServicio(){
+  var nombre=sv('fs-nombre');
+  if(!nombre){alert('El nombre del servicio es obligatorio.');return;}
+  var arr=getServicios();
+  var id=sv('fs-id')||('srv_'+Date.now());
+  var s={
+    id:id, nombre:nombre, desc:sv('fs-desc'),
+    categoria:sv('fs-categoria'), precio:nv('fs-precio'),
+    moneda:sv('fs-moneda'), unidad:sv('fs-unidad'),
+    tsActualizado:ts()
+  };
+  var idx=arr.findIndex(function(x){return x.id===id;});
+  if(idx>=0) arr[idx]=s; else arr.push(s);
+  setServicios(arr);
+  closeModalServicio();
+  renderServicios();
+  actualizarStats();
+}
+
+function eliminarServicio(id){
+  if(!confirm('¿Eliminar este servicio adicional?')) return;
+  var arr=getServicios().filter(function(x){return x.id!==id;});
+  setServicios(arr);
+  renderServicios();
+  actualizarStats();
+}
+
+function closeModalServicio(){document.getElementById('modalServicio').classList.remove('on');}
+
+// ── ARRANQUE ──────────────────────────────────────────────────────────────────
+init();
+
+</script>
+</body>
+</html>
+
