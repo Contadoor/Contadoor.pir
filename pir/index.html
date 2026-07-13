@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contadoor.app — PIR Proyección Renta</title>
+<title>Pir · Gestoor</title>
 <style>
 :root{--p:#904891;--pd:#6D2E6E;--pm:#B06EB1;--pp:#F5EAF5;--deep:#08040f;--bg:#f0ebff;--sur:#fff;--sur2:#FAF7FA;--bdr:#E8DDE8;--t1:#1A0A1B;--t2:#5C4A5D;--tm:#9A849B;--green:#2D9B6F;--amber:#C07A1A;--red:#C0392B;--blue:#3B82F6;--mono:"SF Mono","Consolas",monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -226,9 +226,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
     <div class="sb-sec">Base de Datos</div>
     <a class="sb-item" href="../clientes/index.html">👥 Clientes</a>
     <div class="sb-sec">Reportes</div>
-    <a class="sb-item" href="../reportes/index.html">📋 Nómina General</a>
-    <a class="sb-item" href="../reportes-rrhh/index.html">👥 Vista RRHH</a>
-    <a class="sb-item" href="../reportes-contable/index.html" style="opacity:.4">📊 Vista Contable</a>
+    <a class="sb-item" href="../reportes/index.html">📋 Panel de Control</a>
+    <a class="sb-item" href="../reportes-rrhh/index.html">👥 Remuneraciones</a>
+    <a class="sb-item" href="../reportes-contable/index.html" style="opacity:.4">📊 Tributario/Contable</a>
     <a class="sb-item" href="../reportes-pagos/index.html" style="opacity:.4">💰 Vista Pagos</a>
     <div class="sb-sec">Gestión Trabajadores</div>
     <a class="sb-item" href="../trabajadores/index.html" style="opacity:.4">👷 Trabajadores</a>
@@ -241,11 +241,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
     <a class="sb-item" href="../convenios/index.html">🤝 Convenios</a>
     <div class="sb-sec">Tributario</div>
     <a class="sb-item on" href="../pir/index.html">📊 PIR</a>
+    <a class="sb-item" href="../pre-iva/index.html">📋 Pre-IVA</a>
     <div class="sb-sec">Sistema</div>
     <a class="sb-item" href="../performance/index.html" style="opacity:.4">📈 Performance</a>
     <a class="sb-item" href="../admin/index.html">👤 Admin</a>
   </nav>
-  <div class="sb-foot">Contadoor.app v1.0</div>
+  <div class="sb-foot">Gestoor v1.0</div>
 </aside>
 
 <main class="main">
@@ -1633,7 +1634,7 @@ function descargarReporte(id){
     catch(e){return acc;}
   },'');
   var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'
-    +'<title>PIR '+hesc(r.razon||r.rut)+' AT'+r.at+'</title>'
+    +'<title>Pir · Gestoor</title>'
     +'<style>'+css+'</style></head>'
     +'<body style="background:#f0ebff;padding:20px;"><div style="max-width:1100px;margin:0 auto;">'+r.rptHtml+'</div></body></html>';
   var blob=new Blob([html],{type:'text/html;charset=utf-8;'});
