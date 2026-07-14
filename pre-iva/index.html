@@ -905,38 +905,158 @@ function generarReporte(){
   if(!_clienteActual){alert('Selecciona un cliente primero.');return;}
   var c=_clienteActual;
   var usuarios=getUsuarios();
-  var analista=usuarios.find(function(u){return u.nombre===c.analistaContable;})||null;
-  var waNum=analista&&analista.wa?'56'+String(analista.wa).replace(/\D/g,''):'5697988189';
+  var usuarioActual=getUsuario();
+  var analista=usuarios.find(function(u){return u.nombre===(c.analistaContable||usuarioActual.nombre);})||null;
+  if(!analista){
+    analista={nombre:usuarioActual.nombre||'Contadoor',email:usuarioActual.email||'reportes@contadoor.cl',wa:usuarioActual.wa||'979881891'};
+  }
+  if(!analista.email) analista.email='reportes@contadoor.cl';
+
+  var PLANES_LABEL={cumplimiento:'📋 Cumplimiento',asesoria:'📊 Asesoría',estrategico:'⭐ Estratégico'};
+  var planLabel=PLANES_LABEL[c.plan]||c.plan||'';
+
+  var debProy=document.getElementById('res-debito').textContent;
+  var credProy=document.getElementById('res-credito').textContent;
+  var f29=document.getElementById('res-f29').textContent;
+  var diasRest=document.getElementById('res-dias-rest').textContent;
+  var remanente=document.getElementById('res-remanente').textContent;
   var periodo=formatPeriodo(_periodoActual);
+  var tasaPPM=nv('inp-tasa-ppm')||0;
+  var ppm=document.getElementById('kpi-ppm')?document.getElementById('kpi-ppm').textContent:'$0';
+  var diasRestNum=parseInt(diasRest)||9;
+  var now=new Date();
+
+  // Variación vs mes anterior
+  var f29Ant=nv('inp-f29-ant');
+  var f29Num=parseInt(String(f29).replace(/[^0-9]/g,''))||0;
+  var varHTML='';
+  if(f29Ant>0){
+    var varPct=Math.round((f29Num-f29Ant)/f29Ant*100);
+    var varColor=varPct>0?'#C0392B':varPct<0?'#2D9B6F':'#9A849B';
+    var varIcon=varPct>0?'↗':varPct<0?'↘':'=';
+    varHTML='<div style="font-size:11px;font-weight:600;color:'+varColor+';margin-top:3px">'+varIcon+' '+(varPct>0?'+':'')+varPct+'% vs '+formatPeriodo(getPeriodoAnterior(_periodoActual))+'</div>';
+  }
+
+  // Desglose por tipo de documento
+  function buildDesglose(data,titulo,color){
+    if(!data||!Object.keys(data).length) return '';
+    var total=Object.values(data).reduce(function(s,n){return s+n;},0);
+    var rows=Object.entries(data).sort(function(a,b){return b[1]-a[1];}).map(function(e){
+      var pct=total>0?Math.round(e[1]/total*100):0;
+      return '<tr>'
+        +'<td style="padding:5px 0;color:#5c4a5d;font-size:11px;border-bottom:1px solid #f5f0f5">'+e[0]+'</td>'
+        +'<td style="text-align:right;font-weight:600;color:#1a0a1b;border-bottom:1px solid #f5f0f5">'+e[1]+'</td>'
+        +'<td style="text-align:right;color:#9a849b;border-bottom:1px solid #f5f0f5">'+pct+'%</td>'
+        +'</tr>';
+    }).join('');
+    return '<div style="padding:14px 28px;border-bottom:1px solid #f0ebf0">'
+      +'<div style="font-size:11px;font-weight:600;color:#1a0a1b;margin-bottom:8px">'+titulo+'</div>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
+      +'<thead><tr>'
+      +'<th style="text-align:left;padding:4px 0;font-size:10px;font-weight:600;color:#9a849b;text-transform:uppercase;border-bottom:1px solid #e8dde8">Tipo documento</th>'
+      +'<th style="text-align:right;padding:4px 0;font-size:10px;font-weight:600;color:#9a849b;text-transform:uppercase;border-bottom:1px solid #e8dde8">Cantidad</th>'
+      +'<th style="text-align:right;padding:4px 0;font-size:10px;font-weight:600;color:#9a849b;text-transform:uppercase;border-bottom:1px solid #e8dde8">%</th>'
+      +'</tr></thead><tbody>'+rows+'</tbody>'
+      +'<tfoot><tr>'
+      +'<td style="padding:6px 0;font-weight:700;color:#1a0a1b;font-size:12px">Total documentos</td>'
+      +'<td style="text-align:right;font-weight:700;color:'+color+';font-size:13px">'+total+'</td>'
+      +'<td></td></tr></tfoot></table></div>';
+  }
+
+  var desgloseVentas=buildDesglose(_datos.porTipoDocVentas||{},'📄 Ventas por tipo de documento','#904891');
+  var desgloseCompras=buildDesglose(_datos.porTipoDocCompras||{},'📋 Compras por tipo de documento','#2D9B6F');
+
+  // Acciones del DOM
+  var accionesHTML='';
+  document.querySelectorAll('#acciones-grid .accion').forEach(function(el){
+    var tipo=el.classList.contains('verde')?'verde':el.classList.contains('amarillo')?'amarillo':'morado';
+    var color=tipo==='verde'?'#2D9B6F':tipo==='amarillo'?'#C07A1A':'#904891';
+    var tit=el.querySelector('.ac-titulo')?el.querySelector('.ac-titulo').textContent:'';
+    var desc=el.querySelector('.ac-desc')?el.querySelector('.ac-desc').textContent:'';
+    var monto=el.querySelector('.ac-monto')?el.querySelector('.ac-monto').textContent:'';
+    accionesHTML+='<div style="background:#faf7fa;border-radius:8px;padding:12px 14px;border-left:3px solid '+color+';margin-bottom:8px">'
+      +'<div style="font-size:12px;font-weight:600;color:#1a0a1b;margin-bottom:3px">'+tit+'</div>'
+      +'<div style="font-size:11px;color:#5c4a5d;line-height:1.5;margin-bottom:4px">'+desc+'</div>'
+      +'<div style="font-size:11px;font-weight:700;color:'+color+'">'+monto+'</div>'
+      +'</div>';
+  });
+
+  var waNum='56'+String(analista.wa||'979881891').replace(/\D/g,'');
   var waMsg=encodeURIComponent('Hola, vi mi proyección IVA de '+periodo+' y tengo una consulta.');
-  var emailAnalista=analista&&analista.email?analista.email:'info@contadoor.cl';
-  var analistaNombre=analista?analista.nombre:'Equipo Contadoor';
+  var contacto=c.contacto||(c.razonSocial||c.nombre||'').split(' ')[0];
 
-  var inner=buildReporteHTML();
-  if(!inner) return;
-
-  // Wrapper completo igual al del endpoint
+  // HTML del reporte — diseño aprobado claro con header morado
   var html='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-    +'<title>Pre Iva · Gestoor</title></head>'
-    +'<body style="margin:0;padding:0;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">'
+    +'<title>Proyección IVA '+periodo+' · '+(c.razonSocial||c.nombre)+'</title>'
+    +'</head><body style="margin:0;padding:0;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">'
     +'<div style="max-width:680px;margin:0 auto;background:#fff">'
-    // Header morado
+
+    // Header gradiente aprobado
     +'<div style="background:linear-gradient(135deg,#6D2E6E 0%,#904891 100%);padding:18px 28px;display:flex;align-items:center;justify-content:space-between">'
     +'<img src="https://assets.cdn.filesafe.space/kfq1F3czdejkInyTMLkO/media/6982b1a12dd9857339e39ae1.png" style="height:28px;filter:brightness(0) invert(1)" alt="Contadoor">'
-    +'<span style="font-size:11px;color:rgba(255,255,255,.85);background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.2);padding:3px 10px;border-radius:12px">Proyección de IVA · '+periodo+'</span>'
+    +'<span style="font-size:11px;color:rgba(255,255,255,.9);background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.2);padding:3px 10px;border-radius:12px">Proyección de IVA · '+periodo+'</span>'
     +'</div>'
+
     // Intro
-    +'<div style="padding:20px 28px;border-bottom:1px solid #eee">'
-    +'<p style="font-size:15px;color:#1a1a1a;font-weight:600;margin:0 0 3px">Hola '+(c.contacto||c.razonSocial||c.nombre).split(' ')[0]+',</p>'
-    +'<p style="font-size:11px;color:#9a849b;margin:0 0 12px">'+(c.contacto||c.razonSocial||c.nombre)+' · '+(c.razonSocial||c.nombre)+'</p>'
-    +'<p style="font-size:13px;color:#333;line-height:1.7;margin:0 0 10px">Preparamos tu <strong style="color:#904891">Proyección de IVA · '+periodo+'</strong>. A continuación verás el F29 estimado, el desglose de documentos del período y las acciones que puedes tomar antes del cierre.</p>'
+    +'<div style="padding:22px 28px;border-bottom:1px solid #eee">'
+    +'<p style="font-size:15px;color:#1a1a1a;font-weight:600;margin:0 0 3px">Hola '+contacto+',</p>'
+    +'<p style="font-size:11px;color:#9a849b;margin:0 0 14px">'+(c.razonSocial||c.nombre)+' · Plan '+planLabel+'</p>'
+    +'<p style="font-size:13px;color:#333;line-height:1.7;margin:0 0 12px">Preparamos tu <strong style="color:#904891">Proyección de IVA · '+periodo+'</strong>. Revisa el F29 estimado, el desglose de documentos y las acciones antes del cierre.</p>'
     +'<a href="https://wa.me/'+waNum+'?text='+waMsg+'" style="display:inline-block;background:#25d366;color:#fff;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;text-decoration:none">💬 WhatsApp</a>'
     +'</div>'
-    // Contenido generado por buildReporteHTML
-    +inner
-    // Footer
+
+    // Intro empresa
+    +'<div style="padding:16px 28px;border-bottom:1px solid #f0ebf0">'
+    +'<div style="font-size:10px;color:#904891;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Proyección de IVA · '+periodo+'</div>'
+    +'<div style="font-size:16px;font-weight:700;color:#1a0a1b;margin-bottom:2px">'+(c.razonSocial||c.nombre)+'</div>'
+    +'<div style="font-size:11px;color:#9a849b">RUT '+(c.rut||'')+' · Datos al '+now.getDate()+' de '+['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][now.getMonth()]+'</div>'
+    +'</div>'
+
+    // KPIs
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e8dde8">'
+    +'<div style="background:#fff;padding:14px 16px">'
+    +'<div style="font-size:10px;color:#9a849b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">F29 proyectado</div>'
+    +'<div style="font-size:20px;font-weight:700;color:#C0392B;font-variant-numeric:tabular-nums">'+f29+'</div>'
+    +varHTML
+    +'<div style="font-size:10px;color:#9a849b;margin-top:2px">A pagar el 20 del próximo mes</div>'
+    +'</div>'
+    +'<div style="background:#fff;padding:14px 16px">'
+    +'<div style="font-size:10px;color:#9a849b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Remanente aplicado</div>'
+    +'<div style="font-size:20px;font-weight:700;color:#2D9B6F;font-variant-numeric:tabular-nums">'+remanente+'</div>'
+    +'<div style="font-size:10px;color:#9a849b;margin-top:2px">Período anterior</div>'
+    +'</div>'
+    +'<div style="background:#fff;padding:14px 16px">'
+    +'<div style="font-size:10px;color:#9a849b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Días para actuar</div>'
+    +'<div style="font-size:20px;font-weight:700;color:#904891;font-variant-numeric:tabular-nums">'+diasRestNum+' días</div>'
+    +'<div style="font-size:10px;color:#9a849b;margin-top:2px">Hasta el cierre del período</div>'
+    +'</div>'
+    +'</div>'
+
+    // Tabla F29
+    +'<div style="padding:16px 28px;border-bottom:1px solid #f0ebf0">'
+    +'<div style="font-size:11px;font-weight:600;color:#1a0a1b;margin-bottom:10px">📊 Composición proyectada al cierre</div>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
+    +'<tr><td style="padding:6px 0;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Débito IVA (ventas proyectadas)</td><td style="text-align:right;font-weight:600;font-variant-numeric:tabular-nums;border-bottom:1px solid #f5f0f5">'+debProy+'</td></tr>'
+    +'<tr><td style="padding:6px 0;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Crédito IVA (compras proyectadas)</td><td style="text-align:right;font-weight:600;color:#2D9B6F;font-variant-numeric:tabular-nums;border-bottom:1px solid #f5f0f5">'+credProy+'</td></tr>'
+    +'<tr><td style="padding:6px 0;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Remanente período anterior</td><td style="text-align:right;font-weight:600;color:#2D9B6F;font-variant-numeric:tabular-nums;border-bottom:1px solid #f5f0f5">'+remanente+'</td></tr>'
+    +'<tr><td style="padding:6px 0;color:#5c4a5d;border-bottom:1px solid #f5f0f5">PPM (tasa '+tasaPPM+'%)</td><td style="text-align:right;font-weight:600;color:#904891;font-variant-numeric:tabular-nums;border-bottom:1px solid #f5f0f5">'+ppm+'</td></tr>'
+    +'<tr style="border-top:2px solid #e8dde8"><td style="padding:8px 0;font-weight:700;color:#1a0a1b">F29 estimado a pagar</td><td style="text-align:right;font-weight:700;font-size:15px;color:#C0392B;font-variant-numeric:tabular-nums">'+f29+'</td></tr>'
+    +'</table>'
+    +'<div style="font-size:10px;color:#c9c0cc;margin-top:6px">Proyección basada en promedio diario al día '+now.getDate()+' · puede variar al cierre</div>'
+    +'</div>'
+
+    // Desglose por tipo documento
+    +desgloseVentas+desgloseCompras
+
+    // Zona de acción
+    +'<div style="padding:16px 28px;border-bottom:1px solid #f0ebf0">'
+    +'<div style="font-size:11px;font-weight:600;color:#1a0a1b;margin-bottom:10px">⚡ Zona de acción — quedan '+diasRestNum+' días</div>'
+    +accionesHTML
+    +'</div>'
+
+    // Footer aprobado
     +'<div style="padding:14px 28px;background:#1a0a1b;border-top:3px solid #904891;text-align:center">'
-    +'<p style="font-size:11px;color:#c9a6e8;margin:0 0 3px">'+hesc(analistaNombre)+' · Asesorías Contadoor Ltda.</p>'
+    +'<p style="font-size:11px;color:#c9a6e8;margin:0 0 3px">'+analista.nombre+' · Asesorías Contadoor Ltda.</p>'
     +'<p style="font-size:10px;color:#4a3060;margin:0">reportes@contadoor.cl · contadoor.cl</p>'
     +'<p style="font-size:10px;color:#4a3060;margin:3px 0 0">Esta proyección es informativa y puede variar al cierre del período.</p>'
     +'</div>'
@@ -948,12 +1068,11 @@ function generarReporte(){
     var blob=new Blob([html],{type:'text/html'});
     var a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
-    a.download='pre-iva-'+c.rut+'-'+_periodoActual+'.html';
+    a.download='pre-iva-'+(c.rut||'cliente')+'-'+_periodoActual+'.html';
     a.click();
   }
 }
 
-// ── ENVIAR POR EMAIL ──────────────────────────────────────────────────────
 function enviarPreIVA(){
   if(!_clienteActual){alert('Selecciona un cliente primero.');return;}
 
