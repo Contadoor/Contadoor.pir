@@ -43,6 +43,19 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 .tab{padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;color:var(--t2);transition:.15s;}
 .tab:hover{color:var(--p);}
 .tab.on{background:var(--p);color:#fff;font-weight:600;}
+.banner-periodo{display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:2px solid;}
+.banner-periodo.abierto{background:linear-gradient(135deg,#08040f,#0d1a0d);border-color:var(--green);}
+.banner-periodo.sin-abrir{background:linear-gradient(135deg,#1a0a00,#3d1f00);border-color:var(--amber);}
+.bp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.bp-dot.verde{background:var(--green);}
+.bp-mes{font-size:12px;font-weight:700;color:#6ee7b7;}
+.bp-sep{width:1px;height:14px;background:rgba(255,255,255,.1);}
+.bp-val{font-size:11px;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:5px;}
+.bp-val strong{color:rgba(255,255,255,.75);font-variant-numeric:tabular-nums;}
+.bp-right{margin-left:auto;font-size:10px;color:rgba(255,255,255,.2);}
+.bp-warn-titulo{font-size:13px;font-weight:700;color:#fcd34d;}
+.bp-warn-sub{font-size:11px;color:rgba(252,211,77,.55);}
+.btn-abrir-per{background:var(--amber);color:#fff;border:none;border-radius:7px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;margin-left:auto;}
 .view{display:none;}.view.on{display:block;}
 
 /* CARDS */
@@ -245,7 +258,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
     <button class="btn-p btn-sm no-print" onclick="abrirApertura()">📅 Abrir Período</button>
     <button class="btn-s btn-sm no-print" onclick="abrirModalNuevo()">+ Nuevo reporte</button>
   </div>
-  <div class="content">
+  <div id="banner-periodo"></div>
+<div class="content">
 
     <div class="tab-bar no-print">
       <div class="tab on" onclick="setView('nomina')">📋 Nómina del período</div>
@@ -1748,10 +1762,10 @@ function renderNomina(){
     html+='<div><div style="font-size:16px;font-weight:700;color:#904891">\u1f4c5 '+formatPeriodo(periodo)+'</div>';
     html+='<div style="font-size:11px;color:#9a849b;margin-top:2px">'+lista.length+' clientes \u00b7 '+completos+' secciones completas \u00b7 '+enviados+' enviados \u00b7 Total: '+ff(total)+'</div></div>';
     html+='<div style="display:flex;gap:6px">';
-    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(''+periodo+'','alta')">\u1f534 Alta</button>';
-    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(''+periodo+'','media')">\u1f7e1 Media</button>';
-    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(''+periodo+'','baja')">\u1f7e2 Baja</button>';
-    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(''+periodo+'','')">Todos</button>';
+    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="alta">\u1f534 Alta</button>';
+    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="media">\u1f7e1 Media</button>';
+    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="baja">\u1f7e2 Baja</button>';
+    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="">Todos</button>';
     html+='</div></div>';
 
     // Ordenar por prioridad
@@ -2163,6 +2177,8 @@ function setView(v){
 function renderAll(){
   popularSelectMeses();popularSelectClientes();popularSelectClientes2();
   renderLista();renderNomina();
+  renderBannerPeriodo();
+  renderBannerPeriodo();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2171,8 +2187,129 @@ function renderAll(){
 setupUploadRemu();
 renderAll();
 setPeriodoActual();
+
+// ── APERTURA DE PERÍODO ────────────────────────────────────────────────────
+function getPeriodos(){
+  try{return JSON.parse(localStorage.getItem('apertura_periodos')||'{}');}
+  catch(e){return {};}
+}
+function getPeriodoActivo(){
+  var ps=getPeriodos(),activo=null;
+  Object.values(ps).forEach(function(p){if(p.estado==='activo')activo=p;});
+  return activo;
+}
+function ffPer(n){return Math.round(n||0).toLocaleString('es-CL');}
+function formatPer(per){
+  if(!per)return '';
+  var y=per.slice(0,4),m=parseInt(per.slice(4,6));
+  var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  return meses[m-1]+' '+y;
+}
+function renderBannerPeriodo(){
+  var sesion=window._contadoorSesion||{};
+  var esMaster=sesion.esMaster||false;
+  var per=getPeriodoActivo();
+  var el=document.getElementById('banner-periodo');
+  if(!el)return;
+  if(per){
+    el.innerHTML='<div class="banner-periodo abierto">'
+      +'<div class="bp-dot verde"></div>'
+      +'<span class="bp-mes">'+formatPer(per.periodo)+' — Abierto</span>'
+      +'<div class="bp-sep"></div>'
+      +'<div class="bp-val">UF <strong>$'+ffPer(per.uf)+'</strong></div>'
+      +'<div class="bp-sep"></div>'
+      +'<div class="bp-val">UTM <strong>$'+ffPer(per.utm)+'</strong></div>'
+      +'<div class="bp-sep"></div>'
+      +'<div class="bp-val">Abierto el <strong>'+per.fechaCorta+'</strong></div>'
+      +(esMaster?'<div class="bp-sep"></div><button onclick="abrirModalPeriodo()" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:3px 8px;font-size:10px;cursor:pointer;font-family:inherit">+ Siguiente</button>':'')
+      +'<div class="bp-right">Solo Luciano puede abrir o cerrar períodos</div>'
+      +'</div>';
+  }else{
+    el.innerHTML='<div class="banner-periodo sin-abrir">'
+      +'<span style="font-size:20px">⚠️</span>'
+      +'<div><div class="bp-warn-titulo">Período no abierto</div>'
+      +'<div class="bp-warn-sub">Luciano debe ingresar UF y UTM del mes para comenzar</div></div>'
+      +(esMaster?'<button class="btn-abrir-per" onclick="abrirModalPeriodo()">📅 Abrir período</button>':'')
+      +'</div>';
+  }
+}
+function abrirModalPeriodo(){
+  var sesion=window._contadoorSesion||{};
+  if(!sesion.esMaster){alert('Solo Luciano puede abrir períodos.');return;}
+  var per=getPeriodoActivo();
+  var hoy=new Date(),y=hoy.getFullYear(),m=hoy.getMonth()+1;
+  if(per){y=parseInt(per.periodo.slice(0,4));m=parseInt(per.periodo.slice(4,6))+1;if(m>12){m=1;y++;}}
+  var sel=document.getElementById('mp-periodo');
+  if(sel){
+    sel.innerHTML='';
+    var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    for(var i=0;i<3;i++){
+      var mm=m+i,yy=y;if(mm>12){mm-=12;yy++;}
+      var val=yy+('0'+mm).slice(-2);
+      sel.innerHTML+='<option value="'+val+'">'+meses[mm-1]+' '+yy+'</option>';
+    }
+  }
+  document.getElementById('mp-uf').value='';
+  document.getElementById('mp-utm').value='';
+  document.getElementById('mp-error').style.display='none';
+  document.getElementById('modal-periodo').style.display='flex';
+}
+function cerrarModalPeriodo(){document.getElementById('modal-periodo').style.display='none';}
+function abrirPeriodo(){
+  var uf=parseFloat(document.getElementById('mp-uf').value);
+  var utm=parseFloat(document.getElementById('mp-utm').value);
+  var per=document.getElementById('mp-periodo').value;
+  var err=document.getElementById('mp-error');
+  if(!uf||uf<1000){err.textContent='Ingresa un valor UF válido (ej: 38250)';err.style.display='block';return;}
+  if(!utm||utm<1000){err.textContent='Ingresa un valor UTM válido (ej: 67294)';err.style.display='block';return;}
+  var hoy=new Date();
+  var ps=getPeriodos();
+  Object.keys(ps).forEach(function(k){if(ps[k].estado==='activo')ps[k].estado='cerrado';});
+  ps[per]={periodo:per,estado:'activo',uf:uf,utm:utm,
+    fechaApertura:hoy.toISOString(),
+    fechaCorta:hoy.getDate()+'/'+(hoy.getMonth()+1)+'/'+hoy.getFullYear(),
+    abiertoPor:(window._contadoorSesion||{}).nombre||'Luciano'};
+  localStorage.setItem('apertura_periodos',JSON.stringify(ps));
+  cerrarModalPeriodo();
+  renderBannerPeriodo();
+  alert('✅ Período '+formatPer(per)+' abierto. UF: $'+ffPer(uf)+' · UTM: $'+ffPer(utm));
+}
 </script>
 <script src="../notifications.js"></script>
 <script src="../auth.js"></script>
+
+<!-- MODAL APERTURA PERÍODO -->
+<div id="modal-periodo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:14px;padding:28px;width:440px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div style="font-size:24px;margin-bottom:10px">📅</div>
+    <div style="font-size:16px;font-weight:700;color:var(--t1);margin-bottom:4px">Abrir nuevo período</div>
+    <div style="font-size:12px;color:var(--tm);margin-bottom:20px;line-height:1.5">Ingresa la UF y UTM del mes. Estos valores quedan fijos para todos los cálculos — Facturación, Remuneraciones y PIR.</div>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:11px;font-weight:600;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Período</label>
+      <select id="mp-periodo" style="width:100%;background:var(--sur2);border:1px solid var(--bdr);color:var(--t1);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit"></select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div>
+        <label style="display:block;font-size:11px;font-weight:600;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">UF del día</label>
+        <input type="number" id="mp-uf" placeholder="38.250" step="0.01" style="width:100%;background:var(--sur2);border:1px solid var(--bdr);color:var(--t1);border-radius:8px;padding:10px;font-size:16px;font-weight:700;font-family:inherit;text-align:center">
+        <span style="font-size:10px;color:var(--tm);margin-top:4px;display:block">Conversión planes UF → CLP</span>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:600;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">UTM del mes</label>
+        <input type="number" id="mp-utm" placeholder="67.294" step="1" style="width:100%;background:var(--sur2);border:1px solid var(--bdr);color:var(--t1);border-radius:8px;padding:10px;font-size:16px;font-weight:700;font-family:inherit;text-align:center">
+        <span style="font-size:10px;color:var(--tm);margin-top:4px;display:block">Impuesto Único en Remuneraciones</span>
+      </div>
+    </div>
+    <div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px;font-size:11px;color:#1d4ed8;margin-bottom:18px;line-height:1.6">
+      📌 Consulta los valores en <strong>sii.cl</strong> → Valores UF · Valores UTM
+    </div>
+    <div id="mp-error" style="color:var(--red);font-size:11px;margin-bottom:10px;display:none"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="cerrarModalPeriodo()" style="background:var(--sur2);border:1px solid var(--bdr);color:var(--t2);border-radius:7px;padding:8px 16px;font-size:12px;cursor:pointer;font-family:inherit">Cancelar</button>
+      <button onclick="abrirPeriodo()" style="background:var(--p);color:#fff;border:none;border-radius:7px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">✅ Abrir período</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
