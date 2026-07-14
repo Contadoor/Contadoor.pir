@@ -598,7 +598,7 @@ function renderTabla(periodo){
 function getEstadoRrhh(r){
   var sec=r.secciones&&r.secciones.rrhh;
   if(!sec) return 'pendiente';
-  if(r.estado==='enviado_rrhh'||r.estado==='enviado') return 'enviado';
+  if(r.estado==='enviado_rrhh'||r.estado==='enviado'||r.estado==='procesado') return 'enviado';
   if(sec.ok) return 'completado';
   if(r.usaArchivo||r.afp>0) return 'libro_ok';
   // Detectar atraso  -  simplificado: si el período ya venció
