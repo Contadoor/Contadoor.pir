@@ -109,6 +109,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 .b-aprobado{background:#ecfdf5;color:#064e3b;border:1px solid #a7f3d0;}
 .b-rechazado{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;}
 .b-cobrado{background:var(--pp);color:var(--pd);border:1px solid rgba(144,72,145,.2);}
+.b-procesado{background:#e8f5f0;color:#2D9B6F;border:1px solid #2D9B6F;}
 
 /* SELECCIÓN MÚLTIPLE */
 .seleccion-bar{background:var(--deep);border-radius:10px;padding:12px 18px;margin-bottom:14px;display:none;align-items:center;gap:12px;color:#fff;}
@@ -446,9 +447,10 @@ var ESTADOS = {
   aprobacion:  {label:'En aprobaci\u00f3n', cls:'b-aprobacion',  icon:'\u23f3',  orden:2},
   aprobado:    {label:'Aprobado',       cls:'b-aprobado',    icon:'\u2705',  orden:3},
   rechazado:   {label:'Rechazado',      cls:'b-rechazado',   icon:'\u274c',  orden:1},
+  procesado:   {label:'Procesado',      cls:'b-procesado',   icon:'\u1f512',  orden:5},
   cobrado:     {label:'Cobrado',        cls:'b-cobrado',     icon:'\u1f49c',  orden:4}
 };
-var FLUJO_PASOS = ['creada','transferido','aprobacion','aprobado','cobrado'];
+var FLUJO_PASOS = ['creada','transferido','aprobacion','aprobado','procesado','cobrado'];
 
 var _editId=null, _accionId=null, _viewActual='todas', _seleccionados=new Set();
 
@@ -763,7 +765,7 @@ function filtrarObs(){
   if(_viewActual==='transferido') arr=arr.filter(function(ob){return ob.estado==='transferido';});
   if(_viewActual==='aprobacion')  arr=arr.filter(function(ob){return ob.estado==='aprobacion';});
   if(_viewActual==='aprobar')     arr=arr.filter(function(ob){return ob.estado==='aprobacion';});
-  if(_viewActual==='historial')   arr=arr.filter(function(ob){return['aprobado','rechazado','cobrado'].includes(ob.estado);});
+  if(_viewActual==='historial')   arr=arr.filter(function(ob){return['aprobado','rechazado','cobrado','procesado'].includes(ob.estado);});
   return arr.sort(function(a,b){return(b.ts||0)-(a.ts||0);});
 }
 
@@ -828,6 +830,7 @@ function renderObligaciones(){
     if(ob.estado==='creada') accionesHTML+='<button class="btn-p btn-sm" onclick="abrirConciliar('+ob.id+')">\u1f4b3 Registrar transferencia</button>';
     if(ob.estado==='aprobacion'&&_viewActual==='aprobar') accionesHTML+='<button class="btn-approve btn-sm" onclick="abrirAprobar('+ob.id+')">\u2705 Revisar y aprobar</button>';
     if(ob.estado==='aprobado'&&ob.cobrar==='si') accionesHTML+='<button class="btn-p btn-sm" onclick="marcarCobrado('+ob.id+')">\u1f49c Marcar cobrado</button>';
+    if(ob.estado==='aprobado') accionesHTML+='<button class="btn-s btn-sm" onclick="marcarProcesado('+ob.id+')">🔒 Marcar Procesado</button>';
     if(ob.estado==='rechazado') accionesHTML+='<button class="btn-s btn-sm" onclick="abrirModalEditar('+ob.id+')">\u1f504 Corregir y reenviar</button>';
     accionesHTML+='<button class="btn-danger btn-sm" onclick="eliminarObligacion('+ob.id+')">\u1f5d1</button>';
     accionesHTML+='</div>';
