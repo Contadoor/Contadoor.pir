@@ -983,7 +983,7 @@ function generarReporte(){
 
   var waNum='56'+String(analista.wa||'979881891').replace(/\D/g,'');
   var waMsg=encodeURIComponent('Hola, vi mi proyección IVA de '+periodo+' y tengo una consulta.');
-  var contacto=c.contacto||(c.razonSocial||c.nombre||'').split(' ')[0];
+  var contacto=c.contacto||c.nombre||(c.razonSocial||'').split(' ')[0]||'Cliente';
 
   // HTML del reporte — diseño aprobado claro con header morado
   var html='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
