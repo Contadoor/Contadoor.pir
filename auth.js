@@ -18,8 +18,8 @@
     _hostname === 'contadoor.github.io' ||
     _hostname === ''
   );
-  if(_isDevMode && !localStorage.getItem('usuario_activo')){
-    localStorage.setItem('usuario_activo', JSON.stringify({
+  if(_isDevMode && !sessionStorage.getItem('usuario_activo')){
+    sessionStorage.setItem('usuario_activo', JSON.stringify({
       nombre:'Luciano Duarte', rol:'master', rolLabel:'Master',
       esMaster:true, modulos:['*'], tsLogin:Date.now()
     }));
@@ -66,7 +66,7 @@
   };
 
   function getSession(){
-    try{ return JSON.parse(localStorage.getItem('usuario_activo')||'null'); }
+    try{ return JSON.parse(sessionStorage.getItem('usuario_activo')||'null'); }
     catch(e){ return null; }
   }
 
@@ -81,7 +81,7 @@
 
   // Sesión expirada (8 horas)
   if(Date.now() - sesion.tsLogin > 8 * 60 * 60 * 1000){
-    localStorage.removeItem('usuario_activo');
+    sessionStorage.removeItem('usuario_activo');
     redirigirLogin();
     return;
   }
@@ -155,7 +155,7 @@
     btnLogout.style.cssText = 'background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:inherit;flex-shrink:0';
     btnLogout.onclick = function(){
       if(confirm('¿Cerrar sesión?')){
-        localStorage.removeItem('usuario_activo');
+        sessionStorage.removeItem('usuario_activo');
         window.location.href = loginUrl;
       }
     };
