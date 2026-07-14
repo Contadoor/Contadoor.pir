@@ -225,6 +225,7 @@ tr:hover td{background:#faf5ff;}
     <div class="card-hd">📞 Contacto</div>
     <div class="fg4" style="margin-bottom:10px">
       <div class="fgroup"><label>Email</label><input type="email" id="f-email" placeholder="contacto@empresa.cl"/></div>
+      <div class="fgroup"><label>Nombre contacto</label><input type="text" id="f-contacto" placeholder="Nombre de quien recibe los reportes"/></div>
       <div class="fgroup"><label>Teléfono</label><input type="text" id="f-tel" placeholder="+56 9 1234 5678"/></div>
       <div class="fgroup"><label>WhatsApp (sin +56)</label><input type="text" id="f-wa" placeholder="979881891"/></div>
       <div class="fgroup"><label>Ciudad</label><input type="text" id="f-ciudad" placeholder="Santiago"/></div>
@@ -621,7 +622,7 @@ function guardarCliente(){
   var c={
     id:_editId||Date.now(),
     razon:razon,rut:rut,giro:sv('f-giro'),
-    email:sv('f-email'),tel:sv('f-tel'),wa:sv('f-wa'),ciudad:sv('f-ciudad'),
+    email:sv('f-email'),contacto:sv('f-contacto'),tel:sv('f-tel'),wa:sv('f-wa'),ciudad:sv('f-ciudad'),
     plan:sv('f-plan'),estado:sv('f-estado')||'activo',inicio:sv('f-inicio'),
     reg:sv('f-reg'),at:sv('f-at'),obsTrib:sv('f-obs-trib'),
     ivaCondicion:sv('f-iva-condicion'),modalidadPago:sv('f-modalidad-pago'),
