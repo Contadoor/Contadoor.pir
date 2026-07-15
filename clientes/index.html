@@ -447,9 +447,9 @@ tr:hover td{background:#faf5ff;}
   <div class="modal" style="max-width:640px">
     <div id="detalleContent"></div>
     <div class="modal-footer">
-      <button class="btn-s" type="button" onclick="closeDetalle()">Cerrar</button>
-      <button class="btn-s" type="button" onclick="editarDesdeDetalle()">✏️ Editar</button>
-      <button class="btn-p" type="button" onclick="cargarEnPIR()">📊 Abrir en PIR</button>
+      <button class="btn-s" type="button" onclick="closeDetalle()">✕ Cerrar</button>
+      <button class="btn-s" type="button" onclick="verCredenciales(_detalleId)">🔑 Ver claves</button>
+      <button class="btn-p" type="button" onclick="editarDesdeDetalle()">✏️ Editar cliente</button>
     </div>
   </div>
 </div>
@@ -831,9 +831,19 @@ function cerrarModalCred(){var m=document.getElementById("modal-credenciales");i
 function verCredenciales(id){
   id=parseInt(id)||id;
   var arr=getClientes();
-  console.log('[CREDS] Buscando id:', id, 'tipo:', typeof id, 'clientes:', arr.map(function(x){return x.id;}));
-  var c=arr.find(function(x){return x.id===id||x.id===String(id);});
-  if(!c){alert('Cliente no encontrado. Recarga la página e intenta de nuevo.');return;}
+  var c=arr.find(function(x){return Number(x.id)===Number(id);});
+  if(!c){
+    // Intentar recargar desde Supabase y reintentar
+    cargarClientesDesdeSupabase().then(function(fresh){
+      var c2=fresh.find(function(x){return Number(x.id)===Number(id);});
+      if(c2) _mostrarCredenciales(c2);
+      else alert('Cliente no encontrado.');
+    });
+    return;
+  }
+  _mostrarCredenciales(c);
+}
+function _mostrarCredenciales(c){
   var creds=[
     {label:'RUT',val:c.rut},
     {label:'Clave SII',val:c.claveSii||'No registrada'},
@@ -846,7 +856,7 @@ function verCredenciales(id){
   var rows=creds.filter(function(r){return r.val;}).map(function(r){
     return '<tr>'
       +'<td style="padding:8px 12px;font-size:12px;color:var(--tm);border-bottom:1px solid var(--bdr);white-space:nowrap">'+r.label+'</td>'
-      +'<td style="padding:8px 12px;font-size:13px;font-weight:600;color:var(--t1);border-bottom:1px solid var(--bdr);font-family:monospace">'+hesc(r.val)
+      +'<td style="padding:8px 12px;font-size:13px;font-weight:600;color:var(--t1);border-bottom:1px solid var(--bdr);font-family:monospace">'+h(r.val)
       +'<button onclick="navigator.clipboard.writeText(\'' +r.val.replace(/'/g,"\\'")+ '\')" style="margin-left:8px;background:none;border:none;cursor:pointer;font-size:11px;color:var(--tm)" title="Copiar">📋</button>'
       +'</td>'
       +'</tr>';
