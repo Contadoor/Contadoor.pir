@@ -710,40 +710,48 @@ function verCredenciales(id){
   _mostrarCreds(c);
 }
 function _mostrarCreds(c){
-  var creds=[
-    {label:'RUT',val:c.rut},
-    {label:'Clave SII',val:c.claveSii||'No registrada'},
-    {label:'Usuario SII',val:c.usuarioSii||c.rut},
-    {label:'Clave Previred',val:c.clavePrevired||'No registrada'},
-    {label:'Clave TGR',val:c.claveTgr||'No registrada'},
-    {label:'Clave Banco',val:c.claveBanco||'No registrada'},
-    {label:'Obs. acceso',val:c.obsAcceso||''}
-  ];
-  var rows=creds.filter(function(r){return r.val;}).map(function(r){
+  var pares=[
+    {sistema:'SII',usuario:c.usuarioSii||c.rut,clave:c.claveSii},
+    {sistema:'Previred',usuario:c.rut,clave:c.clavePrevired},
+    {sistema:'TGR',usuario:c.rut,clave:c.claveTgr},
+    {sistema:'Banco',usuario:c.rut,clave:c.claveBanco}
+  ].filter(function(p){return p.clave;});
+
+  function copyBtn(val){
+    return '<button onclick="navigator.clipboard.writeText(\''+( val||'').replace(/\\/g,'\\\\').replace(/'/g,'\\\'')+'\')" style="margin-left:6px;background:none;border:1px solid #e8dde8;border-radius:4px;cursor:pointer;font-size:10px;padding:2px 6px;color:#9a849b">📋</button>';
+  }
+
+  var headerRow='<tr style="background:#faf7fa"><th style="padding:8px 14px;font-size:10px;color:#9a849b;text-align:left;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Sistema</th><th style="padding:8px 14px;font-size:10px;color:#9a849b;text-align:left;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Usuario / RUT</th><th style="padding:8px 14px;font-size:10px;color:#9a849b;text-align:left;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Clave</th></tr>';
+
+  var rows=pares.length?pares.map(function(p){
     return '<tr>'
-      +'<td style="padding:8px 12px;font-size:12px;color:var(--tm);border-bottom:1px solid var(--bdr);white-space:nowrap">'+h(r.label)+'</td>'
-      +'<td style="padding:8px 12px;font-size:13px;font-weight:600;color:var(--t1);border-bottom:1px solid var(--bdr);font-family:monospace">'+h(r.val)
-      +'<button onclick="navigator.clipboard.writeText(\''+r.val.replace(/\\/g,'\\\\').replace(/'/g,'\\\'')+'\')" style="margin-left:8px;background:none;border:none;cursor:pointer;font-size:11px;color:var(--tm)" title="Copiar">📋</button>'
-      +'</td></tr>';
-  }).join('');
+      +'<td style="padding:10px 14px;font-size:11px;font-weight:700;color:#904891;border-bottom:1px solid #e8dde8;white-space:nowrap">'+h(p.sistema)+'</td>'
+      +'<td style="padding:10px 14px;border-bottom:1px solid #e8dde8"><div style="font-size:10px;color:#9a849b;margin-bottom:2px">Usuario</div><div style="font-family:monospace;font-size:12px;font-weight:600;display:flex;align-items:center">'+h(p.usuario)+copyBtn(p.usuario)+'</div></td>'
+      +'<td style="padding:10px 14px;border-bottom:1px solid #e8dde8"><div style="font-size:10px;color:#9a849b;margin-bottom:2px">Clave</div><div style="font-family:monospace;font-size:12px;font-weight:600;display:flex;align-items:center">'+h(p.clave)+copyBtn(p.clave)+'</div></td>'
+      +'</tr>';
+  }).join(''):'<tr><td colspan="3" style="padding:20px;text-align:center;color:#9a849b;font-size:12px">Sin credenciales registradas</td></tr>';
+
   var m=document.getElementById('modal-credenciales');
   if(!m){
     m=document.createElement('div');m.id='modal-credenciales';
     m.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center';
-    m.innerHTML='<div style="background:#fff;border-radius:12px;width:480px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,.2);overflow:hidden">'
+    m.innerHTML='<div style="background:#fff;border-radius:12px;width:600px;max-width:96vw;box-shadow:0 8px 32px rgba(0,0,0,.2);overflow:hidden">'
       +'<div style="background:linear-gradient(135deg,#6D2E6E,#904891);padding:16px 20px;display:flex;justify-content:space-between;align-items:center">'
       +'<div><div style="font-size:14px;font-weight:700;color:#fff" id="cred-titulo"></div>'
       +'<div style="font-size:11px;color:rgba(255,255,255,.7)" id="cred-rut"></div></div>'
       +'<button onclick="cerrarModalCred()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px">✕</button>'
       +'</div>'
-      +'<div style="padding:4px 0"><table style="width:100%;border-collapse:collapse" id="cred-tabla"></table></div>'
-      +'<div style="padding:12px 20px;background:var(--sur2);border-top:1px solid var(--bdr);font-size:10px;color:var(--tm)">🔒 Información confidencial — solo uso interno</div>'
+      +'<table style="width:100%;border-collapse:collapse" id="cred-tabla"></table>'
+      +'<div id="cred-obs-box"></div>'
+      +'<div style="padding:10px 14px;background:#faf7fa;border-top:1px solid #e8dde8;font-size:10px;color:#9a849b">🔒 Información confidencial — solo uso interno del equipo Contadoor</div>'
       +'</div>';
     document.body.appendChild(m);
   }
   document.getElementById('cred-titulo').textContent=c.razon||c.razonSocial||'';
   document.getElementById('cred-rut').textContent='RUT '+c.rut;
-  document.getElementById('cred-tabla').innerHTML=rows;
+  document.getElementById('cred-tabla').innerHTML=headerRow+rows;
+  var obsBox=document.getElementById('cred-obs-box');
+  if(obsBox) obsBox.innerHTML=c.obsAcceso?'<div style="padding:10px 14px;font-size:11px;color:#5c4a5d;background:#fef9ec;border-top:1px solid #e8dde8">📝 '+h(c.obsAcceso)+'</div>':'';
   m.style.display='flex';
 }
 
