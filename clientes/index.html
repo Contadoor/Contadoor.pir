@@ -197,7 +197,7 @@ tr:hover td{background:#faf5ff;}
       <div class="card-hd">🏢 Empresa</div>
       <div class="fg2" style="margin-bottom:10px">
         <div class="fgroup" style="grid-column:1/3"><label>Razón Social *</label><input type="text" id="f-razon" placeholder="Transportes del Sur SpA"/></div>
-        <div class="fgroup"><label>RUT *</label><input type="text" id="f-rut" placeholder="77.123.456-7"/></div>
+        <div class="fgroup"><label>RUT *</label><input type="text" id="f-rut" placeholder="77.123.456-7" oninput="var r=this.value;['f-usuario-previred','f-usuario-tgr'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=r;})"/></div>
         <div class="fgroup"><label>Giro</label><input type="text" id="f-giro" placeholder="Transporte de carga terrestre"/></div>
       </div>
 
@@ -324,13 +324,42 @@ tr:hover td{background:#faf5ff;}
       </div>
 
       <div class="card-hd">🔑 Credenciales de acceso</div>
-      <div class="fg2" style="margin-bottom:10px">
-        <div class="fgroup"><label>Clave SII</label><input type="text" id="f-clave-sii" placeholder="Clave SII" autocomplete="off"/></div>
-        <div class="fgroup"><label>Usuario SII</label><input type="text" id="f-usuario-sii" placeholder="RUT sin puntos ni dígito verificador"/></div>
-        <div class="fgroup"><label>Clave Previred</label><input type="text" id="f-clave-previred" placeholder="Clave Previred" autocomplete="off"/></div>
-        <div class="fgroup"><label>Clave TGR</label><input type="text" id="f-clave-tgr" placeholder="Clave TGR" autocomplete="off"/></div>
-        <div class="fgroup"><label>Clave Banco</label><input type="text" id="f-clave-banco" placeholder="Clave acceso bancario" autocomplete="off"/></div>
-        <div class="fgroup"><label>Obs. acceso</label><input type="text" id="f-obs-acceso" placeholder="Notas sobre acceso o credenciales"/></div>
+      <div style="background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;margin-bottom:10px">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:var(--pp)">
+              <th style="padding:8px 12px;font-size:10px;color:var(--pd);font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:left;width:22%">Sistema</th>
+              <th style="padding:8px 12px;font-size:10px;color:var(--pd);font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:left">Usuario / RUT</th>
+              <th style="padding:8px 12px;font-size:10px;color:var(--pd);font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:left">Clave</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--bdr)">
+              <td style="padding:8px 12px;font-size:12px;font-weight:700;color:var(--p)">SII</td>
+              <td style="padding:4px 8px"><input type="text" id="f-usuario-sii" placeholder="RUT sin puntos ni dígito verificador" style="width:100%;border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;font-size:12px;background:#fff;font-family:monospace"/></td>
+              <td style="padding:4px 8px"><input type="text" id="f-clave-sii" placeholder="Clave SII" autocomplete="off" style="width:100%;border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;font-size:12px;background:#fff;font-family:monospace"/></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--bdr)">
+              <td style="padding:8px 12px;font-size:12px;font-weight:700;color:var(--p)">Previred</td>
+              <td style="padding:4px 8px"><input type="text" id="f-usuario-previred" placeholder="RUT empresa (auto)" style="width:100%;border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;font-size:12px;background:#f8f8f8;font-family:monospace"/></td>
+              <td style="padding:4px 8px"><input type="text" id="f-clave-previred" placeholder="Clave Previred" autocomplete="off" style="width:100%;border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;font-size:12px;background:#fff;font-family:monospace"/></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--bdr)">
+              <td style="padding:8px 12px;font-size:12px;font-weight:700;color:var(--p)">TGR</td>
+              <td style="padding:4px 8px"><input type="text" id="f-usuario-tgr" placeholder="RUT empresa (auto)" style="width:100%;border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;font-size:12px;background:#f8f8f8;font-family:monospace"/></td>
+              <td style="padding:4px 8px"><input type="text" id="f-clave-tgr" placeholder="Clave TGR" autocomplete="off" style="width:100%;border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;font-size:12px;background:#fff;font-family:monospace"/></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 12px;font-size:12px;font-weight:700;color:var(--p)">Banco</td>
+              <td style="padding:4px 8px"><input type="text" id="f-usuario-banco" placeholder="Usuario banco" style="width:100%;border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;font-size:12px;background:#fff;font-family:monospace"/></td>
+              <td style="padding:4px 8px"><input type="text" id="f-clave-banco" placeholder="Clave banco" autocomplete="off" style="width:100%;border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;font-size:12px;background:#fff;font-family:monospace"/></td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="padding:8px 12px;border-top:1px solid var(--bdr)">
+          <label style="font-size:10px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.5px">Obs. acceso</label>
+          <input type="text" id="f-obs-acceso" placeholder="Notas sobre acceso o credenciales especiales" style="width:100%;border:1px solid var(--bdr);border-radius:6px;padding:6px 8px;font-size:12px;background:#fff;margin-top:4px"/>
+        </div>
       </div>
 
       <div class="card-hd">🖼️ Logo del cliente</div>
@@ -513,6 +542,7 @@ function quitarLogo(){
   document.getElementById('f-logo-b64').value='';
   document.getElementById('logo-preview').innerHTML='🖼️';
   document.getElementById('f-logo').value='';
+  ['f-usuario-previred','f-usuario-tgr','f-usuario-banco'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
 }
 
 // ── ANALISTAS ─────────────────────────────────────────
@@ -638,7 +668,7 @@ function _abrirEditar(c){
   s('f-prioridad-contable',c.prioridadContable||'media');
   s('f-clave-sii',c.claveSii);s('f-usuario-sii',c.usuarioSii);
   s('f-clave-previred',c.clavePrevired);s('f-clave-tgr',c.claveTgr);
-  s('f-clave-banco',c.claveBanco);s('f-obs-acceso',c.obsAcceso);
+  s('f-clave-banco',c.claveBanco);s('f-usuario-banco',c.usuarioBanco);s('f-obs-acceso',c.obsAcceso);
   if(c.logoBase64){
     document.getElementById('f-logo-b64').value=c.logoBase64;
     var p=document.getElementById('logo-preview');p.innerHTML='';
@@ -674,13 +704,13 @@ function guardarCliente(){
     analistaRrhh:sv('f-rrhh'),analistaContable:sv('f-contador'),analistaPagos:sv('f-analista-pagos'),
     prioridadContable:sv('f-prioridad-contable')||'media',
     logoBase64:document.getElementById('f-logo-b64').value||'',
-    claveSii:sv('f-clave-sii'),usuarioSii:sv('f-usuario-sii'),
+    claveSii:sv('f-clave-sii'),usuarioSii:sv('f-usuario-sii'),usuarioBanco:sv('f-usuario-banco'),
     clavePrevired:sv('f-clave-previred'),claveTgr:sv('f-clave-tgr'),
     claveBanco:sv('f-clave-banco'),obsAcceso:sv('f-obs-acceso'),
     obs:sv('f-obs'),credenciales:getCreds(),socios:getSocios()
   };
   var eraEdicion=!!_editId;
-  if(_editId){var i=arr.findIndex(function(x){return Number(x.id)===Number(_editId);});if(i>=0)arr[i]=c;else arr.unshift(c);}
+  if(_editId){var _idx=arr.findIndex(function(x){return Number(x.id)===Number(_editId);});if(_idx>=0)arr[_idx]=c;else arr.unshift(c);}
   else arr.unshift(c);
   setClientes(arr);
   _editId=null;
@@ -714,7 +744,7 @@ function _mostrarCreds(c){
     {sistema:'SII',usuario:c.usuarioSii||c.rut,clave:c.claveSii},
     {sistema:'Previred',usuario:c.rut,clave:c.clavePrevired},
     {sistema:'TGR',usuario:c.rut,clave:c.claveTgr},
-    {sistema:'Banco',usuario:c.rut,clave:c.claveBanco}
+    {sistema:'Banco',usuario:c.usuarioBanco||c.rut,clave:c.claveBanco}
   ].filter(function(p){return p.clave;});
 
   function copyBtn(val){
