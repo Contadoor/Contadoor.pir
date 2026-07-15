@@ -800,13 +800,28 @@ function guardarCliente(){
   if(_editId){var i=arr.findIndex(function(x){return x.id===_editId;});if(i>=0)arr[i]=c;else arr.unshift(c);}
   else arr.unshift(c);
   setClientes(arr);
-  // Guardar en Supabase async
+  var _eraEdicion=!!_editId;
+  _editId=null;
+  // Cerrar modal y renderizar
+  closeModal();
+  renderClientes();
+  // Toast de confirmación
+  var toast=document.getElementById('toast-confirm');
+  if(!toast){
+    toast=document.createElement('div');
+    toast.id='toast-confirm';
+    toast.style.cssText='position:fixed;bottom:24px;right:24px;background:#2D9B6F;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 16px rgba(45,155,111,.4);transition:opacity .3s;display:flex;align-items:center;gap:8px';
+    document.body.appendChild(toast);
+  }
+  toast.textContent=_eraEdicion?'✅ Cliente actualizado correctamente':'✅ Cliente guardado correctamente';
+  toast.style.opacity='1';
+  setTimeout(function(){toast.style.opacity='0';},3000);
+  // Guardar en Supabase async (sin bloquear UI)
   var cSupa=Object.assign({},c);
-  if(_editId) cSupa._supaId=_editId;
+  if(_eraEdicion) cSupa._supaId=c.id;
   guardarClienteSupabase(cSupa).then(function(){
     cargarClientesDesdeSupabase().then(renderClientes);
   }).catch(function(e){ console.warn('Solo guardado local:', e.message); });
-  closeModal();renderClientes();
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────
@@ -815,8 +830,10 @@ function guardarCliente(){
 function cerrarModalCred(){var m=document.getElementById("modal-credenciales");if(m)m.style.display="none";}
 function verCredenciales(id){
   id=parseInt(id)||id;
-  var c=getClientes().find(function(x){return x.id===id;});
-  if(!c){alert('Cliente no encontrado.');return;}
+  var arr=getClientes();
+  console.log('[CREDS] Buscando id:', id, 'tipo:', typeof id, 'clientes:', arr.map(function(x){return x.id;}));
+  var c=arr.find(function(x){return x.id===id||x.id===String(id);});
+  if(!c){alert('Cliente no encontrado. Recarga la página e intenta de nuevo.');return;}
   var creds=[
     {label:'RUT',val:c.rut},
     {label:'Clave SII',val:c.claveSii||'No registrada'},
@@ -924,7 +941,7 @@ function renderClientes(){
 // ── DETALLE ───────────────────────────────────────────────────────────────
 function verDetalle(id){
   id=parseInt(id)||id;
-  var c=getClientes().find(function(x){return x.id===id;});if(!c)return;
+  var c=getClientes().find(function(x){return x.id===id||x.id===String(id);});if(!c)return;
   _detalleId=id;
   var est=ESTADOS[c.estado]||ESTADOS.inactivo;
   var mrr=Math.round((c.honUF||0)*UF);
