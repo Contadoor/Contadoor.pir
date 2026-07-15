@@ -783,7 +783,7 @@ function renderClientes(){
     html+='</td>';
     html+='<td><span class="badge '+est.c+'">'+(est.l)+'</span></td>';
     html+='<td style="text-align:right"><button class="btn-s btn-sm" onclick="verCredenciales('+c.id+')">&#128273; Claves</button> '+
-    '<button class="btn-s btn-sm" onclick="verDetalle('+c.id+')">&#128065; Ver</button> <button class="btn-p btn-sm" onclick="abrirModalEditar('+c.id+')">\u270f\ufe0f</button></td>';
+    '<button class="btn-s btn-sm" onclick="verDetalle('+c.id+')">&#128065; Ver</button> <button class="btn-p btn-sm" onclick="abrirModalEditar('+c.id+')">✏️</button></td>';
     html+='</tr>';
   });
   html+='</tbody></table>';
@@ -815,8 +815,8 @@ function verDetalle(id){
   html+='<div class="det-item"><div class="det-lbl">Prioridad contable</div><div class="det-val">'+(c.prioridadContable||'Media')+'</div></div>';
   var _mon=c.monedaPlan||'UF';
   var _svcTxt=c.honUF?c.honUF+(_mon==='CLP'?'':' UF')+' base':' - ';
-  if(c.trabIncluidos)_svcTxt+=' \u00b7 '+c.trabIncluidos+' incluidos';
-  if(c.honVariable)_svcTxt+=' \u00b7 +'+c.honVariable+(_mon==='CLP'||_mon==='mixto'?'':' UF')+'/trab adicional';
+  if(c.trabIncluidos)_svcTxt+=' · '+c.trabIncluidos+' incluidos';
+  if(c.honVariable)_svcTxt+=' · +'+c.honVariable+(_mon==='CLP'||_mon==='mixto'?'':' UF')+'/trab adicional';
   if(c.descTipo&&c.descValor)_svcTxt+=' · Desc. '+(c.descTipo==='pct'?c.descValor+'%':c.descValor+(_mon==='CLP'?'':' UF'));
   if(c.precioObs)_svcTxt+=' ('+c.precioObs+')';
   if(mrr)_svcTxt+=' ≈ '+ff(mrr);
