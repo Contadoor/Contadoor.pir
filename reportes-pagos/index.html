@@ -293,7 +293,7 @@ function setFiltro(v){
 function init(){
   var u=getUsuario();
   document.getElementById('tb-analista-nombre').textContent=u.nombre||'Analista Pagos';
-  document.getElementById('sb-usuario').textContent=(u.nombre||'Usuario')+' \u00b7 '+(u.rolLabel||'Pagos');
+  document.getElementById('sb-usuario').textContent=(u.nombre||'Usuario')+' · '+(u.rolLabel||'Pagos');
   var d=new Date();
   document.getElementById('cal-hoy-label').textContent=d.getDate()+' '+d.toLocaleString('es-CL',{month:'short'});
   var periodos=getPeriodos().filter(function(p){return p.estado==='abierto';});
@@ -306,7 +306,7 @@ function init(){
 
 function cargarPeriodo(){
   _periodoActual=sv('selectPeriodo');
-  document.getElementById('periodo-label').textContent=_periodoActual||'Sin per\u00edodo';
+  document.getElementById('periodo-label').textContent=_periodoActual||'Sin período';
   renderTabla();
 }
 
@@ -351,14 +351,14 @@ function renderTabla(){
   document.getElementById('st-conciliado').textContent=cntConc;
   document.getElementById('st-firma').textContent=cntFirma;
   document.getElementById('st-pagado').textContent=cntPag;
-  document.getElementById('tabla-meta').textContent=items.length+' clientes \u00b7 '+cntTransf+' transfirieron \u00b7 '+cntConc+' conciliados';
+  document.getElementById('tabla-meta').textContent=items.length+' clientes · '+cntTransf+' transfirieron · '+cntConc+' conciliados';
 
   // Banner transferidos
   var bt=document.getElementById('bannerTransferidos');
   if(cntTransf>0){
     bt.style.display='flex';
-    document.getElementById('bannerTransfTitulo').textContent='\u1f4b8 '+cntTransf+' cliente'+(cntTransf>1?'s han':'  ha')+' transferido';
-    document.getElementById('bannerTransfSub').textContent='Entra a Conciliaci\u00f3n para asignar los montos por concepto y notificar a los analistas';
+    document.getElementById('bannerTransfTitulo').textContent='💸 '+cntTransf+' cliente'+(cntTransf>1?'s han':'  ha')+' transferido';
+    document.getElementById('bannerTransfSub').textContent='Entra a Conciliación para asignar los montos por concepto y notificar a los analistas';
   }else bt.style.display='none';
 
   var html='';
@@ -367,15 +367,15 @@ function renderTabla(){
     var est=rep.estadoContable||'enviado';
     var f29=rep.f29||{};
     var planCls=c.plan==='estrategico'?'plan-e':'plan-a';
-    var planLbl=c.plan==='estrategico'?'\u2b50 Estrat\u00e9gico':'\u1f535 Asesor\u00eda';
+    var planLbl=c.plan==='estrategico'?'⭐ Estratégico':'🔵 Asesoría';
     var transf=rep.transferencia||null;
 
     // TIMELINE 7 pasos morados
     var steps=[
       {e:'done',i:'\u2713'},{e:'done',i:'\u2713'},{e:'done',i:'\u2713'},
       {e:'done',i:'\u2713'},
-      {e:est==='enviado'?'active':est==='transferido'?'active':(est==='conciliado'||est==='firma'||est==='pagado'?'done':'next'),i:est==='transferido'?'\u1f4b8':'5'},
-      {e:est==='conciliado'?'active':(est==='firma'||est==='pagado'?'done':'next'),i:est==='conciliado'?'\u1f3e6':'6'},
+      {e:est==='enviado'?'active':est==='transferido'?'active':(est==='conciliado'||est==='firma'||est==='pagado'?'done':'next'),i:est==='transferido'?'💸':'5'},
+      {e:est==='conciliado'?'active':(est==='firma'||est==='pagado'?'done':'next'),i:est==='conciliado'?'🏦':'6'},
       {e:est==='firma'?'active':(est==='pagado'?'done':'next'),i:est==='pagado'?'\u2713':'\u270d'}
     ];
     var tl='<div class="tl-mini">';
@@ -391,11 +391,11 @@ function renderTabla(){
 
     // Badge estado
     var badge='';
-    if(est==='enviado'&&!transf) badge='<span class="eb eb-sin-transf">\u23f3 Sin transferencia</span>';
-    else if(est==='transferido'||transf) badge='<span class="eb eb-transferido">\u1f4b8 Transferido \u00b7 conciliar</span>';
-    else if(est==='conciliado') badge='<span class="eb eb-conciliado">\u1f3e6 Conciliado</span>';
-    else if(est==='firma') badge='<span class="eb eb-firma">\u270d\ufe0f Pend. firma</span>';
-    else if(est==='pagado') badge='<span class="eb eb-pagado">\u2705 Pagado</span>';
+    if(est==='enviado'&&!transf) badge='<span class="eb eb-sin-transf">⏳ Sin transferencia</span>';
+    else if(est==='transferido'||transf) badge='<span class="eb eb-transferido">💸 Transferido · conciliar</span>';
+    else if(est==='conciliado') badge='<span class="eb eb-conciliado">🏦 Conciliado</span>';
+    else if(est==='firma') badge='<span class="eb eb-firma">\u270d️ Pend. firma</span>';
+    else if(est==='pagado') badge='<span class="eb eb-pagado">✅ Pagado</span>';
 
     // Montos F29
     var totalF29=(f29.ivaApagar||0)+(f29.ppm||0)+(f29.retenciones||0)+(f29.honorarios||0);
@@ -421,19 +421,19 @@ function renderTabla(){
       html+='<div class="prog-bar"><div class="prog-fill" style="width:'+concPct+'%"></div></div>';
       html+='<div style="font-size:9.5px;color:#0e7490;margin-top:2px;">'+concPct+'% conciliado</div>';
     } else {
-      html+='<div style="font-size:11px;color:#9a849b;">Sin transferencia a\u00fan</div>';
+      html+='<div style="font-size:11px;color:#9a849b;">Sin transferencia aún</div>';
     }
     html+='</td>';
     html+='<td>'+tl+badge+'</td>';
     html+='<td style="text-align:right;">';
-    if(transf&&est!=='pagado') html+='<button class="btn-p" onclick="event.stopPropagation();irAConciliacion(\''+c.rut+'\')">\u1f3e6 Conciliar</button> ';
-    html+='<button class="btn-s" onclick="event.stopPropagation();toggleDet(\''+c.rut+'\')">\u1f441</button>';
+    if(transf&&est!=='pagado') html+='<button class="btn-p" onclick="event.stopPropagation();irAConciliacion(\''+c.rut+'\')">🏦 Conciliar</button> ';
+    html+='<button class="btn-s" onclick="event.stopPropagation();toggleDet(\''+c.rut+'\')">👁</button>';
     html+='</td></tr>';
 
     // Detalle expandido
     html+='<tr><td colspan="5" style="padding:0;border-bottom:1px solid #e8dde8;"><div class="cr-detalle" id="det-'+c.rut+'">';
     if(rep.conciliacion&&rep.conciliacion.items){
-      html+='<div style="font-size:10px;font-weight:700;color:#0e7490;text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;">Distribuci\u00f3n de la transferencia</div>';
+      html+='<div style="font-size:10px;font-weight:700;color:#0e7490;text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;">Distribución de la transferencia</div>';
       html+='<div class="det-grid">';
       rep.conciliacion.items.forEach(function(it){
         html+='<div class="det-card"><div class="det-titulo">'+hesc(it.concepto)+'</div>';
@@ -444,14 +444,14 @@ function renderTabla(){
       html+='</div>';
     } else {
       html+='<div style="text-align:center;color:#9a849b;font-size:12px;padding:8px 0;">'+
-        (transf?'\u1f4b8 Transferencia recibida  -  pendiente de distribuir por concepto':'\u23f3 Esperando transferencia del cliente')+'</div>';
+        (transf?'💸 Transferencia recibida  -  pendiente de distribuir por concepto':'⏳ Esperando transferencia del cliente')+'</div>';
     }
     html+='</div></td></tr>';
   });
 
   document.getElementById('tablaBody').innerHTML=
-    '<table><thead><tr><th>Cliente</th><th>Obligaciones del per\u00edodo</th><th>Transferencia</th><th>Estado \u00b7 Flujo</th><th style="text-align:right">Acci\u00f3n</th></tr></thead><tbody>'
-    +(html||'<tr><td colspan="5" style="padding:24px;text-align:center;color:#9a849b">Sin clientes para este per\u00edodo</td></tr>')
+    '<table><thead><tr><th>Cliente</th><th>Obligaciones del período</th><th>Transferencia</th><th>Estado · Flujo</th><th style="text-align:right">Acción</th></tr></thead><tbody>'
+    +(html||'<tr><td colspan="5" style="padding:24px;text-align:center;color:#9a849b">Sin clientes para este período</td></tr>')
     +'</tbody></table>';
 }
 
