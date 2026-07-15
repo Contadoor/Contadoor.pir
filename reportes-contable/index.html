@@ -491,7 +491,7 @@ function actualizarBannerMasivo(){
   var bm=document.getElementById('bannerMasivo');
   if(completados.length>0){
     bm.style.display='block';
-    document.getElementById('bannerMasivoTitulo').textContent='\u2705 '+completados.length+' reporte'+(completados.length>1?'s':'')+' listo'+(completados.length>1?'s':'')+' para enviar';
+    document.getElementById('bannerMasivoTitulo').textContent='✅ '+completados.length+' reporte'+(completados.length>1?'s':'')+' listo'+(completados.length>1?'s':'')+' para enviar';
     document.getElementById('cntSeleccionados').textContent=_seleccionados.size;
     // Tags
     var tags=document.getElementById('tagsSeleccionados');
@@ -510,11 +510,11 @@ function actualizarBannerMasivo(){
   var bf=document.getElementById('bannerFirma');
   if(firma.length>0){
     bf.style.display='block';
-    document.getElementById('bannerFirmaTitulo').textContent='\u270d\ufe0f '+firma.length+' reporte'+(firma.length>1?'s':'')+' esperando firma de Luciano';
+    document.getElementById('bannerFirmaTitulo').textContent='\u270d️ '+firma.length+' reporte'+(firma.length>1?'s':'')+' esperando firma de Luciano';
     var nombres=firma.map(function(r){
       var c=getClientes().find(function(x){return x.rut===r.rut;})||{};
       return c.razon||r.rut;
-    }).join(' \u00b7 ');
+    }).join(' · ');
     document.getElementById('bannerFirmaSub').textContent=nombres;
   } else {
     bf.style.display='none';
@@ -537,7 +537,7 @@ function enviarMasivo(){
     var item=document.createElement('div');
     item.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:12px;';
     item.innerHTML='<span style="color:rgba(255,255,255,.8)">'+hesc(c.razon||rut)+'</span>'
-      +'<span style="color:#2D9B6F">\u2705 Enviado a '+hesc(c.email||'email no configurado')+'</span>'
+      +'<span style="color:#2D9B6F">✅ Enviado a '+hesc(c.email||'email no configurado')+'</span>'
       +'<span style="color:rgba(255,255,255,.35);font-size:10px">'+hora+' hrs</span>';
     confirmItems.appendChild(item);
   });
@@ -621,10 +621,10 @@ function renderTabla(){
     }
 
     var planCls=c.plan==='estrategico'?'plan-e':c.plan==='asesoria'?'plan-a':'plan-c';
-    var planLbl=c.plan==='estrategico'?'\u2b50 Estrat\u00e9gico':c.plan==='asesoria'?'\u1f535 Asesor\u00eda':'\u1f4cb Cumplimiento';
+    var planLbl=c.plan==='estrategico'?'⭐ Estratégico':c.plan==='asesoria'?'🔵 Asesoría':'📋 Cumplimiento';
     var prio=c.prioridadContable||'media';
     var prioCls='prio-'+prio;
-    var prioLbl=prio==='alta'?'\u1f534':prio==='media'?'\u1f7e1':'\u1f7e2';
+    var prioLbl=prio==='alta'?'🔴':prio==='media'?'🟡':'🟢';
 
     // TIMELINE  -  7 pasos morados
     // 1:RRHH 2:Val.Pagos 3:F29 4:Enviar 5:Transferir 6:Ejecutar 7:Luciano
@@ -656,14 +656,14 @@ function renderTabla(){
 
     // Badge estado
     var badgeHtml='';
-    if(!rrhhOk) badgeHtml='<span class="estado-badge eb-pendiente">\u23f3 Esperando RRHH</span>';
+    if(!rrhhOk) badgeHtml='<span class="estado-badge eb-pendiente">⏳ Esperando RRHH</span>';
     else if(!pagosOk) badgeHtml='<span class="estado-badge" style="background:#f5f3ff;color:#6b21a8">\u1f7e3 Val. Pagos</span>';
-    else if(estado==='pendiente') badgeHtml='<span class="estado-badge" style="background:#eff6ff;color:#1e40af">\u1f535 Completar F29</span>';
-    else if(estado==='completado') badgeHtml='<span class="estado-badge eb-completado">\u2705 Listo para enviar</span>';
+    else if(estado==='pendiente') badgeHtml='<span class="estado-badge" style="background:#eff6ff;color:#1e40af">🔵 Completar F29</span>';
+    else if(estado==='completado') badgeHtml='<span class="estado-badge eb-completado">✅ Listo para enviar</span>';
     else if(estado==='enviado') badgeHtml='<span class="estado-badge eb-enviado">\u1f4e4 Enviado</span>';
-    else if(estado==='transferido') badgeHtml='<span class="estado-badge eb-transferido">\u1f4b8 Transferido \u00b7 ejecutar</span>';
-    else if(estado==='firma') badgeHtml='<span class="estado-badge eb-firma">\u270d\ufe0f Pend. firma</span>';
-    else if(estado==='pagado') badgeHtml='<span class="estado-badge eb-pagado">\u2705 Pagado</span>';
+    else if(estado==='transferido') badgeHtml='<span class="estado-badge eb-transferido">💸 Transferido · ejecutar</span>';
+    else if(estado==='firma') badgeHtml='<span class="estado-badge eb-firma">\u270d️ Pend. firma</span>';
+    else if(estado==='pagado') badgeHtml='<span class="estado-badge eb-pagado">✅ Pagado</span>';
 
     // Chips
     var chipIVA=rep.f29&&rep.f29.ivaDebito?'<span class="chip chip-ok">IVA \u2713</span>':'<span class="chip chip-pend">IVA</span>';
@@ -692,7 +692,7 @@ function renderTabla(){
       +'</div>';
     html+='<div onclick="toggleRow(\''+c.rut+'\')">'
       +tl
-      +'<div style="font-size:9px;color:#9a849b">RRHH \u00b7 Pagos \u00b7 F29 \u00b7 Enviar \u00b7 Transferir \u00b7 Ejecutar \u00b7 Luciano</div>'
+      +'<div style="font-size:9px;color:#9a849b">RRHH · Pagos · F29 · Enviar · Transferir · Ejecutar · Luciano</div>'
       +'</div>';
     html+='<div onclick="toggleRow(\''+c.rut+'\')">'+badgeHtml+'</div>';
     html+='<div onclick="toggleRow(\''+c.rut+'\')" style="font-size:13px;font-weight:700;font-family:monospace;color:#1e40af">'+(totalF29?ff(totalF29):' - ')+'</div>';
@@ -700,11 +700,11 @@ function renderTabla(){
     html+='<div style="display:flex;gap:5px;justify-content:flex-end;">';
     if(!rrhhOk) html+='<button class="btn-s" disabled style="opacity:.4;font-size:10.5px;">Bloqueado</button>';
     else if(!pagosOk) html+='<button class="btn-s" disabled style="opacity:.5;font-size:10.5px;">Esp. Pagos</button>';
-    else if(estado==='pendiente') html+='<button class="btn-p" onclick="event.stopPropagation();abrirF29(\''+c.rut+'\')">\u1f4ca F29</button>';
+    else if(estado==='pendiente') html+='<button class="btn-p" onclick="event.stopPropagation();abrirF29(\''+c.rut+'\')">📊 F29</button>';
     else if(estado==='completado') html+='<button class="btn-green" onclick="event.stopPropagation();enviarReporte(\''+c.rut+'\')">\u1f4e4 Enviar</button>';
-    else if(estado==='transferido') html+='<button class="btn-p" onclick="event.stopPropagation();ejecutarPago(\''+c.rut+'\')">\u25b6\ufe0f Ejecutar</button>';
-    else if(estado==='firma') html+='<button class="btn-amber" onclick="event.stopPropagation();aprobarReporte(\''+c.rut+'\')">\u270d\ufe0f Firmar</button>';
-    html+='<button class="btn-s" onclick="event.stopPropagation();toggleRow(\''+c.rut+'\')">\u1f441</button>';
+    else if(estado==='transferido') html+='<button class="btn-p" onclick="event.stopPropagation();ejecutarPago(\''+c.rut+'\')">\u25b6️ Ejecutar</button>';
+    else if(estado==='firma') html+='<button class="btn-amber" onclick="event.stopPropagation();aprobarReporte(\''+c.rut+'\')">\u270d️ Firmar</button>';
+    html+='<button class="btn-s" onclick="event.stopPropagation();toggleRow(\''+c.rut+'\')">👁</button>';
     html+='</div>';
     html+='</div>'; // cr-main
 
@@ -713,8 +713,8 @@ function renderTabla(){
     if(rep.f29){
       html+='<div class="det-grid">';
       html+='<div class="det-card"><div class="det-card-titulo" style="color:#1e40af">IVA</div>';
-      html+='<div class="det-row"><span>D\u00e9bito</span><span>'+ff(rep.f29.ivaDebito||0)+'</span></div>';
-      html+='<div class="det-row"><span>Cr\u00e9dito</span><span>-'+ff(rep.f29.ivaCredito||0)+'</span></div>';
+      html+='<div class="det-row"><span>Débito</span><span>'+ff(rep.f29.ivaDebito||0)+'</span></div>';
+      html+='<div class="det-row"><span>Crédito</span><span>-'+ff(rep.f29.ivaCredito||0)+'</span></div>';
       if(rep.f29.remanente>0)html+='<div class="det-row"><span>Remanente ant.</span><span>-'+ff(rep.f29.remanente||0)+'</span></div>';
       if(rep.f29.postergado)html+='<div class="det-row"><span style="color:#C07A1A">IVA postergado</span><span style="color:#C07A1A">'+ff(rep.f29.ivaPostergado||0)+'</span></div>';
       html+='<div class="det-row"><span><strong>IVA a pagar</strong></span><span><strong>'+ff(rep.f29.ivaApagar||0)+'</strong></span></div></div>';
@@ -728,22 +728,22 @@ function renderTabla(){
       html+='<div class="det-row"><span>Variable</span><span>'+ff(rep.f29.honVar||0)+'</span></div>';
       html+='<div class="det-row"><span><strong>Total</strong></span><span><strong>'+ff(rep.f29.honorarios||0)+'</strong></span></div></div>';
       html+='</div>';
-      html+='<div class="det-total"><span>Total per\u00edodo</span><span>'+ff(totalF29)+'</span></div>';
+      html+='<div class="det-total"><span>Total período</span><span>'+ff(totalF29)+'</span></div>';
     } else {
       html+='<div style="padding:14px;text-align:center;color:#9a849b;font-size:12px;">';
-      if(!rrhhOk) html+='\u23f3 Esperando que RRHH complete su secci\u00f3n.';
-      else if(!pagosOk) html+='\u1f7e3 Esperando validaci\u00f3n de Pagos.';
-      else html+='\u1f4ca Listo para completar F29.';
+      if(!rrhhOk) html+='⏳ Esperando que RRHH complete su sección.';
+      else if(!pagosOk) html+='\u1f7e3 Esperando validación de Pagos.';
+      else html+='📊 Listo para completar F29.';
       html+='</div>';
     }
     html+='<div class="acciones" style="margin-top:10px;">';
-    if(pagosOk&&estado==='pendiente') html+='<button class="btn-p" onclick="abrirF29(\''+c.rut+'\')">\u1f4ca Completar F29</button>';
+    if(pagosOk&&estado==='pendiente') html+='<button class="btn-p" onclick="abrirF29(\''+c.rut+'\')">📊 Completar F29</button>';
     if(estado==='completado'){
       html+='<button class="btn-green" onclick="enviarReporte(\''+c.rut+'\')">\u1f4e4 Enviar reporte</button>';
-      html+='<button class="btn-amber" onclick="abrirF29(\''+c.rut+'\')">\u270f\ufe0f Editar F29</button>';
+      html+='<button class="btn-amber" onclick="abrirF29(\''+c.rut+'\')">✏️ Editar F29</button>';
     }
-    if(estado==='firma') html+='<button class="btn-amber" onclick="aprobarReporte(\''+c.rut+'\')">\u270d\ufe0f Firmar y aprobar</button>';
-    html+='<button class="btn-s" onclick="abrirF29(\''+c.rut+'\')">\u1f441 Ver detalle</button>';
+    if(estado==='firma') html+='<button class="btn-amber" onclick="aprobarReporte(\''+c.rut+'\')">\u270d️ Firmar y aprobar</button>';
+    html+='<button class="btn-s" onclick="abrirF29(\''+c.rut+'\')">👁 Ver detalle</button>';
     html+='</div>';
     html+='</div></div>';
   });
@@ -755,7 +755,7 @@ function renderTabla(){
   document.getElementById('st-completado').textContent=stComp;
   document.getElementById('st-enviado').textContent=stEnv;
   document.getElementById('st-atrasado').textContent=stAtr;
-  document.getElementById('tabla-meta').textContent=clientes.length+' clientes \u00b7 '+stComp+' listos para enviar \u00b7 '+stRrhhOk+' con RRHH OK';
+  document.getElementById('tabla-meta').textContent=clientes.length+' clientes · '+stComp+' listos para enviar · '+stRrhhOk+' con RRHH OK';
   actualizarBannerMasivo();
 }
 
@@ -803,7 +803,7 @@ function setFiltro(k,v){
 function init(){
   var u=getUsuario();
   document.getElementById('tb-analista-nombre').textContent=u.nombre||'Analista Contable';
-  document.getElementById('sb-usuario').textContent=(u.nombre||'Usuario')+' \u00b7 '+(u.rolLabel||'Contable');
+  document.getElementById('sb-usuario').textContent=(u.nombre||'Usuario')+' · '+(u.rolLabel||'Contable');
 
   // Calendario
   var d=new Date();
@@ -863,17 +863,17 @@ function renderTabla(){
     }
 
     var planCls=c.plan==='estrategico'?'plan-e':c.plan==='asesoria'?'plan-a':'plan-c';
-    var planLbl=c.plan==='estrategico'?'\u2b50 Estrat\u00e9gico':c.plan==='asesoria'?'\u1f535 Asesor\u00eda':'\u1f4cb Cumplimiento';
+    var planLbl=c.plan==='estrategico'?'⭐ Estratégico':c.plan==='asesoria'?'🔵 Asesoría':'📋 Cumplimiento';
 
     // Badge estado
     var badgeHtml='';
-    if(!rrhhOk) badgeHtml='<span class="estado-badge eb-pendiente">\u23f3 Esperando RRHH</span>';
-    else if(estado==='pendiente') badgeHtml='<span class="estado-badge" style="background:#eff6ff;color:#1e40af">\u1f535 Listo para F29</span>';
-    else if(estado==='completado') badgeHtml='<span class="estado-badge eb-completado">\u2705 F29 completo</span>';
+    if(!rrhhOk) badgeHtml='<span class="estado-badge eb-pendiente">⏳ Esperando RRHH</span>';
+    else if(estado==='pendiente') badgeHtml='<span class="estado-badge" style="background:#eff6ff;color:#1e40af">🔵 Listo para F29</span>';
+    else if(estado==='completado') badgeHtml='<span class="estado-badge eb-completado">✅ F29 completo</span>';
     else if(estado==='enviado') badgeHtml='<span class="estado-badge eb-enviado">\u1f4e4 Enviado</span>';
-    else if(estado==='transferido') badgeHtml='<span class="estado-badge eb-transferido">\u1f4b8 Transferido</span>';
-    else if(estado==='firma') badgeHtml='<span class="estado-badge eb-firma">\u270d\ufe0f Pend. firma</span>';
-    else if(estado==='pagado') badgeHtml='<span class="estado-badge eb-pagado">\u2705 Pagado</span>';
+    else if(estado==='transferido') badgeHtml='<span class="estado-badge eb-transferido">💸 Transferido</span>';
+    else if(estado==='firma') badgeHtml='<span class="estado-badge eb-firma">\u270d️ Pend. firma</span>';
+    else if(estado==='pagado') badgeHtml='<span class="estado-badge eb-pagado">✅ Pagado</span>';
 
     // Chips secciones
     var chipIVA=rep.f29&&rep.f29.ivaDebito?'<span class="chip chip-ok">IVA \u2713</span>':'<span class="chip chip-pend">IVA</span>';
@@ -890,7 +890,7 @@ function renderTabla(){
     html+='<div>'+badgeHtml+'</div>';
     html+='<div style="font-size:12px;font-weight:700;color:#1e40af;font-family:monospace">'+(totalF29?ff(totalF29):' - ')+'</div>';
     html+='<div style="display:flex;gap:6px;align-items:center">';
-    if(rrhhOk&&estado==='pendiente') html+='<button class="btn-p" onclick="event.stopPropagation();abrirF29(\''+c.rut+'\')">\u1f4ca Completar F29</button>';
+    if(rrhhOk&&estado==='pendiente') html+='<button class="btn-p" onclick="event.stopPropagation();abrirF29(\''+c.rut+'\')">📊 Completar F29</button>';
     else if(estado==='completado') html+='<button class="btn-green" onclick="event.stopPropagation();enviarReporte(\''+c.rut+'\')">\u1f4e4 Enviar</button>';
     else if(!rrhhOk) html+='<button class="btn-s" disabled style="opacity:.5">Esperando RRHH</button>';
     html+='</div>';
@@ -902,8 +902,8 @@ function renderTabla(){
       html+='<div class="det-grid">';
       // IVA
       html+='<div class="det-card"><div class="det-card-titulo" style="color:#1e40af">IVA</div>';
-      html+='<div class="det-row"><span>D\u00e9bito (ventas)</span><span>'+ff(rep.f29.ivaDebito||0)+'</span></div>';
-      html+='<div class="det-row"><span>Cr\u00e9dito (compras)</span><span>-'+ff(rep.f29.ivaCredito||0)+'</span></div>';
+      html+='<div class="det-row"><span>Débito (ventas)</span><span>'+ff(rep.f29.ivaDebito||0)+'</span></div>';
+      html+='<div class="det-row"><span>Crédito (compras)</span><span>-'+ff(rep.f29.ivaCredito||0)+'</span></div>';
       if(rep.f29.remanente>0)html+='<div class="det-row"><span>Remanente anterior</span><span>-'+ff(rep.f29.remanente||0)+'</span></div>';
       if(rep.f29.postergado)html+='<div class="det-row"><span style="color:#C07A1A">IVA postergado</span><span style="color:#C07A1A">'+ff(rep.f29.ivaPostergado||0)+'</span></div>';
       html+='<div class="det-row"><span>IVA a pagar</span><span>'+ff(rep.f29.ivaApagar||0)+'</span></div></div>';
@@ -919,19 +919,19 @@ function renderTabla(){
       html+='<div class="det-row"><span>Variable</span><span>'+ff(rep.f29.honVar||0)+'</span></div>';
       html+='<div class="det-row"><span>Total</span><span>'+ff(rep.f29.honorarios||0)+'</span></div></div>';
       html+='</div>';
-      html+='<div class="det-total"><span>Total per\u00edodo</span><span>'+ff(totalF29)+'</span></div>';
+      html+='<div class="det-total"><span>Total período</span><span>'+ff(totalF29)+'</span></div>';
     } else {
       html+='<div style="padding:14px;text-align:center;color:#9a849b;font-size:12px;">';
-      if(!rrhhOk) html+='\u23f3 Esperando que RRHH complete su secci\u00f3n para poder iniciar el F29.';
-      else html+='\u1f4ca RRHH completado. Haz clic en "Completar F29" para iniciar.';
+      if(!rrhhOk) html+='⏳ Esperando que RRHH complete su sección para poder iniciar el F29.';
+      else html+='📊 RRHH completado. Haz clic en "Completar F29" para iniciar.';
       html+='</div>';
     }
     // Acciones detalle
     html+='<div class="acciones" style="margin-top:10px;">';
-    if(rrhhOk&&estado==='pendiente') html+='<button class="btn-p" onclick="abrirF29(\''+c.rut+'\')">\u1f4ca Completar F29</button>';
+    if(rrhhOk&&estado==='pendiente') html+='<button class="btn-p" onclick="abrirF29(\''+c.rut+'\')">📊 Completar F29</button>';
     if(estado==='completado') html+='<button class="btn-green" onclick="enviarReporte(\''+c.rut+'\')">\u1f4e4 Enviar reporte al cliente</button>';
-    if(estado==='completado') html+='<button class="btn-amber" onclick="abrirF29(\''+c.rut+'\')">\u270f\ufe0f Editar F29</button>';
-    html+='<button class="btn-s" onclick="abrirF29(\''+c.rut+'\')">\u1f441 Ver detalle</button>';
+    if(estado==='completado') html+='<button class="btn-amber" onclick="abrirF29(\''+c.rut+'\')">✏️ Editar F29</button>';
+    html+='<button class="btn-s" onclick="abrirF29(\''+c.rut+'\')">👁 Ver detalle</button>';
     html+='</div>';
     html+='</div></div>';
   });
@@ -942,7 +942,7 @@ function renderTabla(){
   document.getElementById('st-completado').textContent=stComp;
   document.getElementById('st-enviado').textContent=stEnv;
   document.getElementById('st-atrasado').textContent=stAtr;
-  document.getElementById('tabla-meta').textContent=clientes.length+' clientes \u00b7 '+stComp+' con F29 completo \u00b7 '+stRrhhOk+' listos para iniciar';
+  document.getElementById('tabla-meta').textContent=clientes.length+' clientes · '+stComp+' con F29 completo · '+stRrhhOk+' listos para iniciar';
 }
 
 function toggleRow(rut){
@@ -975,7 +975,7 @@ function abrirF29(rut){
   document.getElementById('f-ppm-base').value=f29.ppmBase||'';
   document.getElementById('f-ppm-tasa').value=f29.ppmTasa||periodo.ppmTasa||1.5;
   document.getElementById('f-ppm-monto').value=f29.ppm||'';
-  document.getElementById('ppm-tasa-hint').textContent='Tasa per\u00edodo: '+(periodo.ppmTasa||1.5)+'%';
+  document.getElementById('ppm-tasa-hint').textContent='Tasa período: '+(periodo.ppmTasa||1.5)+'%';
 
   // Retenciones
   document.getElementById('f-ret-hon').value=f29.retHon||'';
@@ -997,8 +997,8 @@ function abrirF29(rut){
   // Info RRHH
   document.getElementById('info-rrhh-imp').textContent=
     rep.rrhh&&rep.rrhh.imp2cat
-      ?'\u2705 Imp. \u00danico 2\u00aa Cat. desde RRHH: '+ff(rep.rrhh.imp2cat)
-      :'\u2139\ufe0f RRHH completado  -  Imp. \u00danico 2\u00aa Cat. cargado autom\u00e1ticamente.';
+      ?'✅ Imp. \u00danico 2\u00aa Cat. desde RRHH: '+ff(rep.rrhh.imp2cat)
+      :'\u2139️ RRHH completado  -  Imp. \u00danico 2\u00aa Cat. cargado automáticamente.';
 
   calcIVA();calcPPM();calcHonorarios();togglePostergacion();
   document.getElementById('modalF29').classList.add('on');
@@ -1128,7 +1128,7 @@ function enviarReporte(rut){
   reportes[idx].tsEnvio=ts();
   setReportes(reportes);
   renderTabla();
-  alert('\u2705 Reporte marcado como enviado al cliente.');
+  alert('✅ Reporte marcado como enviado al cliente.');
 }
 
 // ── INICIO ────────────────────────────────────────────────────────────────
