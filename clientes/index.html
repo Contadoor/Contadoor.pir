@@ -282,14 +282,14 @@ tr:hover td{background:#faf5ff;}
         </thead>
         <tbody>
           <tr>
-            <td class="sys">SII</td>
-            <td><input class="cred-inp" type="text" id="f-sii-u" placeholder="RUT sin puntos"></td>
-            <td><input class="cred-inp" type="text" id="f-sii-k" placeholder="Clave SII" autocomplete="off"></td>
+            <td class="sys">SII Empresa</td>
+            <td><input class="cred-inp" type="text" id="f-sii-u" placeholder="RUT empresa sin puntos"></td>
+            <td><input class="cred-inp" type="text" id="f-sii-k" placeholder="Clave SII empresa" autocomplete="off"></td>
           </tr>
           <tr>
-            <td class="sys">Previred</td>
-            <td><input class="cred-inp" type="text" id="f-prev-u" placeholder="RUT empresa"></td>
-            <td><input class="cred-inp" type="text" id="f-prev-k" placeholder="Clave Previred" autocomplete="off"></td>
+            <td class="sys">SII Rep. Legal</td>
+            <td><input class="cred-inp" type="text" id="f-prev-u" placeholder="RUT representante legal"></td>
+            <td><input class="cred-inp" type="text" id="f-prev-k" placeholder="Clave SII rep. legal" autocomplete="off"></td>
           </tr>
           <tr>
             <td class="sys">Clave Única</td>
@@ -392,7 +392,18 @@ tr:hover td{background:#faf5ff;}
 // ─────────────────────────────────────────────────────
 // CONSTANTES
 // ─────────────────────────────────────────────────────
-var UF = 39700;
+var UF = 39700; // fallback — se actualiza desde periodos
+function cargarUF() {
+  return sbFetch('periodos?select=uf,utm,periodo&order=periodo.desc&limit=1')
+    .then(function(r){ return r.ok ? r.json() : []; })
+    .then(function(rows){
+      if (rows && rows[0] && rows[0].uf) {
+        UF = parseFloat(rows[0].uf);
+        console.log('UF cargada desde periodos:', UF);
+      }
+    })
+    .catch(function(){ console.warn('UF: usando valor por defecto'); });
+}
 var PLANES = { cumplimiento: '📋 Cumplimiento', asesoria: '📊 Asesoría', estrategico: '⭐ Estratégico' };
 var ESTADOS = {
   activo:      { l: 'Activo',      c: 'badge-activo' },
@@ -518,14 +529,30 @@ var _detalleId = null;
 var _socioCount = 0;
 
 function calcPreview() {
-  var m = nv('f-monto'), t = nv('f-trab'), v = nv('f-var'), mon = gv('f-moneda') || 'UF';
-  var pb = g('preview-val');
+  var base  = nv('f-monto');
+  var incl  = nv('f-trab');
+  var vTrab = nv('f-var');
+  var mon   = gv('f-moneda') || 'UF';
+  var pb    = g('preview-val');
   if (!pb) return;
-  if (!m) { pb.textContent = '—'; return; }
-  var txt = m + (mon === 'CLP' ? ' CLP' : ' UF') + ' base';
-  if (t) txt += ' · ' + t + ' trab.';
-  if (v) txt += ' +' + v + '/trab extra';
-  if (mon === 'UF') txt += ' ≈ ' + ff(m * UF);
+  if (!base) { pb.textContent = '—'; return; }
+  // Trab adicionales del mes anterior (desde reporte RRHH en localStorage)
+  var trabMesAnt = 0;
+  try {
+    var rrhh = JSON.parse(localStorage.getItem('rrhh_ultimo') || '{}');
+    var rutCliente = gv('f-rut');
+    if (rrhh[rutCliente] && rrhh[rutCliente].totalTrab) {
+      trabMesAnt = Math.max(0, rrhh[rutCliente].totalTrab - incl);
+    }
+  } catch(e) {}
+  var baseNum = mon === 'UF' ? base * UF : base;
+  var varNum  = vTrab ? trabMesAnt * vTrab * (mon === 'UF' ? UF : 1) : 0;
+  var total   = baseNum + varNum;
+  var txt = base + (mon === 'CLP' ? ' CLP' : ' UF') + ' base';
+  if (incl)  txt += ' · ' + incl + ' trab. incl.';
+  if (vTrab) txt += ' +' + vTrab + (mon==='UF'?' UF':' CLP') + '/trab extra';
+  if (trabMesAnt) txt += ' · ' + trabMesAnt + ' adic. mes ant.';
+  txt += '  ≈ ' + ff(total);
   pb.textContent = txt;
 }
 
@@ -625,7 +652,7 @@ function abrirEditar(id) {
   sv('f-prio', c.prio || 'media');
   // Credenciales
   sv('f-sii-u',  c.siiU  || c.rut); sv('f-sii-k',  c.siiK);
-  sv('f-prev-u', c.prevU || c.rut); sv('f-prev-k', c.prevK);
+  sv('f-prev-u', c.prevU);          sv('f-prev-k', c.prevK); // Rep. Legal — no auto-fill RUT empresa
   sv('f-cu-u',   c.cuU   || c.rut); sv('f-cu-k',   c.cuK);
   sv('f-fact-u', c.factU);          sv('f-fact-k',  c.factK);
   sv('f-lic-u',  c.licU);           sv('f-lic-k',   c.licK);
@@ -755,8 +782,8 @@ function verClaves(id) {
   g('clavesTitle').textContent = c.razon || '';
   g('clavesRut').textContent = 'RUT ' + (c.rut || '');
   var pares = [
-    { s: 'SII',             u: c.siiU  || c.rut, k: c.siiK  },
-    { s: 'Previred',        u: c.prevU || c.rut, k: c.prevK },
+    { s: 'SII Empresa',     u: c.siiU  || c.rut, k: c.siiK  },
+    { s: 'SII Rep. Legal',  u: c.prevU,           k: c.prevK },
     { s: 'Clave Única',     u: c.cuU   || c.rut, k: c.cuK   },
     { s: 'Facturación',     u: c.factU,           k: c.factK },
     { s: 'Portal Licencias',u: c.licU,            k: c.licK  }
@@ -951,9 +978,8 @@ document.getElementById('f-var').oninput    = calcPreview;
 document.getElementById('f-moneda').onchange= calcPreview;
 document.getElementById('f-rut').oninput = function(){
   var v = this.value;
-  if (!g('f-sii-u').value)  sv('f-sii-u', v);
-  if (!g('f-prev-u').value) sv('f-prev-u', v);
-  if (!g('f-cu-u').value)   sv('f-cu-u', v);
+  if (!g('f-sii-u').value) sv('f-sii-u', v); // RUT empresa → SII Empresa
+  if (!g('f-cu-u').value)  sv('f-cu-u', v);  // RUT empresa → Clave Única
 };
 
 // Cerrar modal al clic en fondo
@@ -969,7 +995,9 @@ document.getElementById('f-rut').oninput = function(){
     var u = JSON.parse(sessionStorage.getItem('usuario_activo') || '{}');
     g('sb-usuario').textContent = (u.nombre||'Usuario') + ' · ' + (u.rolLabel||'Sistema');
   } catch(e) {}
-  cargarSupabase().then(renderClientes).catch(function(){ renderClientes(); });
+  cargarUF().then(function(){
+    cargarSupabase().then(renderClientes).catch(function(){ renderClientes(); });
+  });
 })();
 </script>
 <script src="../auth.js"></script>
