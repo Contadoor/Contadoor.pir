@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pagos · Gestoor</title>
+<title>Aprobaciones · Gestoor</title>
 <style>
 :root{--p:#904891;--pd:#6D2E6E;--pp:#F5EAF5;--deep:#08040f;--bg:#f0ebff;--sur:#fff;--sur2:#faf7fa;--bdr:#e8dde8;--t1:#1a0a1b;--t2:#5c4a5d;--tm:#9a849b;--green:#2D9B6F;--amber:#C07A1A;--red:#C0392B;--blue:#3B82F6;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -132,37 +132,46 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 <body>
 <div class="layout">
 <aside class="sidebar">
-  <div class="sb-logo">
-    <img src="../assets/logo.png" onerror="this.src='https://assets.cdn.filesafe.space/kfq1F3czdejkInyTMLkO/media/6982b1a12dd9857339e39ae1.png'" alt="Contadoor"/>
-    <div class="sb-tagline">Sistema de Gestión</div>
-  </div>
-  <nav class="sb-nav">
-    <div class="sb-sec">Principal</div>
+  <nav>
+    <div class="sb-section">Principal</div>
     <a class="sb-item" href="../index.html">🏠 Dashboard</a>
-    <div class="sb-sec">Base de Datos</div>
-    <a class="sb-item" href="../clientes/index.html">👥 Clientes</a>
-    <div class="sb-sec">Reportes</div>
-    <a class="sb-item" href="../reportes/index.html">📋 Panel de Control</a>
-    <a class="sb-item" href="../reportes-rrhh/index.html">👥 Remuneraciones</a>
-    <a class="sb-item" href="../reportes-contable/index.html" style="opacity:.4">📊 Tributario/Contable</a>
-    <a class="sb-item" href="../reportes-pagos/index.html" style="opacity:.4">💰 Vista Pagos</a>
-    <div class="sb-sec">Gestión Trabajadores</div>
-    <a class="sb-item" href="../trabajadores/index.html" style="opacity:.4">👷 Trabajadores</a>
-    <a class="sb-item" href="../calendario-rrhh/index.html" style="opacity:.4">📅 Calendario RRHH</a>
-    <div class="sb-sec">Financiero</div>
-    <a class="sb-item" href="../facturacion/index.html" style="opacity:.4">🧾 Facturación</a>
-    <a class="sb-item on" href="../pagos/index.html">💰 Pagos</a>
-    <a class="sb-item" href="../conciliacion/index.html">🏦 Conciliación</a>
-    <a class="sb-item" href="../cobranza/index.html">📋 CxC / Cobranza</a>
-    <a class="sb-item" href="../convenios/index.html">🤝 Convenios</a>
-    <div class="sb-sec">Tributario</div>
-    <a class="sb-item" href="../pir/index.html">📊 PIR</a>
-    <a class="sb-item" href="../pre-iva/index.html">📋 Pre-IVA</a>
-    <div class="sb-sec">Sistema</div>
-    <a class="sb-item" href="../performance/index.html" style="opacity:.4">📈 Performance</a>
-    <a class="sb-item" href="../admin/index.html">👤 Admin</a>
+
+    <div class="sb-section">Gestión</div>
+    <a class="sb-item " href="../clientes/index.html">👥 Clientes</a>
+    <a class="sb-item " href="../planes/index.html">📋 Planes y Servicios</a>
+    <a class="sb-item " href="../reportes/index.html">📋 Panel de Control</a>
+
+    <div class="sb-section">Remuneraciones</div>
+    <a class="sb-item " href="../reportes-rrhh/index.html">👥 Reporte RRHH</a>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">👤 Gestión de Personal</a>
+
+    <div class="sb-section">Contable</div>
+    <a class="sb-item " href="../reportes-contable/index.html">📊 Reporte Contable</a>
+    <a class="sb-item " href="../reportes-pagos/index.html">💰 Reporte Pagos</a>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">🤝 Convenios</a>
+
+    <div class="sb-section">Tributario</div>
+    <a class="sb-item " href="../pir/index.html">📊 PIR</a>
+    <a class="sb-item " href="../pre-iva/index.html">📋 Pre-IVA</a>
+
+    <div class="sb-section">Financiero</div>
+    <a class="sb-item on" href="../pagos/index.html">✅ Aprobaciones</a>
+    <a class="sb-item " href="../conciliacion/index.html">🏦 Conciliación</a>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📋 CxC / Cobranza</a>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">🧾 Facturación</a>
+
+    <div class="sb-section">Comercial</div>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📈 CRM</a>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📝 Cotizaciones</a>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📣 Campañas</a>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">✉️ Comunicaciones</a>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📊 Performance</a>
+
+    <div class="sb-section">Configuración</div>
+    <a class="sb-item " href="../admin/index.html">👤 Admin</a>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">🌐 Mi Contadoor</a>
   </nav>
-  <div class="sb-foot">Gestoor v1.0</div>
+  <div class="sb-foot" id="sb-usuario">Gestoor v1.0</div>
 </aside>
 
 <main class="main">
@@ -211,7 +220,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
         <option value="">Todas las áreas</option>
         <option value="rrhh">👥 RRHH</option>
         <option value="contable">📊 Contable</option>
-        <option value="pagos">💰 Pagos</option>
+        <option value="pagos">✅ Aprobaciones</option>
         <option value="cobranza">🧾 Cobranza</option>
       </select>
       <select class="filter-sel" id="filterTipo" onchange="renderObligaciones()">
@@ -267,7 +276,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
           <option value="">Seleccionar área...</option>
           <option value="rrhh">👥 RRHH</option>
           <option value="contable">📊 Contable</option>
-          <option value="pagos">💰 Pagos</option>
+          <option value="pagos">✅ Aprobaciones</option>
           <option value="cobranza">🧾 Cobranza</option>
         </select>
         <span class="hint">Define el área responsable del pago</span>
