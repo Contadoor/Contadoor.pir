@@ -775,7 +775,7 @@ function setHistoricoRemu(obj){localStorage.setItem('remu_historico',JSON.string
 // PARSER LIBRO MAS REMUNERACIONES
 // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 function parsearLibroRemu(buffer){
-  // SheetJS  -  leer .xls con raw:true para obtener valores num\u00e9ricos reales
+  // SheetJS  -  leer .xls con raw:true para obtener valores numéricos reales
   var wb=XLSX.read(buffer,{type:'array',raw:true});
   var ws=wb.Sheets[wb.SheetNames[0]];
   var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
@@ -828,16 +828,16 @@ function parsearLibroRemu(buffer){
     var periodo=String(row[COL.PERIODO]||'').trim();
     if(!periodo) continue;
 
-    // Saltar fila de totales  -  la que no tiene RUT v\u00e1lido con d\u00edgito verificador
+    // Saltar fila de totales  -  la que no tiene RUT válido con dígito verificador
     var rut=String(row[COL.RUT]||'').trim();
     var esFilaTotales=!rut||rut===''||!/\d/.test(rut);
     if(esFilaTotales) continue;
 
-    // Normalizar per\u00edodo: SheetJS puede leerlo como n\u00famero (ej: 12026 para "01-2026")
+    // Normalizar período: SheetJS puede leerlo como número (ej: 12026 para "01-2026")
     // Mas Remuneraciones exporta "MM-AAAA" como texto  -  verificar
     if(typeof row[COL.PERIODO]==='number'){
-      // Podr\u00eda ser fecha serial de Excel  -  intentar convertir
-      // O podr\u00eda ser que el per\u00edodo viene en otra columna
+      // Podría ser fecha serial de Excel  -  intentar convertir
+      // O podría ser que el período viene en otra columna
       // Por ahora lo dejamos como string
     }
 
@@ -871,7 +871,7 @@ function parsearLibroRemu(buffer){
     p.tributable     += toNum(row[COL.TRIBUTABLE]);
   }
 
-  // Contar trabajadores \u00fanicos y limpiar Set
+  // Contar trabajadores únicos y limpiar Set
   Object.keys(periodos).forEach(function(k){
     periodos[k].nTrab=periodos[k].ruts.size;
     delete periodos[k].ruts;
@@ -890,9 +890,9 @@ function setupUploadRemu(){
     var r=new FileReader();
     r.onload=function(e){
       try{
-        // Verificar que SheetJS est\u00e9 disponible
+        // Verificar que SheetJS esté disponible
         if(typeof XLSX==='undefined'){
-          alert('Error: librer\u00eda de lectura Excel no cargada. Recarga la p\u00e1gina e intenta de nuevo.');
+          alert('Error: librería de lectura Excel no cargada. Recarga la página e intenta de nuevo.');
           return;
         }
         _remuData=parsearLibroRemu(new Uint8Array(e.target.result));
@@ -905,14 +905,14 @@ function setupUploadRemu(){
         }
 
         document.getElementById('remuFileName').textContent=file.name;
-        document.getElementById('remuMeta').textContent=periodos.length+' per\u00edodo(s) encontrado(s): '+periodos.join(', ');
+        document.getElementById('remuMeta').textContent=periodos.length+' período(s) encontrado(s): '+periodos.join(', ');
         document.getElementById('remuOk').classList.add('show');
         document.getElementById('uzRemu').style.display='none';
         document.getElementById('remuManualWrap').style.display='none';
 
-        // Poblar selector de per\u00edodos
+        // Poblar selector de períodos
         var sel=document.getElementById('selectPeriodoRemu');
-        sel.innerHTML='<option value="">Selecciona el per\u00edodo...</option>';
+        sel.innerHTML='<option value="">Selecciona el período...</option>';
         periodos.forEach(function(p){
           var opt=document.createElement('option');
           opt.value=p;
@@ -922,7 +922,7 @@ function setupUploadRemu(){
           sel.appendChild(opt);
         });
 
-        // Si hay per\u00edodo seleccionado en el form, pre-seleccionar
+        // Si hay período seleccionado en el form, pre-seleccionar
         var periodoForm=sv('f-periodo');
         if(periodoForm){
           // f-periodo es "2026-06", libro es "06-2026"
@@ -933,7 +933,7 @@ function setupUploadRemu(){
 
         document.getElementById('selectPeriodoWrap').style.display='block';
 
-        // Procesar autom\u00e1ticamente si hay match
+        // Procesar automáticamente si hay match
         if(sel.value) procesarPeriodoSeleccionado();
 
       }catch(err){
@@ -958,7 +958,7 @@ function procesarPeriodoSeleccionado(){
   if(!periodo||!_remuData||!_remuData[periodo]) return;
   var d=_remuData[periodo];
 
-  // Llenar campos autom\u00e1ticamente
+  // Llenar campos automáticamente
   setV('f-trab',d.nTrab);
   setV('f-total-imponible',Math.round(d.totalImponible));
   setV('f-total-noimponible',Math.round(d.totalNoImponible));
@@ -975,12 +975,12 @@ function procesarPeriodoSeleccionado(){
   setV('f-ces-emp',Math.round(d.cesEmp));
   setV('f-total-aportes',Math.round(d.sis+d.mutual+d.cesEmp));
 
-  // IU cae autom\u00e1ticamente al cuadro SII
+  // IU cae automáticamente al cuadro SII
   setV('f-iu-sii',Math.round(d.iu));
 
   document.getElementById('remuDatosWrap').style.display='block';
 
-  // Guardar en hist\u00f3rico para estad\u00edsticas
+  // Guardar en histórico para estadísticas
   var hist=getHistoricoRemu();
   var rut=sv('f-cliente');
   if(rut){
@@ -1028,11 +1028,11 @@ function calcIva(){
       +(remAnt>0?'<div style="font-size:11px;margin-top:3px">Remanente ant. aplicado: '+ff(remAnt)+'</div>':'')
       +'</div>'
       +'<div style="font-size:18px;font-weight:700;color:#78350f">'+ff(neto)+'</div></div>';
-    // Guardar el remanente del mes anterior como 0 (se us\u00f3 todo)
+    // Guardar el remanente del mes anterior como 0 (se usó todo)
     setV('f-iva-remanente-sig','0');
-    // Activar postergaci\u00f3n si el checkbox est\u00e1 marcado
+    // Activar postergación si el checkbox está marcado
     setV('f-iva-postergado',Math.round(neto));
-    // Fecha vencimiento +60 d\u00edas desde el 20 del mes
+    // Fecha vencimiento +60 días desde el 20 del mes
     var periodo=sv('f-periodo');
     if(periodo){
       var d=new Date(periodo+'-20');
@@ -1045,10 +1045,10 @@ function calcIva(){
     var rem=Math.abs(neto);
     box.innerHTML='<div class="success-box" style="display:flex;justify-content:space-between;align-items:center">'
       +'<div><strong>Remanente IVA a favor:</strong> '+ff(rem)
-      +'<div style="font-size:11px;margin-top:3px">Se arrastra al per\u00edodo siguiente autom\u00e1ticamente</div>'
+      +'<div style="font-size:11px;margin-top:3px">Se arrastra al período siguiente automáticamente</div>'
       +'</div>'
       +'<div style="font-size:18px;font-weight:700;color:#064e3b">'+ff(rem)+'</div></div>';
-    // Guardar remanente para el pr\u00f3ximo per\u00edodo
+    // Guardar remanente para el próximo período
     setV('f-iva-remanente-sig',Math.round(rem));
     neto=0;
   }
@@ -1081,9 +1081,9 @@ function calcPpm(){
 
   // Hint tasa
   var hint=document.getElementById('ppm-tasa-hint');
-  if(hint&&tasa>0) hint.textContent='Tasa: '+tasa+'% \u00b7 Guardada para pr\u00f3ximo per\u00edodo';
+  if(hint&&tasa>0) hint.textContent='Tasa: '+tasa+'% · Guardada para próximo período';
 
-  // Actualizar acumulado desde hist\u00f3rico
+  // Actualizar acumulado desde histórico
   var rut=sv('f-cliente');
   if(rut){
     var hist=getHistoricoDiario();
@@ -1091,7 +1091,7 @@ function calcPpm(){
     var acum=0;
     if(hist[rut]){
       Object.keys(hist[rut]).forEach(function(p){
-        // Sumar PPM de todos los meses del mismo a\u00f1o hasta el per\u00edodo actual
+        // Sumar PPM de todos los meses del mismo año hasta el período actual
         var pAnio=p.split('-')[1];
         var cAnio=periodoActual?periodoActual.split('-')[0]:'';
         if(pAnio===cAnio){
@@ -1136,7 +1136,7 @@ function actualizarF29Resumen(){
 
   var h='<table style="width:100%;border-collapse:collapse;font-size:12px">';
   if(!postergar&&ivaNeto>0) h+='<tr><td style="padding:5px 0;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">IVA determinado</td><td style="text-align:right;padding:5px 0;border-bottom:0.5px solid #e8dde8">'+ff(ivaNeto)+'</td></tr>';
-  if(postergar&&ivaNeto>0) h+='<tr><td style="padding:5px 0;border-bottom:0.5px solid #e8dde8;color:#C07A1A">IVA postergado (+60 d\u00edas)</td><td style="text-align:right;padding:5px 0;border-bottom:0.5px solid #e8dde8;color:#C07A1A">'+ff(ivaNeto)+'</td></tr>';
+  if(postergar&&ivaNeto>0) h+='<tr><td style="padding:5px 0;border-bottom:0.5px solid #e8dde8;color:#C07A1A">IVA postergado (+60 días)</td><td style="text-align:right;padding:5px 0;border-bottom:0.5px solid #e8dde8;color:#C07A1A">'+ff(ivaNeto)+'</td></tr>';
   if(ppm>0) h+='<tr><td style="padding:5px 0;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">PPM ('+gv('f-ppm-tasa')+'%)</td><td style="text-align:right;padding:5px 0;border-bottom:0.5px solid #e8dde8">'+ff(ppm)+'</td></tr>';
   if(retHon>0) h+='<tr><td style="padding:5px 0;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">Retenc. boletas honorarios</td><td style="text-align:right;padding:5px 0;border-bottom:0.5px solid #e8dde8">'+ff(retHon)+'</td></tr>';
   if(ret2>0) h+='<tr><td style="padding:5px 0;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">Retenciones 2\u00aa Cat.</td><td style="text-align:right;padding:5px 0;border-bottom:0.5px solid #e8dde8">'+ff(ret2)+'</td></tr>';
@@ -1183,12 +1183,12 @@ function onEstadoPagoChange(){
   var infoEl=document.getElementById('estadoPagoInfo');
   if(!infoEl) return;
   var msgs={
-    'transferido':'\u1f4b8 El cliente transfiri\u00f3. El analista de pagos debe conciliar la transferencia y proceder con el pago.',
-    'en_proceso':'\u1f504 El analista est\u00e1 ingresando el pago en la instituci\u00f3n (AFP/SII/banco).',
-    'pendiente_firma':'\u270d\ufe0f Esperando autorizaci\u00f3n de Luciano. Aparecer\u00e1 en la vista de aprobaci\u00f3n masiva.',
-    'pagado':'\u2705 Ciclo de pago cerrado para este per\u00edodo.',
-    'pago_directo':'\u2705 El cliente pag\u00f3 directamente a la instituci\u00f3n. No requiere gesti\u00f3n de Contadoor.',
-    'vencido':'\u1f534 Atenci\u00f3n: esta obligaci\u00f3n est\u00e1 vencida sin pago registrado.'
+    'transferido':'💸 El cliente transfirió. El analista de pagos debe conciliar la transferencia y proceder con el pago.',
+    'en_proceso':'🔄 El analista está ingresando el pago en la institución (AFP/SII/banco).',
+    'pendiente_firma':'\u270d️ Esperando autorización de Luciano. Aparecerá en la vista de aprobación masiva.',
+    'pagado':'✅ Ciclo de pago cerrado para este período.',
+    'pago_directo':'✅ El cliente pagó directamente a la institución. No requiere gestión de Contadoor.',
+    'vencido':'🔴 Atención: esta obligación está vencida sin pago registrado.'
   };
   if(msgs[estado]){
     infoEl.style.display='block';
@@ -1204,7 +1204,7 @@ function onEstadoPagoChange(){
     if(h2) h2.textContent='Fecha registrada hoy';
   }
 
-  // Crear notificaciones seg\u00fan estado
+  // Crear notificaciones según estado
   var rut2=sv('f-cliente'),periodo2=sv('f-periodo');
   var c2=getClientes().find(function(x){return x.rut===rut2;});
   var nc=c2?c2.razon:rut2;
@@ -1212,14 +1212,14 @@ function onEstadoPagoChange(){
     if(estado==='transferido') crearNotificacion({
       modulo:'pagos',tipo:'accion_requerida',prioridad:'alta',
       clienteNombre:nc,clienteRut:rut2,periodo:periodo2,
-      mensaje:'Cliente '+nc+' transfiri\u00f3 para pago de obligaciones '+formatPeriodo(periodo2)+'. Conciliar transferencia y proceder con el pago.',
+      mensaje:'Cliente '+nc+' transfirió para pago de obligaciones '+formatPeriodo(periodo2)+'. Conciliar transferencia y proceder con el pago.',
       accion:'conciliar',accionLabel:'Marcar como ejecutado',
       accionUrl:'../conciliacion/index.html'
     });
     if(estado==='pendiente_firma') crearNotificacion({
       modulo:'pagos',tipo:'accion_requerida',prioridad:'alta',
       clienteNombre:nc,clienteRut:rut2,periodo:periodo2,
-      mensaje:'Pago de '+nc+' \u00b7 '+formatPeriodo(periodo2)+' pendiente de aprobaci\u00f3n. Revisar y autorizar en el banco.',
+      mensaje:'Pago de '+nc+' · '+formatPeriodo(periodo2)+' pendiente de aprobación. Revisar y autorizar en el banco.',
       accion:'aprobar',accionLabel:'Marcar aprobado'
     });
   }
@@ -1279,7 +1279,7 @@ function calcTotal(){
   if(ivaPostergado>0) partes.push('IVA postergado: '+ff(ivaPostergado));
   if(hon>0) partes.push('Honorarios: '+ff(hon));
   if(atrasos>0) partes.push('Atrasos: '+ff(atrasos));
-  document.getElementById('totalDetalle').textContent=partes.join('  \u00b7  ');
+  document.getElementById('totalDetalle').textContent=partes.join('  ·  ');
 }
 
 // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
@@ -1299,7 +1299,7 @@ function addAtraso(concepto,periodo,monto){
       document.getElementById('atrasosEmpty').style.display='';
     calcTotal();
   };
-  [mkI('text',concepto,'Concepto (ej: IVA jun-2025)'),mkI('text',periodo,'Per\u00edodo'),mkI('number',monto,'Monto $'),btn]
+  [mkI('text',concepto,'Concepto (ej: IVA jun-2025)'),mkI('text',periodo,'Período'),mkI('number',monto,'Monto $'),btn]
     .forEach(function(el){div.appendChild(el);});
   wrap.appendChild(div);calcTotal();
 }
@@ -1330,16 +1330,16 @@ function marcarSeccion(sec){
   }
   // Feedback visual
   var statusEl=document.getElementById(sec+'Status');
-  if(statusEl) statusEl.innerHTML='<span class="badge badge-ok">\u2705 OK</span>';
+  if(statusEl) statusEl.innerHTML='<span class="badge badge-ok">✅ OK</span>';
 
   // Notificaciones entre analistas
   var rut=sv('f-cliente'),periodo=sv('f-periodo');
   var c=getClientes().find(function(x){return x.rut===rut;});
   var nombreCliente=c?c.razon:rut;
   var mensajes={
-    rrhh:'Secci\u00f3n RRHH completada para '+nombreCliente+' \u00b7 '+formatPeriodo(periodo)+'. El analista contable puede continuar con impuestos y honorarios.',
-    imp:'Secci\u00f3n Impuestos completada para '+nombreCliente+' \u00b7 '+formatPeriodo(periodo)+'. El analista de pagos puede verificar.',
-    hon:'Secci\u00f3n Honorarios completada para '+nombreCliente+' \u00b7 '+formatPeriodo(periodo)+'. Listo para verificaci\u00f3n final.'
+    rrhh:'Sección RRHH completada para '+nombreCliente+' · '+formatPeriodo(periodo)+'. El analista contable puede continuar con impuestos y honorarios.',
+    imp:'Sección Impuestos completada para '+nombreCliente+' · '+formatPeriodo(periodo)+'. El analista de pagos puede verificar.',
+    hon:'Sección Honorarios completada para '+nombreCliente+' · '+formatPeriodo(periodo)+'. Listo para verificación final.'
   };
   var modDestino={rrhh:'impuestos',imp:'pagos',hon:'pagos'};
   if(window.crearNotificacion) crearNotificacion({
@@ -1349,10 +1349,10 @@ function marcarSeccion(sec){
     clienteNombre:nombreCliente,
     clienteRut:rut,
     periodo:periodo,
-    mensaje:mensajes[sec]||'Secci\u00f3n '+sec+' completada.',
+    mensaje:mensajes[sec]||'Sección '+sec+' completada.',
     accion:null
   });
-  alert('Secci\u00f3n '+sec.toUpperCase()+' marcada como completada.');
+  alert('Sección '+sec.toUpperCase()+' marcada como completada.');
 }
 
 // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
@@ -1377,10 +1377,10 @@ function onClienteChange(){
   setV('f-revisado',c.contador||'');
   setV('f-email-analista',c.emailAnalista||'');
 
-  // Qui\u00e9n paga
+  // Quién paga
   if(c.quienPaga) setV('f-quien-paga',c.quienPaga);
 
-  // UF del per\u00edodo abierto
+  // UF del período abierto
   var periodo=sv('f-periodo');
   var periodos=getPeriodos();
   var periodoData=periodos.find(function(p){return p.periodo===periodo;});
@@ -1389,7 +1389,7 @@ function onClienteChange(){
     if(periodoData.ppmTasa) setV('f-ppm-tasa',periodoData.ppmTasa);
   }
 
-  // Remanente IVA del per\u00edodo anterior
+  // Remanente IVA del período anterior
   var rems=JSON.parse(localStorage.getItem('rpt_remanentes')||'{}');
   if(rems[rut]&&periodo&&rems[rut][periodo]){
     setV('f-iva-remanente-ant',rems[rut][periodo]);
@@ -1403,14 +1403,14 @@ function onClienteChange(){
   box.style.display='block';
   box.innerHTML='<div class="info-box" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'
     +'<div><strong>'+hesc(c.razon)+'</strong>'
-    +(c.plan?' \u00b7 <span style="font-size:11px;color:#1e40af">Plan '+hesc(c.plan)+'</span>':'')
-    +(c.tieneRrhh===false?' \u00b7 <span class="badge badge-na">Sin RRHH</span>':'')
-    +(c.tieneContabilidad===false?' \u00b7 <span class="badge badge-na">Sin contabilidad</span>':'')
-    +(c.prioridadRrhh?' \u00b7 <span class="badge badge-'+(c.prioridadRrhh)+'">Prioridad '+hesc(c.prioridadRrhh)+'</span>':'')
+    +(c.plan?' · <span style="font-size:11px;color:#1e40af">Plan '+hesc(c.plan)+'</span>':'')
+    +(c.tieneRrhh===false?' · <span class="badge badge-na">Sin RRHH</span>':'')
+    +(c.tieneContabilidad===false?' · <span class="badge badge-na">Sin contabilidad</span>':'')
+    +(c.prioridadRrhh?' · <span class="badge badge-'+(c.prioridadRrhh)+'">Prioridad '+hesc(c.prioridadRrhh)+'</span>':'')
     +'</div>'
     +'<div style="display:flex;gap:6px">'
     +(c.wa?'<a class="btn-wa btn-sm" href="https://wa.me/56'+c.wa.replace(/\D/g,'')+'" target="_blank">💬 WA</a>':'')
-    +(c.email?'<a class="btn-s btn-sm" href="mailto:'+hesc(c.email)+'" style="font-size:11px;padding:4px 10px">\u2709\ufe0f Email</a>':'')
+    +(c.email?'<a class="btn-s btn-sm" href="mailto:'+hesc(c.email)+'" style="font-size:11px;padding:4px 10px">✉️ Email</a>':'')
     +'</div></div>';
   calcTotal();
 }
@@ -1458,7 +1458,7 @@ function resetForm(){
 function abrirModalNuevo(rut,periodo){
   _editId=null;resetForm();popularSelectClientes();
   document.getElementById('modalTitle').textContent='Nuevo Reporte Mensual';
-  document.getElementById('modalSub').textContent='Completa cada secci\u00f3n con la informaci\u00f3n del per\u00edodo';
+  document.getElementById('modalSub').textContent='Completa cada sección con la información del período';
   if(rut){setV('f-cliente',rut);onClienteChange();}
   if(periodo) setV('f-periodo',periodo);
   document.getElementById('modal').classList.add('on');
@@ -1501,7 +1501,7 @@ function abrirModalEditar(id){
     ['rrhh','imp','hon'].forEach(function(sec){
       if(r.secciones[sec]&&r.secciones[sec].ok){
         var el=document.getElementById(sec+'Status');
-        if(el) el.innerHTML='<span class="badge badge-ok">\u2705 OK</span>';
+        if(el) el.innerHTML='<span class="badge badge-ok">✅ OK</span>';
       }
     });
   }
@@ -1519,7 +1519,7 @@ function closeModal(){document.getElementById('modal').classList.remove('on');}
 
 function guardarReporte(estado){
   var rut=sv('f-cliente'),periodo=sv('f-periodo');
-  if(!rut||!periodo){alert('Selecciona un cliente y un per\u00edodo.');return;}
+  if(!rut||!periodo){alert('Selecciona un cliente y un período.');return;}
   var c=getClientes().find(function(x){return x.rut===rut;});
   var arr=getReportes();
 
@@ -1629,7 +1629,7 @@ function guardarReporte(estado){
   }else{
     var existIdx=arr.findIndex(function(x){return x.rut===rut&&x.periodo===periodo;});
     if(existIdx>=0){
-      if(confirm('Ya existe un reporte para '+(c?c.razon:rut)+' en '+formatPeriodo(periodo)+'. \u00bfReemplazar?'))
+      if(confirm('Ya existe un reporte para '+(c?c.razon:rut)+' en '+formatPeriodo(periodo)+'. ¿Reemplazar?'))
         arr[existIdx]=r;
       else{r.id=Date.now();arr.unshift(r);}
     }else{arr.unshift(r);}
@@ -1673,21 +1673,21 @@ function actualizarPreviewApertura(){
   var conRrhh=clientes.filter(function(c){return c.tieneRrhh!==false;}).length;
   var sinRrhh=clientes.length-conRrhh;
   var prev=document.getElementById('ap-preview');
-  if(prev) prev.innerHTML='Se generar\u00e1n <strong>'+clientes.length+' reportes</strong> para '+formatPeriodo(periodo)
+  if(prev) prev.innerHTML='Se generarán <strong>'+clientes.length+' reportes</strong> para '+formatPeriodo(periodo)
     +': <strong>'+conRrhh+' con RRHH</strong> y <strong>'+sinRrhh+' sin RRHH</strong>.'
-    +(clientes.length===0?' <br>\u26a0\ufe0f No hay clientes activos. Agrega clientes en el m\u00f3dulo Clientes primero.':'');
+    +(clientes.length===0?' <br>⚠️ No hay clientes activos. Agrega clientes en el módulo Clientes primero.':'');
 }
 
 function confirmarApertura(){
   var periodo=sv('ap-periodo');
-  if(!periodo){alert('Selecciona un per\u00edodo.');return;}
+  if(!periodo){alert('Selecciona un período.');return;}
   var clientes=getClientes().filter(function(c){return c.estado==='activo'||c.estado==='onboarding'||!c.estado;});
   if(!clientes.length){alert('No hay clientes activos.');return;}
 
   var periodos=getPeriodos();
   var existente=periodos.find(function(p){return p.periodo===periodo;});
   if(existente){
-    if(!confirm('Ya existe el per\u00edodo '+formatPeriodo(periodo)+'. \u00bfDeseas regenerar la n\u00f3mina?')) return;
+    if(!confirm('Ya existe el período '+formatPeriodo(periodo)+'. ¿Deseas regenerar la nómina?')) return;
     periodos=periodos.filter(function(p){return p.periodo!==periodo;});
   }
 
@@ -1729,7 +1729,7 @@ function confirmarApertura(){
   renderAll();
   closeApertura();
   setView('nomina');
-  alert('\u2705 Per\u00edodo '+formatPeriodo(periodo)+' abierto. Se generaron '+nuevos+' reportes en la n\u00f3mina.');
+  alert('✅ Período '+formatPeriodo(periodo)+' abierto. Se generaron '+nuevos+' reportes en la nómina.');
 }
 
 function closeApertura(){document.getElementById('modalApertura').classList.remove('on');}
@@ -1743,7 +1743,7 @@ function renderNomina(){
   var periodos=getPeriodos();
 
   if(!arr.length&&!periodos.length){
-    cont.innerHTML='<div class="empty-state"><h3>Sin per\u00edodo abierto</h3><p>Haz clic en "Abrir Per\u00edodo" para generar la n\u00f3mina de reportes del mes.</p></div>';
+    cont.innerHTML='<div class="empty-state"><h3>Sin período abierto</h3><p>Haz clic en "Abrir Período" para generar la nómina de reportes del mes.</p></div>';
     return;
   }
 
@@ -1768,12 +1768,12 @@ function renderNomina(){
 
     html+='<div class="card" style="margin-bottom:20px">';
     html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">';
-    html+='<div><div style="font-size:16px;font-weight:700;color:#904891">\u1f4c5 '+formatPeriodo(periodo)+'</div>';
-    html+='<div style="font-size:11px;color:#9a849b;margin-top:2px">'+lista.length+' clientes \u00b7 '+completos+' secciones completas \u00b7 '+enviados+' enviados \u00b7 Total: '+ff(total)+'</div></div>';
+    html+='<div><div style="font-size:16px;font-weight:700;color:#904891">📅 '+formatPeriodo(periodo)+'</div>';
+    html+='<div style="font-size:11px;color:#9a849b;margin-top:2px">'+lista.length+' clientes · '+completos+' secciones completas · '+enviados+' enviados · Total: '+ff(total)+'</div></div>';
     html+='<div style="display:flex;gap:6px">';
-    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="alta">\u1f534 Alta</button>';
-    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="media">\u1f7e1 Media</button>';
-    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="baja">\u1f7e2 Baja</button>';
+    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="alta">🔴 Alta</button>';
+    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="media">🟡 Media</button>';
+    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="baja">🟢 Baja</button>';
     html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="">Todos</button>';
     html+='</div></div>';
 
@@ -1787,10 +1787,10 @@ function renderNomina(){
     lista.forEach(function(r){
       var sec=r.secciones||{};
       function chip(key,label){
-        if(!sec[key]) return '<span class="estado-chip pend">'+label+' \u23f3</span>';
+        if(!sec[key]) return '<span class="estado-chip pend">'+label+' ⏳</span>';
         if(sec[key].na) return '<span class="estado-chip na">'+label+' N/A</span>';
-        if(sec[key].ok) return '<span class="estado-chip ok">'+label+' \u2705</span>';
-        return '<span class="estado-chip pend">'+label+' \u23f3</span>';
+        if(sec[key].ok) return '<span class="estado-chip ok">'+label+' ✅</span>';
+        return '<span class="estado-chip pend">'+label+' ⏳</span>';
       }
       var priorBadge={alta:'badge-alta',media:'badge-media',baja:'badge-baja'}[r.prioridadRrhh||'media']||'badge-media';
       html+='<div class="nomina-row" id="nr-'+r.id+'">';
@@ -1806,16 +1806,16 @@ function renderNomina(){
       html+='<div class="nomina-estados">'+chip('rrhh','RRHH')+chip('imp','Imp.')+chip('hon','Hon.')+'<span class="estado-chip '+(r.estado==='enviado_total'||r.estado==='enviado_rrhh'?'ok':'pend')+'">'+(r.estado==='enviado_total'?'\u1f4e4 Enviado':r.estado==='enviado_rrhh'?'\u1f4e4 RRHH env.':'\u1f4e4 Pendiente env.')+'</span></div>';
       html+='</div>';
       html+='<div style="display:flex;gap:5px;flex-shrink:0">';
-      if(r.clienteWa) html+='<a class="btn-wa btn-sm" href="https://wa.me/56'+r.clienteWa.replace(/\D/g,'')+'" target="_blank">\u1f4ac</a>';
-      var btnLabel=modalidad==='directo'?'\u2713 Validar':'\u270f\ufe0f Completar';
+      if(r.clienteWa) html+='<a class="btn-wa btn-sm" href="https://wa.me/56'+r.clienteWa.replace(/\D/g,'')+'" target="_blank">💬</a>';
+      var btnLabel=modalidad==='directo'?'\u2713 Validar':'✏️ Completar';
       html+='<button class="btn-p btn-sm" onclick="abrirModalEditar('+r.id+')">'+btnLabel+'</button>';
-      if(r.totalGeneral>0) html+='<button class="btn-s btn-sm" onclick="verReporte('+r.id+')">\u1f441 Ver</button>';
+      if(r.totalGeneral>0) html+='<button class="btn-s btn-sm" onclick="verReporte('+r.id+')">👁 Ver</button>';
       html+='</div></div>';
     });
     html+='</div></div>';
   });
 
-  cont.innerHTML=html||'<div class="empty-state"><h3>Sin reportes</h3><p>Abre un per\u00edodo para generar la n\u00f3mina.</p></div>';
+  cont.innerHTML=html||'<div class="empty-state"><h3>Sin reportes</h3><p>Abre un período para generar la nómina.</p></div>';
 }
 
 function filtrarNominaPrioridad(periodo,prioridad){
@@ -1856,7 +1856,7 @@ function verReporte(id){
   function varIcon(actual,anterior){
     if(!anterior) return '';
     var diff=actual-anterior,pct=anterior>0?((diff/anterior)*100).toFixed(1):0;
-    if(Math.abs(diff)<1) return '<span class="var-eq">\u2192 Sin cambio</span>';
+    if(Math.abs(diff)<1) return '<span class="var-eq">→ Sin cambio</span>';
     return diff>0?'<span class="var-up">\u2191 +'+pct+'%</span>':'<span class="var-dn">\u2193 '+pct+'%</span>';
   }
 
@@ -1865,9 +1865,9 @@ function verReporte(id){
   h+='<div class="rpt-header">';
   h+='<div style="display:flex;justify-content:space-between;align-items:flex-start">';
   h+='<div><img src="https://assets.cdn.filesafe.space/kfq1F3czdejkInyTMLkO/media/6982b1a12dd9857339e39ae1.png" style="width:150px;filter:brightness(0) invert(1);margin-bottom:10px"/>';
-  h+='<div style="font-size:11px;opacity:.6;text-transform:uppercase;letter-spacing:1.5px">Reporte Mensual de Gesti\u00f3n</div>';
+  h+='<div style="font-size:11px;opacity:.6;text-transform:uppercase;letter-spacing:1.5px">Reporte Mensual de Gestión</div>';
   h+='<div style="font-size:20px;font-weight:700;margin-top:4px">'+hesc(r.clienteNombre)+'</div>';
-  h+='<div style="font-size:12px;opacity:.65;margin-top:3px">'+hesc(r.rut)+' \u00b7 '+formatPeriodo(r.periodo)+'</div></div>';
+  h+='<div style="font-size:12px;opacity:.65;margin-top:3px">'+hesc(r.rut)+' · '+formatPeriodo(r.periodo)+'</div></div>';
   h+='<div style="text-align:right">';
   h+='<div style="font-size:11px;opacity:.5">Total a pagar</div>';
   h+='<div style="font-size:30px;font-weight:700">'+ff(totalGeneral)+'</div>';
@@ -1878,23 +1878,23 @@ function verReporte(id){
   h+='<div class="rpt-kpi-grid" style="margin-top:14px">';
   var nTrab=r.nTrab||r.trabM||0;
   var liquido=r.liquidoPagar||r.liquidoM||0;
-  h+='<div class="rpt-kpi"><div class="rpt-kpi-lbl">\u1f465 Trabajadores</div><div class="rpt-kpi-val" style="color:#2D9B6F">'+nTrab+'</div>'+(rAnterior?'<div class="rpt-kpi-sub comparativo">'+varIcon(nTrab,rAnterior.nTrab||rAnterior.trabM||0)+'</div>':'')+'</div>';
-  h+='<div class="rpt-kpi"><div class="rpt-kpi-lbl">\u1f4b0 Sueldos l\u00edquidos pagados</div><div class="rpt-kpi-val" style="font-size:16px">'+ff(liquido)+'</div></div>';
-  h+='<div class="rpt-kpi"><div class="rpt-kpi-lbl">\u1f4ca Total cotizaciones</div><div class="rpt-kpi-val" style="font-size:16px">'+ff(totalCot)+'</div>'+(rAnterior?'<div class="rpt-kpi-sub comparativo">'+varIcon(totalCot,rAnterior.totalCot)+'</div>':'')+'</div>';
+  h+='<div class="rpt-kpi"><div class="rpt-kpi-lbl">👥 Trabajadores</div><div class="rpt-kpi-val" style="color:#2D9B6F">'+nTrab+'</div>'+(rAnterior?'<div class="rpt-kpi-sub comparativo">'+varIcon(nTrab,rAnterior.nTrab||rAnterior.trabM||0)+'</div>':'')+'</div>';
+  h+='<div class="rpt-kpi"><div class="rpt-kpi-lbl">💰 Sueldos líquidos pagados</div><div class="rpt-kpi-val" style="font-size:16px">'+ff(liquido)+'</div></div>';
+  h+='<div class="rpt-kpi"><div class="rpt-kpi-lbl">📊 Total cotizaciones</div><div class="rpt-kpi-val" style="font-size:16px">'+ff(totalCot)+'</div>'+(rAnterior?'<div class="rpt-kpi-sub comparativo">'+varIcon(totalCot,rAnterior.totalCot)+'</div>':'')+'</div>';
   h+='</div>';
 
   // COTIZACIONES  -  si usa archivo, mostrar desglose
   h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">';
 
   // Descuentos trabajadores
-  h+='<div><div style="font-size:11px;font-weight:700;color:#2D9B6F;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">\u1f465 Descuentos trabajadores</div>';
+  h+='<div><div style="font-size:11px;font-weight:700;color:#2D9B6F;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">👥 Descuentos trabajadores</div>';
   h+='<div style="background:#fff;border:1px solid #e8dde8;border-radius:10px;overflow:hidden">';
   h+='<table class="rpt-tabla">';
   if(usaArchivo){
     if(r.afp) h+='<tr><td>AFP</td><td class="num">'+ff(r.afp)+'</td></tr>';
     if(r.salud) h+='<tr><td>Salud (ISAPRE/Fonasa)</td><td class="num">'+ff(r.salud)+'</td></tr>';
     if(r.apv) h+='<tr><td>APV</td><td class="num">'+ff(r.apv)+'</td></tr>';
-    if(r.cesTrab) h+='<tr><td>Seg. Cesant\u00eda trabajador</td><td class="num">'+ff(r.cesTrab)+'</td></tr>';
+    if(r.cesTrab) h+='<tr><td>Seg. Cesantía trabajador</td><td class="num">'+ff(r.cesTrab)+'</td></tr>';
     if(r.iu) h+='<tr><td>Imp. \u00danico 2\u00aa Cat.</td><td class="num">'+ff(r.iu)+'</td></tr>';
     if(r.otrosDesc) h+='<tr><td>Otros descuentos</td><td class="num">'+ff(r.otrosDesc)+'</td></tr>';
     h+='<tr class="subtotal"><td>Subtotal descuentos</td><td class="num">'+ff(totalDescTrab)+'</td></tr>';
@@ -1910,7 +1910,7 @@ function verReporte(id){
   if(usaArchivo){
     if(r.sis) h+='<tr><td>SIS</td><td class="num">'+ff(r.sis)+'</td></tr>';
     if(r.mutual) h+='<tr><td>Mutual / Accidentes</td><td class="num">'+ff(r.mutual)+'</td></tr>';
-    if(r.cesEmp) h+='<tr><td>Seg. Cesant\u00eda empleador</td><td class="num">'+ff(r.cesEmp)+'</td></tr>';
+    if(r.cesEmp) h+='<tr><td>Seg. Cesantía empleador</td><td class="num">'+ff(r.cesEmp)+'</td></tr>';
     h+='<tr class="subtotal"><td>Subtotal aportes</td><td class="num">'+ff(totalAportesEmp)+'</td></tr>';
   }else{
     h+='<tr><td>Aportes patronales</td><td class="num"> - </td></tr>';
@@ -1919,21 +1919,21 @@ function verReporte(id){
   h+='<div style="background:rgba(45,155,111,.08);border:1px solid rgba(45,155,111,.2);border-radius:8px;padding:10px 14px;margin-top:8px;display:flex;justify-content:space-between">';
   h+='<span style="font-weight:700;font-size:12px;color:#2D9B6F">Total cotizaciones a pagar</span>';
   h+='<span style="font-weight:700;font-family:monospace;color:#2D9B6F">'+ff(totalCot)+'</span></div>';
-  if(cal.vencCot) h+='<div style="font-size:11px;color:#C07A1A;margin-top:5px">\u26a0\ufe0f Vence: '+hesc(cal.vencCot)+(cal.prorrogaCot?' (pr\u00f3rroga hasta '+hesc(cal.prorrogaCot)+')':'')+'</div>';
+  if(cal.vencCot) h+='<div style="font-size:11px;color:#C07A1A;margin-top:5px">⚠️ Vence: '+hesc(cal.vencCot)+(cal.prorrogaCot?' (prórroga hasta '+hesc(cal.prorrogaCot)+')':'')+'</div>';
   h+='</div></div>';
 
   // IMPUESTOS SII
   h+='<div style="background:#fff;border:1px solid #e8dde8;border-radius:10px;overflow:hidden;margin-bottom:14px">';
-  h+='<div style="background:#faf7fa;padding:10px 14px;border-bottom:1px solid #e8dde8;font-size:11px;font-weight:700;color:#C07A1A;text-transform:uppercase;letter-spacing:.8px">\u1f4ca Impuestos SII</div>';
+  h+='<div style="background:#faf7fa;padding:10px 14px;border-bottom:1px solid #e8dde8;font-size:11px;font-weight:700;color:#C07A1A;text-transform:uppercase;letter-spacing:.8px">📊 Impuestos SII</div>';
   h+='<table class="rpt-tabla">';
   if(r.iva) h+='<tr><td>IVA a pagar</td><td class="num">'+ff(r.iva)+'</td></tr>';
   if(r.ppm) h+='<tr><td>PPM (Pago Provisional Mensual)</td><td class="num">'+ff(r.ppm)+'</td></tr>';
-  if(r.ret) h+='<tr><td>Retenciones 2\u00aa Categor\u00eda</td><td class="num">'+ff(r.ret)+'</td></tr>';
+  if(r.ret) h+='<tr><td>Retenciones 2\u00aa Categoría</td><td class="num">'+ff(r.ret)+'</td></tr>';
   if(r.iuSii||r.iu) h+='<tr><td>Imp. \u00danico 2\u00aa Cat. <span style="font-size:10px;color:#C07A1A">(desde RRHH)</span></td><td class="num">'+ff(r.iuSii||r.iu)+'</td></tr>';
   if(r.otrosImp) h+='<tr><td>Otros impuestos</td><td class="num">'+ff(r.otrosImp)+'</td></tr>';
   h+='<tr class="total"><td>Total Impuestos SII</td><td class="num">'+ff(totalImp)+'</td></tr>';
   h+='</table>';
-  if(cal.vencSii) h+='<div style="padding:8px 14px;font-size:11px;color:#C0392B">\u1f534 Vence el '+hesc(cal.vencSii)+'  -  Sin pr\u00f3rroga</div>';
+  if(cal.vencSii) h+='<div style="padding:8px 14px;font-size:11px;color:#C0392B">🔴 Vence el '+hesc(cal.vencSii)+'  -  Sin prórroga</div>';
   h+='</div>';
 
   // HONORARIOS
@@ -1942,15 +1942,15 @@ function verReporte(id){
   if(r.honBase) h+='<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#185fa5;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">Base</div><div style="font-weight:700">'+ff(r.honBase)+'</div></div>';
   if(r.honVar) h+='<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#185fa5;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">Variable</div><div style="font-weight:700">'+ff(r.honVar)+'</div></div>';
   h+='<div style="background:#eff6ff;border:2px solid #1e40af;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#185fa5;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">Total</div><div style="font-weight:700;color:#1e40af;font-size:16px">'+ff(r.honTotal)+'</div></div>';
-  h+='<div style="background:'+(r.honEstado==='pagado'?'#ecfdf5':'#fef3c7')+';border:1px solid '+(r.honEstado==='pagado'?'#a7f3d0':'#fde68a')+';border-radius:8px;padding:10px 14px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px;color:'+(r.honEstado==='pagado'?'#064e3b':'#78350f')+'">Estado</div><div style="font-weight:700;color:'+(r.honEstado==='pagado'?'#064e3b':'#78350f')+'">'+(r.honEstado==='pagado'?'\u2705 Pagado':'\u23f3 Pendiente')+'</div></div>';
+  h+='<div style="background:'+(r.honEstado==='pagado'?'#ecfdf5':'#fef3c7')+';border:1px solid '+(r.honEstado==='pagado'?'#a7f3d0':'#fde68a')+';border-radius:8px;padding:10px 14px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px;color:'+(r.honEstado==='pagado'?'#064e3b':'#78350f')+'">Estado</div><div style="font-weight:700;color:'+(r.honEstado==='pagado'?'#064e3b':'#78350f')+'">'+(r.honEstado==='pagado'?'✅ Pagado':'⏳ Pendiente')+'</div></div>';
   if(r.factura) h+='<div style="background:#faf7fa;border:1px solid #e8dde8;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#9a849b;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">Factura</div><div style="font-weight:600">'+hesc(r.factura)+'</div></div>';
   h+='</div></div>';
 
   // ATRASOS
   if((r.atrasos||[]).length){
     h+='<div style="background:#fff;border:1px solid #e8dde8;border-radius:10px;overflow:hidden;margin-bottom:14px">';
-    h+='<div style="background:#fff0f0;padding:10px 14px;border-bottom:1px solid #fecaca;font-size:11px;font-weight:700;color:#C0392B;text-transform:uppercase">\u26a0\ufe0f Pagos per\u00edodos anteriores</div>';
-    h+='<table class="rpt-tabla"><thead><tr><th>Concepto</th><th>Per\u00edodo</th><th style="text-align:right">Monto</th></tr></thead><tbody>';
+    h+='<div style="background:#fff0f0;padding:10px 14px;border-bottom:1px solid #fecaca;font-size:11px;font-weight:700;color:#C0392B;text-transform:uppercase">⚠️ Pagos períodos anteriores</div>';
+    h+='<table class="rpt-tabla"><thead><tr><th>Concepto</th><th>Período</th><th style="text-align:right">Monto</th></tr></thead><tbody>';
     (r.atrasos||[]).forEach(function(a){
       h+='<tr><td>'+hesc(a.concepto)+'</td><td style="color:#9a849b">'+hesc(a.periodo)+'</td><td class="num" style="color:#C0392B;font-weight:600">'+ff(a.monto)+'</td></tr>';
     });
@@ -1959,10 +1959,10 @@ function verReporte(id){
 
   // CALENDARIO DE PAGOS
   if(cal.vencCot||cal.vencSii){
-    h+='<div class="rpt-cal"><div class="rpt-cal-titulo">\u1f4c5 Calendario de pagos  -  '+formatPeriodo(r.periodo)+'</div>';
-    if(cal.vencCot) h+='<div class="rpt-cal-item"><div class="cal-fecha">'+hesc(cal.vencCot)+'</div><div class="cal-concepto">Cotizaciones previsionales'+(cal.prorrogaCot?' (pr\u00f3rroga: '+hesc(cal.prorrogaCot)+')':'')+'</div><div class="rpt-cal-monto" style="color:#C07A1A">'+ff(totalCot)+'</div></div>';
-    if(cal.vencSii) h+='<div class="rpt-cal-item"><div class="cal-fecha" style="color:#C0392B">'+hesc(cal.vencSii)+'</div><div class="cal-concepto">Impuesto mensual SII (F29) <span style="color:#C0392B;font-size:10px">Sin pr\u00f3rroga</span></div><div class="rpt-cal-monto" style="color:#C0392B">'+ff(totalImp)+'</div></div>';
-    h+='<div class="rpt-cal-item" style="border-top:1px solid #e8dde8"><div class="cal-fecha" style="color:#904891">Total</div><div class="cal-concepto" style="font-weight:700">Total a pagar este per\u00edodo</div><div class="rpt-cal-monto" style="color:#904891;font-size:16px">'+ff(totalGeneral)+'</div></div>';
+    h+='<div class="rpt-cal"><div class="rpt-cal-titulo">📅 Calendario de pagos  -  '+formatPeriodo(r.periodo)+'</div>';
+    if(cal.vencCot) h+='<div class="rpt-cal-item"><div class="cal-fecha">'+hesc(cal.vencCot)+'</div><div class="cal-concepto">Cotizaciones previsionales'+(cal.prorrogaCot?' (prórroga: '+hesc(cal.prorrogaCot)+')':'')+'</div><div class="rpt-cal-monto" style="color:#C07A1A">'+ff(totalCot)+'</div></div>';
+    if(cal.vencSii) h+='<div class="rpt-cal-item"><div class="cal-fecha" style="color:#C0392B">'+hesc(cal.vencSii)+'</div><div class="cal-concepto">Impuesto mensual SII (F29) <span style="color:#C0392B;font-size:10px">Sin prórroga</span></div><div class="rpt-cal-monto" style="color:#C0392B">'+ff(totalImp)+'</div></div>';
+    h+='<div class="rpt-cal-item" style="border-top:1px solid #e8dde8"><div class="cal-fecha" style="color:#904891">Total</div><div class="cal-concepto" style="font-weight:700">Total a pagar este período</div><div class="rpt-cal-monto" style="color:#904891;font-size:16px">'+ff(totalGeneral)+'</div></div>';
     h+='</div>';
   }
 
@@ -1975,8 +1975,8 @@ function verReporte(id){
 
   // FOOTER
   h+='<div style="display:flex;justify-content:space-between;align-items:center;background:#faf7fa;border:1px solid #e8dde8;border-radius:8px;padding:12px 16px;font-size:12px;color:#9a849b">';
-  h+='<div>'+(r.preparado?'RRHH: <strong>'+hesc(r.preparado)+'</strong>':'')+(r.revisado?' \u00b7 Contable: <strong>'+hesc(r.revisado)+'</strong>':'')+'</div>';
-  h+='<div>Contadoor Chile \u00b7 contadoor.cl \u00b7 +56 9 7988 1891</div></div>';
+  h+='<div>'+(r.preparado?'RRHH: <strong>'+hesc(r.preparado)+'</strong>':'')+(r.revisado?' · Contable: <strong>'+hesc(r.revisado)+'</strong>':'')+'</div>';
+  h+='<div>Contadoor Chile · contadoor.cl · +56 9 7988 1891</div></div>';
 
   document.getElementById('vistaContent').innerHTML=h;
   document.getElementById('modalVista').classList.add('on');
@@ -1992,8 +1992,8 @@ function enviarEmail(){
   var r=getReportes().find(function(x){return x.id===_vistaId;});if(!r) return;
   var to=r.clienteEmail||'';
   var replyTo=r.emailAnalista||'reportes@contadoor.cl';
-  var subject='Reporte Mensual de Gesti\u00f3n  -  '+formatPeriodo(r.periodo)+'  -  '+r.clienteNombre;
-  var body='Estimado/a,\n\nAdjunto el Reporte Mensual de Gesti\u00f3n correspondiente a '+formatPeriodo(r.periodo)+'.\n\n'
+  var subject='Reporte Mensual de Gestión  -  '+formatPeriodo(r.periodo)+'  -  '+r.clienteNombre;
+  var body='Estimado/a,\n\nAdjunto el Reporte Mensual de Gestión correspondiente a '+formatPeriodo(r.periodo)+'.\n\n'
     +'RESUMEN:\n'
     +'\u2022 Cotizaciones previsionales: '+ff(r.totalCot)+'\n'
     +'\u2022 Impuestos SII (F29): '+ff(r.totalImpInmediato||r.totalImp)+'\n'
@@ -2002,39 +2002,39 @@ function enviarEmail(){
     +(r.totalAtrasos?'\u2022 Obligaciones anteriores: '+ff(r.totalAtrasos)+'\n':'')
     +'\u2022 TOTAL A PAGAR: '+ff(r.totalGeneral)+'\n\n'
     +(r.recomendaciones?'RECOMENDACIONES:\n'+r.recomendaciones+'\n\n':'')
-    +'Transferencias a:\nAsesor\u00edas Contadoor Ltda. \u00b7 RUT 77.166.269-2 \u00b7 Ita\u00fa CC 0220729517\n\n'
+    +'Transferencias a:\nAsesorías Contadoor Ltda. · RUT 77.166.269-2 · Itaú CC 0220729517\n\n'
     +'Cualquier consulta, responda este correo directamente al analista.\n\n'
     +(r.preparado?'Analista RRHH: '+r.preparado+'\n':'')
     +(r.revisado?'Analista contable: '+r.revisado+'\n':'')
-    +'\nContadoor Chile\nreportes@contadoor.cl \u00b7 +56 9 7988 1891';
+    +'\nContadoor Chile\nreportes@contadoor.cl · +56 9 7988 1891';
   window.location.href='mailto:'+encodeURIComponent(to)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body)+'&reply-to='+encodeURIComponent(replyTo);
   if(window.crearNotificacion) crearNotificacion({
     modulo:'sistema',tipo:'info',prioridad:'baja',
     clienteNombre:r.clienteNombre,clienteRut:r.rut,periodo:r.periodo,
-    mensaje:'Reporte de '+r.clienteNombre+' \u00b7 '+formatPeriodo(r.periodo)+' enviado por email a '+(to||'cliente')+'.',
+    mensaje:'Reporte de '+r.clienteNombre+' · '+formatPeriodo(r.periodo)+' enviado por email a '+(to||'cliente')+'.',
     accion:null
   });
 }
 
 function enviarWhatsApp(){
   var r=getReportes().find(function(x){return x.id===_vistaId;});if(!r) return;
-  if(!r.clienteWa){alert('Este cliente no tiene n\u00famero de WhatsApp registrado.');return;}
-  var msg='Hola! Le enviamos el Reporte de Gesti\u00f3n de *'+r.clienteNombre+'*  -  *'+formatPeriodo(r.periodo)+'*\n\n'
-    +'\u1f4ca *RESUMEN:*\n'
-    +'\u1f465 Cotizaciones: '+ff(r.totalCot)+'\n'
-    +'\u1f4cb Impuestos SII: '+ff(r.totalImpInmediato||r.totalImp)+'\n'
-    +(r.ivaPostergado?'\u23f3 IVA postergado (vence '+r.ivaFechaVenc+'): '+ff(r.ivaPostergado)+'\n':'')
+  if(!r.clienteWa){alert('Este cliente no tiene número de WhatsApp registrado.');return;}
+  var msg='Hola! Le enviamos el Reporte de Gestión de *'+r.clienteNombre+'*  -  *'+formatPeriodo(r.periodo)+'*\n\n'
+    +'📊 *RESUMEN:*\n'
+    +'👥 Cotizaciones: '+ff(r.totalCot)+'\n'
+    +'📋 Impuestos SII: '+ff(r.totalImpInmediato||r.totalImp)+'\n'
+    +(r.ivaPostergado?'⏳ IVA postergado (vence '+r.ivaFechaVenc+'): '+ff(r.ivaPostergado)+'\n':'')
     +'\u1f4bc Honorarios: '+ff(r.honTotal)+'\n'
-    +(r.totalAtrasos?'\u26a0\ufe0f Obligaciones anteriores: '+ff(r.totalAtrasos)+'\n':'')
-    +'\u2705 *TOTAL: '+ff(r.totalGeneral)+'*\n\n'
+    +(r.totalAtrasos?'⚠️ Obligaciones anteriores: '+ff(r.totalAtrasos)+'\n':'')
+    +'✅ *TOTAL: '+ff(r.totalGeneral)+'*\n\n'
     +(r.recomendaciones?'\u1f4a1 '+r.recomendaciones+'\n\n':'')
-    +'Transferencias a Ita\u00fa CC 0220729517 \u00b7 RUT 77.166.269-2\n'
-    +'Cualquier consulta, escr\u00edbanos. Saludos, Contadoor.';
+    +'Transferencias a Itaú CC 0220729517 · RUT 77.166.269-2\n'
+    +'Cualquier consulta, escríbanos. Saludos, Contadoor.';
   window.open('https://wa.me/56'+r.clienteWa.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank');
   if(window.crearNotificacion) crearNotificacion({
     modulo:'sistema',tipo:'info',prioridad:'baja',
     clienteNombre:r.clienteNombre,clienteRut:r.rut,periodo:r.periodo,
-    mensaje:'Reporte de '+r.clienteNombre+' \u00b7 '+formatPeriodo(r.periodo)+' enviado por WhatsApp.',
+    mensaje:'Reporte de '+r.clienteNombre+' · '+formatPeriodo(r.periodo)+' enviado por WhatsApp.',
     accion:null
   });
 }
@@ -2054,24 +2054,24 @@ function renderLista(){
   cont.innerHTML=arr.map(function(r){
     var waHref=r.clienteWa?'https://wa.me/56'+r.clienteWa.replace(/\D/g,''):'';
     var estBadge=r.estado==='enviado_total'?'badge-ok':r.estado==='enviado_rrhh'?'badge-env':'badge-pend';
-    var estLabel=r.estado==='enviado_total'?'\u2705 Enviado':r.estado==='enviado_rrhh'?'\u1f4e4 RRHH env.':'\u1f4dd Borrador';
+    var estLabel=r.estado==='enviado_total'?'✅ Enviado':r.estado==='enviado_rrhh'?'\u1f4e4 RRHH env.':'📝 Borrador';
     return'<div class="reporte-row">'
-      +'<div style="font-size:24px;flex-shrink:0">\u1f4cb</div>'
+      +'<div style="font-size:24px;flex-shrink:0">📋</div>'
       +'<div class="reporte-row-info">'
       +'<div class="reporte-row-cliente">'+hesc(r.clienteNombre||r.rut)+'</div>'
-      +'<div class="reporte-row-meta">'+formatPeriodo(r.periodo)+' \u00b7 <span class="badge '+estBadge+'">'+estLabel+'</span></div></div>'
+      +'<div class="reporte-row-meta">'+formatPeriodo(r.periodo)+' · <span class="badge '+estBadge+'">'+estLabel+'</span></div></div>'
       +'<div style="font-size:15px;font-weight:700;color:#904891;font-family:monospace">'+ff(r.totalGeneral)+'</div>'
       +'<div style="display:flex;gap:5px">'
-      +(waHref?'<a class="btn-wa btn-sm" href="'+waHref+'" target="_blank">\u1f4ac</a>':'')
-      +'<button class="btn-s btn-sm" onclick="verReporte('+r.id+')">\u1f441</button>'
-      +'<button class="btn-s btn-sm" onclick="abrirModalEditar('+r.id+')">\u270f\ufe0f</button>'
-      +'<button class="btn-danger btn-sm" onclick="eliminarReporte('+r.id+')">\u1f5d1</button>'
+      +(waHref?'<a class="btn-wa btn-sm" href="'+waHref+'" target="_blank">💬</a>':'')
+      +'<button class="btn-s btn-sm" onclick="verReporte('+r.id+')">👁</button>'
+      +'<button class="btn-s btn-sm" onclick="abrirModalEditar('+r.id+')">✏️</button>'
+      +'<button class="btn-danger btn-sm" onclick="eliminarReporte('+r.id+')">🗑</button>'
       +'</div></div>';
   }).join('');
 }
 
 function eliminarReporte(id){
-  if(!confirm('\u00bfEliminar este reporte?'))return;
+  if(!confirm('¿Eliminar este reporte?'))return;
   setReportes(getReportes().filter(function(x){return x.id!==id;}));
 }
 
@@ -2097,10 +2097,10 @@ function renderHistorialCliente(){
   }).join('');
 
   cont.innerHTML=(c?'<div class="info-box" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
-    +'<strong>'+hesc(c.razon)+'</strong> \u00b7 '+hesc(c.rut)
-    +(c.wa?'&nbsp;&nbsp;<a class="btn-wa btn-sm" href="https://wa.me/56'+c.wa.replace(/\D/g,'')+'" target="_blank">\u1f4ac WA</a>':'')
+    +'<strong>'+hesc(c.razon)+'</strong> · '+hesc(c.rut)
+    +(c.wa?'&nbsp;&nbsp;<a class="btn-wa btn-sm" href="https://wa.me/56'+c.wa.replace(/\D/g,'')+'" target="_blank">💬 WA</a>':'')
     +'</div>':'')
-    +'<div class="chart-wrap"><h3>Tendencia  -  \u00faltimos '+arr.length+' per\u00edodos</h3><div class="bar-chart">'+bars+'</div></div>'
+    +'<div class="chart-wrap"><h3>Tendencia  -  últimos '+arr.length+' períodos</h3><div class="bar-chart">'+bars+'</div></div>'
     +arr.map(function(r){
       return'<div class="reporte-row">'
         +'<div class="reporte-row-info">'
@@ -2113,8 +2113,8 @@ function renderHistorialCliente(){
         +'</div>'
         +'<div style="font-size:14px;font-weight:700;color:#904891;font-family:monospace;min-width:100px;text-align:right">'+ff(r.totalGeneral)+'</div>'
         +'<div style="display:flex;gap:5px">'
-        +'<button class="btn-s btn-sm" onclick="verReporte('+r.id+')">\u1f441</button>'
-        +'<button class="btn-s btn-sm" onclick="abrirModalEditar('+r.id+')">\u270f\ufe0f</button>'
+        +'<button class="btn-s btn-sm" onclick="verReporte('+r.id+')">👁</button>'
+        +'<button class="btn-s btn-sm" onclick="abrirModalEditar('+r.id+')">✏️</button>'
         +'</div></div>';
     }).join('');
 }
@@ -2127,13 +2127,13 @@ function renderHistorialMes(){
   var cont=document.getElementById('historialMesContent');
   if(!mes){cont.innerHTML='';return;}
   var arr=getReportes().filter(function(r){return r.periodo===mes;});
-  if(!arr.length){cont.innerHTML='<div class="empty-state"><h3>Sin reportes para este per\u00edodo</h3></div>';return;}
+  if(!arr.length){cont.innerHTML='<div class="empty-state"><h3>Sin reportes para este período</h3></div>';return;}
   var total=arr.reduce(function(s,r){return s+(r.totalGeneral||0);},0);
   var enviados=arr.filter(function(r){return r.estado==='enviado_total';}).length;
   cont.innerHTML='<div class="stats-row" style="grid-template-columns:repeat(3,1fr)">'
     +'<div class="stat-box"><div class="sv">'+arr.length+'</div><div class="sl">Reportes</div></div>'
     +'<div class="stat-box"><div class="sv">'+enviados+'</div><div class="sl">Enviados</div></div>'
-    +'<div class="stat-box"><div class="sv" style="font-size:14px">'+ff(total)+'</div><div class="sl">Total per\u00edodo</div></div>'
+    +'<div class="stat-box"><div class="sv" style="font-size:14px">'+ff(total)+'</div><div class="sl">Total período</div></div>'
     +'</div>'
     +arr.map(function(r){
       return'<div class="reporte-row">'
@@ -2141,9 +2141,9 @@ function renderHistorialMes(){
         +'<div class="reporte-row-meta">'+(r.nTrab||r.trabM||0)+' trabajadores</div></div>'
         +'<div style="font-size:14px;font-weight:700;color:#904891;font-family:monospace">'+ff(r.totalGeneral)+'</div>'
         +'<div style="display:flex;gap:5px">'
-        +(r.clienteWa?'<a class="btn-wa btn-sm" href="https://wa.me/56'+r.clienteWa.replace(/\D/g,'')+'" target="_blank">\u1f4ac</a>':'')
-        +'<button class="btn-s btn-sm" onclick="verReporte('+r.id+')">\u1f441</button>'
-        +'<button class="btn-s btn-sm" onclick="abrirModalEditar('+r.id+')">\u270f\ufe0f</button>'
+        +(r.clienteWa?'<a class="btn-wa btn-sm" href="https://wa.me/56'+r.clienteWa.replace(/\D/g,'')+'" target="_blank">💬</a>':'')
+        +'<button class="btn-s btn-sm" onclick="verReporte('+r.id+')">👁</button>'
+        +'<button class="btn-s btn-sm" onclick="abrirModalEditar('+r.id+')">✏️</button>'
         +'</div></div>';
     }).join('');
 }
