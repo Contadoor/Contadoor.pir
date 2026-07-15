@@ -439,9 +439,14 @@ function getUsuarios() {
 // SUPABASE
 // ─────────────────────────────────────────────────────
 function sbFetch(path, opts) {
-  var headers = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
-  return fetch(SB_URL + '/rest/v1/' + path, Object.assign({ headers: headers }, opts || {}));
+  var base = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
+  var o = opts || {};
+  var req = Object.assign({}, o, { headers: Object.assign({}, base, o.headers || {}) });
+  return fetch(SB_URL + '/rest/v1/' + path, req);
 }
+function sbGet(path)        { return sbFetch(path); }
+function sbPost(path, row)  { return sbFetch(path, { method:'POST',  headers:{'Prefer':'return=representation'}, body:JSON.stringify(row) }); }
+function sbPatch(path, row) { return sbFetch(path, { method:'PATCH', headers:{'Prefer':'return=representation'}, body:JSON.stringify(row) }); }
 
 function rowToCliente(r) {
   return {
@@ -500,9 +505,9 @@ function cargarSupabase() {
 function guardarSupabase(c, esEdicion) {
   var row = clienteToRow(c);
   if (esEdicion && c.id) {
-    return sbFetch('clientes?id=eq.' + c.id, { method: 'PATCH', body: JSON.stringify(row) });
+    return sbPatch('clientes?id=eq.' + c.id, row);
   }
-  return sbFetch('clientes', { method: 'POST', body: JSON.stringify(row) });
+  return sbPost('clientes', row);
 }
 
 // ─────────────────────────────────────────────────────
@@ -697,8 +702,14 @@ function guardarCliente() {
   toast(esEdicion ? '✅ Cliente actualizado' : '✅ Cliente guardado');
 
   guardarSupabase(c, esEdicion)
-    .then(function(){ cargarSupabase().then(renderClientes); })
-    .catch(function(e){ console.warn('Solo local:', e); });
+    .then(function(r){
+      if (!r.ok) {
+        r.text().then(function(t){ toast('⚠️ Error Supabase: ' + t.substring(0,80)); console.error('Supabase error:', t); });
+      } else {
+        cargarSupabase().then(renderClientes);
+      }
+    })
+    .catch(function(e){ toast('⚠️ Sin conexión — solo guardado local'); console.warn('Supabase:', e); });
 }
 
 // ─────────────────────────────────────────────────────
