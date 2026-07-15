@@ -374,14 +374,7 @@ tr:hover td{background:#faf5ff;}
         </div>
       </div>
 
-      <div class="card-hd">🔐 Credenciales adicionales (tabla)
-        <button class="btn-s btn-sm" type="button" onclick="addCred()" style="margin-left:auto;float:right">+ Agregar</button>
       </div>
-      <table class="cred-table">
-        <thead><tr><th>Concepto</th><th>Usuario / RUT</th><th>Clave</th><th></th></tr></thead>
-        <tbody id="credBody"></tbody>
-      </table>
-      <div id="credEmpty" style="padding:8px;text-align:center;font-size:11px;color:var(--tm)">Sin credenciales adicionales</div>
 
       <div class="card-hd">👤 Socios / Propietarios
         <button class="btn-s btn-sm" type="button" onclick="addSocio()" style="margin-left:auto;float:right">+ Agregar</button>
@@ -668,7 +661,11 @@ function _abrirEditar(c){
   s('f-prioridad-contable',c.prioridadContable||'media');
   s('f-clave-sii',c.claveSii);s('f-usuario-sii',c.usuarioSii);
   s('f-clave-previred',c.clavePrevired);s('f-clave-tgr',c.claveTgr);
-  s('f-clave-banco',c.claveBanco);s('f-usuario-banco',c.usuarioBanco);s('f-obs-acceso',c.obsAcceso);
+  s('f-clave-banco',c.claveBanco);s('f-usuario-banco',c.usuarioBanco||'');
+  s('f-obs-acceso',c.obsAcceso);
+  // Auto-fill Previred/TGR usuario with RUT if empty
+  if(!c.usuarioPrevired) s('f-usuario-previred',c.rut||'');
+  if(!c.usuarioTgr) s('f-usuario-tgr',c.rut||'');
   if(c.logoBase64){
     document.getElementById('f-logo-b64').value=c.logoBase64;
     var p=document.getElementById('logo-preview');p.innerHTML='';
@@ -704,7 +701,11 @@ function guardarCliente(){
     analistaRrhh:sv('f-rrhh'),analistaContable:sv('f-contador'),analistaPagos:sv('f-analista-pagos'),
     prioridadContable:sv('f-prioridad-contable')||'media',
     logoBase64:document.getElementById('f-logo-b64').value||'',
-    claveSii:sv('f-clave-sii'),usuarioSii:sv('f-usuario-sii'),usuarioBanco:sv('f-usuario-banco'),
+    claveSii:sv('f-clave-sii'),usuarioSii:sv('f-usuario-sii'),
+    clavePrevired:sv('f-clave-previred'),
+    claveTgr:sv('f-clave-tgr'),
+    claveBanco:sv('f-clave-banco'),usuarioBanco:sv('f-usuario-banco'),
+    obsAcceso:sv('f-obs-acceso'),
     clavePrevired:sv('f-clave-previred'),claveTgr:sv('f-clave-tgr'),
     claveBanco:sv('f-clave-banco'),obsAcceso:sv('f-obs-acceso'),
     obs:sv('f-obs'),credenciales:getCreds(),socios:getSocios()
