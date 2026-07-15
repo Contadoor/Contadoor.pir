@@ -928,7 +928,7 @@ function generarReporte(){
 
   var periodo=formatPeriodo(_periodoActual);
   var waNum='56'+String(analista.wa||'979881891').replace(/\D/g,'');
-  var waMsg=encodeURIComponent('Hola, vi mi proyecci\u00f3n IVA de '+periodo+' y tengo una consulta.');
+  var waMsg=encodeURIComponent('Hola, vi mi proyección IVA de '+periodo+' y tengo una consulta.');
   var contacto=c.contacto||c.nombre||(c.razonSocial||'').split(' ')[0]||'Cliente';
 
   // Contenido interior (igual al que va al correo)
@@ -937,29 +937,29 @@ function generarReporte(){
 
   // Wrapper idéntico al del endpoint enviar-preiva.js
   var html='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-    +'<title>Proyecci\u00f3n IVA '+periodo+' \u00b7 '+(c.razonSocial||c.nombre)+'</title>'
+    +'<title>Proyección IVA '+periodo+' · '+(c.razonSocial||c.nombre)+'</title>'
     +'<style>*{box-sizing:border-box}body{margin:0;padding:20px;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}</style>'
     +'</head><body>'
     +'<div style="max-width:680px;margin:0 auto;background:#fff;border-radius:4px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.15)">'
     // Header morado gradiente
     +'<div style="background:linear-gradient(135deg,#6D2E6E 0%,#904891 100%);padding:18px 28px;display:flex;align-items:center;justify-content:space-between">'
     +'<img src="https://assets.cdn.filesafe.space/kfq1F3czdejkInyTMLkO/media/6982b1a12dd9857339e39ae1.png" style="height:28px;filter:brightness(0) invert(1)" alt="Contadoor">'
-    +'<span style="font-size:11px;color:rgba(255,255,255,.9);background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.2);padding:3px 10px;border-radius:12px">Proyecci\u00f3n de IVA \u00b7 '+periodo+'</span>'
+    +'<span style="font-size:11px;color:rgba(255,255,255,.9);background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.2);padding:3px 10px;border-radius:12px">Proyección de IVA · '+periodo+'</span>'
     +'</div>'
     // Intro con saludo
     +'<div style="padding:22px 28px;border-bottom:1px solid #eee">'
     +'<p style="font-size:15px;color:#1a1a1a;font-weight:600;margin:0 0 3px">Hola '+hesc(contacto)+',</p>'
     +'<p style="font-size:11px;color:#9a849b;margin:0 0 14px">'+hesc(c.razonSocial||c.nombre)+'</p>'
-    +'<p style="font-size:13px;color:#333;line-height:1.7;margin:0 0 12px">Preparamos tu <strong style="color:#904891">Proyecci\u00f3n de IVA \u00b7 '+periodo+'</strong>. Revisa el F29 estimado, el desglose de documentos y las acciones antes del cierre.</p>'
+    +'<p style="font-size:13px;color:#333;line-height:1.7;margin:0 0 12px">Preparamos tu <strong style="color:#904891">Proyección de IVA · '+periodo+'</strong>. Revisa el F29 estimado, el desglose de documentos y las acciones antes del cierre.</p>'
     +'<a href="https://wa.me/'+waNum+'?text='+waMsg+'" style="display:inline-block;background:#25d366;color:#fff;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;text-decoration:none">\U0001f4ac WhatsApp</a>'
     +'</div>'
     // Contenido del reporte (mismo que va al correo)
     +inner
     // Footer
     +'<div style="padding:14px 28px;background:#1a0a1b;border-top:3px solid #904891;text-align:center">'
-    +'<p style="font-size:11px;color:#c9a6e8;margin:0 0 3px">'+hesc(analista.nombre)+' \u00b7 Asesor\u00edas Contadoor Ltda.</p>'
-    +'<p style="font-size:10px;color:#4a3060;margin:0">reportes@contadoor.cl \u00b7 contadoor.cl</p>'
-    +'<p style="font-size:10px;color:#4a3060;margin:3px 0 0">Esta proyecci\u00f3n es informativa y puede variar al cierre del per\u00edodo.</p>'
+    +'<p style="font-size:11px;color:#c9a6e8;margin:0 0 3px">'+hesc(analista.nombre)+' · Asesorías Contadoor Ltda.</p>'
+    +'<p style="font-size:10px;color:#4a3060;margin:0">reportes@contadoor.cl · contadoor.cl</p>'
+    +'<p style="font-size:10px;color:#4a3060;margin:3px 0 0">Esta proyección es informativa y puede variar al cierre del período.</p>'
     +'</div>'
     +'</div></body></html>';
 
@@ -988,7 +988,7 @@ function enviarPreIVA(){
   var analista=usuarios.find(function(u){return u.nombre===usuarioActual.nombre;})||null;
 
   if(!analista||!analista.email){
-    alert('Tu usuario no tiene email configurado en el sistema. Configúralo en Admin \u2192 Usuarios.');
+    alert('Tu usuario no tiene email configurado en el sistema. Configúralo en Admin → Usuarios.');
     return;
   }
   if(!c.email){
@@ -999,7 +999,7 @@ function enviarPreIVA(){
   var periodo=formatPeriodo(_periodoActual);
   var f29=document.getElementById('res-f29').textContent;
 
-  if(!confirm('\u00bfEnviar proyecci\u00f3n IVA de '+periodo+' a '+hesc(c.razonSocial||c.nombre)+'?\n\nDesde: '+analista.email+'\nPara: '+c.email+'\nF29 proyectado: '+f29)) return;
+  if(!confirm('¿Enviar proyección IVA de '+periodo+' a '+hesc(c.razonSocial||c.nombre)+'?\n\nDesde: '+analista.email+'\nPara: '+c.email+'\nF29 proyectado: '+f29)) return;
 
   var btn=document.getElementById('btn-enviar');
   if(btn){btn.disabled=true;btn.textContent='Enviando...';}
@@ -1033,7 +1033,7 @@ function enviarPreIVA(){
   .then(function(r){return r.json();})
   .then(function(data){
     if(data.ok){
-      mostrarToast('\u2705 Email enviado a '+c.email+' desde '+analista.email);
+      mostrarToast('✅ Email enviado a '+c.email+' desde '+analista.email);
       // Guardar registro de envío
       var key='preiva_enviados_'+_clienteActual.rut;
       var enviados=[];
@@ -1046,10 +1046,10 @@ function enviarPreIVA(){
     }
   })
   .catch(function(err){
-    alert('Error de conexi\u00f3n: '+err.message);
+    alert('Error de conexión: '+err.message);
   })
   .finally(function(){
-    if(btn){btn.disabled=false;btn.textContent='\u2709\ufe0f Enviar Pre-IVA por email';}
+    if(btn){btn.disabled=false;btn.textContent='✉️ Enviar Pre-IVA por email';}
   });
 }
 
