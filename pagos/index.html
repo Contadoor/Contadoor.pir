@@ -418,7 +418,7 @@ var TIPOS_POR_AREA = {
     'Finiquito',
     'Cotizaciones previsionales',
     'Multas previsionales',
-    'Bono o gratificaci\u00f3n especial',
+    'Bono o gratificación especial',
     'Anticipo de sueldo',
     'Otros RRHH'
   ],
@@ -426,38 +426,38 @@ var TIPOS_POR_AREA = {
     'Honorarios a terceros',
     'Proveedores',
     'Multas SII',
-    'Cuotas cr\u00e9ditos bancarios',
+    'Cuotas créditos bancarios',
     'Gastos operacionales',
     'Otros Contable'
   ],
   pagos: [
     'Transferencia a tercero',
-    'Obligaci\u00f3n general',
+    'Obligación general',
     'Cuota convenio',
-    'Devoluci\u00f3n a cliente',
+    'Devolución a cliente',
     'Otros Pagos'
   ],
   cobranza: [
-    'Devoluci\u00f3n abono',
-    'Nota de cr\u00e9dito',
+    'Devolución abono',
+    'Nota de crédito',
     'Ajuste saldo',
     'Otros Cobranza'
   ]
 };
 
 var AREA_LABELS = {
-  rrhh:'\u1f465 RRHH', contable:'\u1f4ca Contable',
-  pagos:'\u1f4b0 Pagos', cobranza:'\u1f9fe Cobranza'
+  rrhh:'👥 RRHH', contable:'📊 Contable',
+  pagos:'💰 Pagos', cobranza:'🧾 Cobranza'
 };
 
 var ESTADOS = {
-  creada:      {label:'Creada',         cls:'b-creada',      icon:'\u270f\ufe0f',  orden:0},
-  transferido: {label:'Transferido',    cls:'b-transferido', icon:'\u1f4b3',  orden:1},
-  aprobacion:  {label:'En aprobaci\u00f3n', cls:'b-aprobacion',  icon:'\u23f3',  orden:2},
-  aprobado:    {label:'Aprobado',       cls:'b-aprobado',    icon:'\u2705',  orden:3},
-  rechazado:   {label:'Rechazado',      cls:'b-rechazado',   icon:'\u274c',  orden:1},
-  procesado:   {label:'Procesado',      cls:'b-procesado',   icon:'\u1f512',  orden:5},
-  cobrado:     {label:'Cobrado',        cls:'b-cobrado',     icon:'\u1f49c',  orden:4}
+  creada:      {label:'Creada',         cls:'b-creada',      icon:'✏️',  orden:0},
+  transferido: {label:'Transferido',    cls:'b-transferido', icon:'💳',  orden:1},
+  aprobacion:  {label:'En aprobación', cls:'b-aprobacion',  icon:'⏳',  orden:2},
+  aprobado:    {label:'Aprobado',       cls:'b-aprobado',    icon:'✅',  orden:3},
+  rechazado:   {label:'Rechazado',      cls:'b-rechazado',   icon:'❌',  orden:1},
+  procesado:   {label:'Procesado',      cls:'b-procesado',   icon:'🔒',  orden:5},
+  cobrado:     {label:'Cobrado',        cls:'b-cobrado',     icon:'💜',  orden:4}
 };
 var FLUJO_PASOS = ['creada','transferido','aprobacion','aprobado','procesado','cobrado'];
 
@@ -525,7 +525,7 @@ function popularSelectClientes(){
 function onClienteChange(){
   var rut=sv('f-cliente');
   var c=getClientes().find(function(x){return x.rut===rut;});
-  // Auto-fill qui\u00e9n paga si est\u00e1 en ficha
+  // Auto-fill quién paga si está en ficha
   if(c&&c.quienPaga) document.getElementById('f-quien-paga').value=c.quienPaga;
 }
 
@@ -535,11 +535,11 @@ function resetForm(){
    'f-periodo','f-fecha-limite','f-obs'].forEach(function(id){
     var e=document.getElementById(id);if(e)e.value='';
   });
-  // Auto-fill analista desde sesi\u00f3n
+  // Auto-fill analista desde sesión
   var u=getUsuario();
   var el=document.getElementById('f-creado-por');
   if(el) el.value=u.nombre||'';
-  // Auto-fill \u00e1rea seg\u00fan rol
+  // Auto-fill área según rol
   var areaEl=document.getElementById('f-area');
   if(areaEl&&u.rol&&TIPOS_POR_AREA[u.rol]){
     areaEl.value=u.rol;
@@ -553,7 +553,7 @@ function resetForm(){
 
 function abrirModalNuevo(){
   _editId=null;popularSelectClientes();resetForm();
-  document.getElementById('modalTitle').textContent='Nueva Obligaci\u00f3n de Pago';
+  document.getElementById('modalTitle').textContent='Nueva Obligación de Pago';
   document.getElementById('modal').classList.add('on');
 }
 
@@ -561,7 +561,7 @@ function abrirModalEditar(id){
   var ob=getObs().find(function(x){return x.id===id;});if(!ob)return;
   if(ob.estado!=='creada'){alert('Solo se pueden editar obligaciones en estado Creada.');return;}
   _editId=id;popularSelectClientes();resetForm();
-  document.getElementById('modalTitle').textContent='Editar Obligaci\u00f3n';
+  document.getElementById('modalTitle').textContent='Editar Obligación';
   document.getElementById('f-cliente').value=ob.rut||'';
   document.getElementById('f-area').value=ob.area||'';
   onAreaChange();
@@ -587,9 +587,9 @@ function guardarObligacion(){
   var tipo=sv('f-tipo'),tipoOtro=sv('f-tipo-otro');
   var tipofinal=(tipo.startsWith('Otros')||tipo==='Otro')&&tipoOtro?tipoOtro:tipo;
   var quien=sv('f-creado-por');
-  if(!rut||!concepto||!area){alert('Cliente, \u00e1rea y concepto son obligatorios.');return;}
+  if(!rut||!concepto||!area){alert('Cliente, área y concepto son obligatorios.');return;}
   if(!tipo){alert('Selecciona un tipo de pago.');return;}
-  if(!quien){alert('No se detect\u00f3 el analista. Verifica tu sesi\u00f3n.');return;}
+  if(!quien){alert('No se detectó el analista. Verifica tu sesión.');return;}
   var cl=getClientes().find(function(x){return x.rut===rut;});
   var arr=getObs();
   var ob={
@@ -616,7 +616,7 @@ function guardarObligacion(){
 function abrirConciliar(id){
   var ob=getObs().find(function(x){return x.id===id;});if(!ob)return;
   _accionId=id;
-  document.getElementById('concilSub').textContent=ob.concepto+' \u00b7 '+ff(ob.monto);
+  document.getElementById('concilSub').textContent=ob.concepto+' · '+ff(ob.monto);
   document.getElementById('c-fecha').value=hoy();
   document.getElementById('c-monto').value=ob.monto||'';
   ['c-ref','c-cuenta','c-desc','c-quien'].forEach(function(id){document.getElementById(id).value='';});
@@ -626,7 +626,7 @@ function closeConciliar(){document.getElementById('modalConciliar').classList.re
 function confirmarConciliacion(){
   var fecha=sv('c-fecha'),monto=nv('c-monto'),quien=sv('c-quien');
   if(!fecha||!monto){alert('Fecha y monto son obligatorios.');return;}
-  if(!quien){alert('Indica qui\u00e9n concilia este pago.');return;}
+  if(!quien){alert('Indica quién concilia este pago.');return;}
   var arr=getObs();
   var idx=arr.findIndex(function(x){return x.id===_accionId;});if(idx<0)return;
   arr[idx].estado='transferido';
@@ -652,13 +652,13 @@ function actualizarBarraSeleccion(){
 }
 
 function solicitarAprobacion(){
-  if(!_seleccionados.size){alert('Selecciona al menos una obligaci\u00f3n.');return;}
+  if(!_seleccionados.size){alert('Selecciona al menos una obligación.');return;}
   var arr=getObs();
   var selArr=arr.filter(function(ob){return _seleccionados.has(ob.id)&&ob.estado==='transferido';});
-  if(!selArr.length){alert('Solo se pueden enviar a aprobaci\u00f3n obligaciones en estado "Transferido".');return;}
+  if(!selArr.length){alert('Solo se pueden enviar a aprobación obligaciones en estado "Transferido".');return;}
   var total=selArr.reduce(function(s,ob){return s+ob.monto;},0);
 
-  // Marcar como en aprobaci\u00f3n
+  // Marcar como en aprobación
   selArr.forEach(function(ob){
     var idx=arr.findIndex(function(x){return x.id===ob.id;});
     if(idx>=0){arr[idx].estado='aprobacion';arr[idx].tsSolicitud=ts();}
@@ -666,8 +666,8 @@ function solicitarAprobacion(){
   setObs(arr);_seleccionados.clear();actualizarBarraSeleccion();
 
   // Generar email para Luciano
-  var subject='\u1f514 Aprobaci\u00f3n requerida  -  '+selArr.length+' pago'+(selArr.length!==1?'s':'')+' \u00b7 Total: '+ff(total);
-  var body='Hola '+MASTER_NOMBRE+',\n\nSe han enviado los siguientes pagos para tu aprobaci\u00f3n:\n\n'
+  var subject='\u1f514 Aprobación requerida  -  '+selArr.length+' pago'+(selArr.length!==1?'s':'')+' · Total: '+ff(total);
+  var body='Hola '+MASTER_NOMBRE+',\n\nSe han enviado los siguientes pagos para tu aprobación:\n\n'
     +selArr.map(function(ob,i){return(i+1)+'. '+ob.clienteNombre+'  -  '+ob.concepto+'\n   Tipo: '+ob.tipo+'\n   Monto: '+ff(ob.monto)+'\n   Creado por: '+ob.creadoPor+'\n   Conciliado por: '+(ob.conciliacion?ob.conciliacion.quien:' - ')+'\n   Referencia cartola: '+(ob.conciliacion?ob.conciliacion.ref||' - ':' - ')+'\n';}).join('\n')
     +'\nTOTAL A APROBAR: '+ff(total)+'\n\nIngresa al sistema para aprobar o rechazar:\nhttps://contadoor.github.io/Contadoor.app/pagos/\n\nContadoor.app';
   window.location.href='mailto:'+encodeURIComponent(MASTER_EMAIL)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
@@ -677,7 +677,7 @@ function solicitarAprobacion(){
 function abrirAprobar(id){
   var ob=getObs().find(function(x){return x.id===id;});if(!ob)return;
   _accionId=id;
-  document.getElementById('aprobarSub').textContent=ob.clienteNombre+' \u00b7 '+ob.concepto;
+  document.getElementById('aprobarSub').textContent=ob.clienteNombre+' · '+ob.concepto;
   document.getElementById('a-obs').value='';
   document.getElementById('aprobarDetalle').innerHTML=
     '<div style="background:#faf7fa;border:1px solid #e8dde8;border-radius:8px;padding:12px 16px;font-size:13px">'
@@ -709,14 +709,14 @@ function rechazarPago(){
 }
 
 function marcarCobrado(id){
-  if(!confirm('\u00bfMarcar como cobrado al cliente?'))return;
+  if(!confirm('¿Marcar como cobrado al cliente?'))return;
   var arr=getObs();
   var idx=arr.findIndex(function(x){return x.id===id;});if(idx<0)return;
   arr[idx].estado='cobrado';arr[idx].tsCobrado=ts();
   setObs(arr);
 }
 function eliminarObligacion(id){
-  if(!confirm('\u00bfEliminar esta obligaci\u00f3n?'))return;
+  if(!confirm('¿Eliminar esta obligación?'))return;
   setObs(getObs().filter(function(x){return x.id!==id;}));
 }
 
@@ -733,7 +733,7 @@ function renderStats(){
     {val:creadas.length,lbl:'Creadas'},
     {val:vencidos.length,lbl:'Vencidas',color:vencidos.length?'#C0392B':null},
     {val:xConciliar.length,lbl:'Por conciliar'},
-    {val:xAprobar.length,lbl:'En aprobaci\u00f3n',color:xAprobar.length?'#C07A1A':null},
+    {val:xAprobar.length,lbl:'En aprobación',color:xAprobar.length?'#C07A1A':null},
     {val:ff(totalPend),lbl:'Monto pendiente'}
   ].map(function(s){return'<div class="stat-box"><div class="sv"'+(s.color?' style="color:'+s.color+'"':'')+'>'+s.val+'</div><div class="sl">'+s.lbl+'</div></div>';}).join('');
 
@@ -742,7 +742,7 @@ function renderStats(){
   var tab=document.getElementById('tabAprobBadge');
   if(xAprobar.length>0){
     banner.style.display='flex';
-    document.getElementById('aprobCount').textContent=xAprobar.length+' pago'+(xAprobar.length!==1?'s':'')+' esperan tu aprobaci\u00f3n';
+    document.getElementById('aprobCount').textContent=xAprobar.length+' pago'+(xAprobar.length!==1?'s':'')+' esperan tu aprobación';
     document.getElementById('aprobMonto').textContent='Total: '+ff(xAprobar.reduce(function(s,ob){return s+ob.monto;},0));
     tab.textContent=xAprobar.length;tab.style.display='inline';
   } else {banner.style.display='none';tab.style.display='none';}
@@ -756,7 +756,7 @@ function filtrarObs(){
   var u=getUsuario();
 
   var arr=getObs().filter(function(ob){
-    // Filtro por \u00e1rea seg\u00fan rol  -  analistas solo ven su \u00e1rea
+    // Filtro por área según rol  -  analistas solo ven su área
     if(!u.esMaster && u.rol!=='admin' && u.rol!=='pagos'){
       if(ob.area && ob.area!==u.rol) return false;
     }
@@ -785,11 +785,11 @@ function renderObligaciones(){
     cont.innerHTML='<div class="empty-state"><h3>No hay obligaciones'+(
       _viewActual==='creadas'?' creadas':
       _viewActual==='transferido'?' por conciliar':
-      _viewActual==='aprobacion'||_viewActual==='aprobar'?' en aprobaci\u00f3n':
+      _viewActual==='aprobacion'||_viewActual==='aprobar'?' en aprobación':
       _viewActual==='historial'?' en el historial':''
     )+'</h3><p>'+(
-      _viewActual==='todas'?'Crea la primera con el bot\u00f3n "+ Nueva obligación"':
-      _viewActual==='aprobar'?'No hay pagos pendientes de tu aprobaci\u00f3n \u1f44d':'Cambia el filtro o la vista'
+      _viewActual==='todas'?'Crea la primera con el botón "+ Nueva obligación"':
+      _viewActual==='aprobar'?'No hay pagos pendientes de tu aprobación \u1f44d':'Cambia el filtro o la vista'
     )+'</p></div>';
     return;
   }
@@ -811,19 +811,19 @@ function renderObligaciones(){
 
     // TRAZABILIDAD
     var trazaHTML='<div class="traza">'
-      +'<div class="traza-item">\u270f\ufe0f Creado por <strong>'+hesc(ob.creadoPor||' - ')+'</strong>'+(ob.tsCreado?' \u00b7 '+ob.tsCreado:'')+'</div>'
-      +(ob.conciliacion?'<div class="traza-item">\u1f4b3 Conciliado por <strong>'+hesc(ob.conciliacion.quien)+'</strong> \u00b7 '+ob.conciliacion.ts+'</div>':'')
-      +(ob.aprobacion?'<div class="traza-item">\u2705 Aprobado por <strong>'+hesc(ob.aprobacion.quien)+'</strong> \u00b7 '+ob.aprobacion.ts+'</div>':'')
-      +(ob.rechazo?'<div class="traza-item" style="color:#C0392B">\u274c Rechazado por <strong>'+hesc(ob.rechazo.quien)+'</strong>: '+hesc(ob.rechazo.obs)+'</div>':'')
+      +'<div class="traza-item">✏️ Creado por <strong>'+hesc(ob.creadoPor||' - ')+'</strong>'+(ob.tsCreado?' · '+ob.tsCreado:'')+'</div>'
+      +(ob.conciliacion?'<div class="traza-item">💳 Conciliado por <strong>'+hesc(ob.conciliacion.quien)+'</strong> · '+ob.conciliacion.ts+'</div>':'')
+      +(ob.aprobacion?'<div class="traza-item">✅ Aprobado por <strong>'+hesc(ob.aprobacion.quien)+'</strong> · '+ob.aprobacion.ts+'</div>':'')
+      +(ob.rechazo?'<div class="traza-item" style="color:#C0392B">❌ Rechazado por <strong>'+hesc(ob.rechazo.quien)+'</strong>: '+hesc(ob.rechazo.obs)+'</div>':'')
       +'</div>';
 
     // DETALLE CARTOLA
     var cartolaHTML='';
     if(ob.conciliacion){
       cartolaHTML='<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:8px 12px;font-size:11.5px;color:#1e40af;margin-top:8px">'
-        +'\u1f3e6 Cartola: '+ob.conciliacion.fecha+' \u00b7 '+ff(ob.conciliacion.monto)
-        +(ob.conciliacion.ref?' \u00b7 Ref: '+hesc(ob.conciliacion.ref):'')
-        +(ob.conciliacion.cuenta?' \u00b7 '+hesc(ob.conciliacion.cuenta):'')
+        +'🏦 Cartola: '+ob.conciliacion.fecha+' · '+ff(ob.conciliacion.monto)
+        +(ob.conciliacion.ref?' · Ref: '+hesc(ob.conciliacion.ref):'')
+        +(ob.conciliacion.cuenta?' · '+hesc(ob.conciliacion.cuenta):'')
         +'</div>';
     }
 
@@ -832,16 +832,16 @@ function renderObligaciones(){
     if(puedeSeleccionar){
       accionesHTML+='<label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;color:#904891;font-weight:600">'
         +'<input type="checkbox" class="ob-check" '+(esSel?'checked':'')+' onchange="toggleSeleccion('+ob.id+')" onclick="event.stopPropagation()"/>'
-        +'Seleccionar para aprobaci\u00f3n</label>';
+        +'Seleccionar para aprobación</label>';
     }
-    if(waHref) accionesHTML+='<a class="btn-wa btn-sm" href="'+waHref+'" target="_blank">\u1f4ac</a>';
-    if(ob.estado==='creada') accionesHTML+='<button class="btn-s btn-sm" onclick="abrirModalEditar('+ob.id+')">\u270f\ufe0f Editar</button>';
-    if(ob.estado==='creada') accionesHTML+='<button class="btn-p btn-sm" onclick="abrirConciliar('+ob.id+')">\u1f4b3 Registrar transferencia</button>';
-    if(ob.estado==='aprobacion'&&_viewActual==='aprobar') accionesHTML+='<button class="btn-approve btn-sm" onclick="abrirAprobar('+ob.id+')">\u2705 Revisar y aprobar</button>';
-    if(ob.estado==='aprobado'&&ob.cobrar==='si') accionesHTML+='<button class="btn-p btn-sm" onclick="marcarCobrado('+ob.id+')">\u1f49c Marcar cobrado</button>';
+    if(waHref) accionesHTML+='<a class="btn-wa btn-sm" href="'+waHref+'" target="_blank">💬</a>';
+    if(ob.estado==='creada') accionesHTML+='<button class="btn-s btn-sm" onclick="abrirModalEditar('+ob.id+')">✏️ Editar</button>';
+    if(ob.estado==='creada') accionesHTML+='<button class="btn-p btn-sm" onclick="abrirConciliar('+ob.id+')">💳 Registrar transferencia</button>';
+    if(ob.estado==='aprobacion'&&_viewActual==='aprobar') accionesHTML+='<button class="btn-approve btn-sm" onclick="abrirAprobar('+ob.id+')">✅ Revisar y aprobar</button>';
+    if(ob.estado==='aprobado'&&ob.cobrar==='si') accionesHTML+='<button class="btn-p btn-sm" onclick="marcarCobrado('+ob.id+')">💜 Marcar cobrado</button>';
     if(ob.estado==='aprobado') accionesHTML+='<button class="btn-s btn-sm" onclick="marcarProcesado('+ob.id+')">🔒 Marcar Procesado</button>';
-    if(ob.estado==='rechazado') accionesHTML+='<button class="btn-s btn-sm" onclick="abrirModalEditar('+ob.id+')">\u1f504 Corregir y reenviar</button>';
-    accionesHTML+='<button class="btn-danger btn-sm" onclick="eliminarObligacion('+ob.id+')">\u1f5d1</button>';
+    if(ob.estado==='rechazado') accionesHTML+='<button class="btn-s btn-sm" onclick="abrirModalEditar('+ob.id+')">🔄 Corregir y reenviar</button>';
+    accionesHTML+='<button class="btn-danger btn-sm" onclick="eliminarObligacion('+ob.id+')">🗑</button>';
     accionesHTML+='</div>';
 
     return'<div class="oblig-row'+(esSel?' seleccionada':'')+(venc?' vencida-border':'')+'">'
@@ -857,9 +857,9 @@ function renderObligaciones(){
       +'<div style="font-size:14px;font-weight:700;margin-bottom:3px">'+hesc(ob.concepto)+'</div>'
       +'<div style="font-size:11.5px;color:#9a849b">'
       +hesc(ob.clienteNombre||ob.rut)
-      +(ob.periodo?' \u00b7 '+ob.periodo:'')
-      +(ob.fechaLimite?' \u00b7 L\u00edmite: '+ob.fechaLimite:'')
-      +(ob.cobrar==='si'?' \u00b7 <strong style="color:#904891">Se cobra al cliente</strong>':'')
+      +(ob.periodo?' · '+ob.periodo:'')
+      +(ob.fechaLimite?' · Límite: '+ob.fechaLimite:'')
+      +(ob.cobrar==='si'?' · <strong style="color:#904891">Se cobra al cliente</strong>':'')
       +'</div>'
       +'</div>'
       +'<div style="text-align:right;flex-shrink:0">'
@@ -890,7 +890,7 @@ function renderAll(){
 
 function exportarCSV(){
   var arr=getObs();
-  var header=['Cliente','RUT','Tipo','Concepto','Monto','Per\u00edodo','Fecha l\u00edmite','Estado','Creado por','Fecha creaci\u00f3n','Conciliado por','Fecha cartola','Ref cartola','Aprobado/Rechazado por','Obs aprobaci\u00f3n','Se cobra'];
+  var header=['Cliente','RUT','Tipo','Concepto','Monto','Período','Fecha límite','Estado','Creado por','Fecha creación','Conciliado por','Fecha cartola','Ref cartola','Aprobado/Rechazado por','Obs aprobación','Se cobra'];
   var rows=arr.map(function(ob){
     return[ob.clienteNombre,ob.rut,ob.tipo,ob.concepto,ob.monto||0,ob.periodo||'',ob.fechaLimite||'',ob.estado,ob.creadoPor||'',ob.tsCreado||'',
       ob.conciliacion?ob.conciliacion.quien:'',ob.conciliacion?ob.conciliacion.fecha:'',ob.conciliacion?ob.conciliacion.ref:'',
