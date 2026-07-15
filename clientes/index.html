@@ -406,9 +406,12 @@ tr:hover td{background:#faf5ff;}
     </table>
     <div class="pct-total err" id="pctTotal">Total: 0%</div>
 
-    <div class="fgroup" style="margin-top:14px">
-      <label>Clave SII</label>
-        <input type="password" id="f-clave-sii" placeholder="Clave SII" autocomplete="new-password"/>
+    </div>
+    <div class="card-hd">🔑 Credenciales de acceso</div>
+    <div class="fg2">
+      <div class="fgroup">
+        <label>Clave SII</label>
+        <input type="text" id="f-clave-sii" placeholder="Clave SII" autocomplete="off"/>
       </div>
       <div class="fgroup">
         <label>Usuario SII</label>
@@ -416,21 +419,23 @@ tr:hover td{background:#faf5ff;}
       </div>
       <div class="fgroup">
         <label>Clave Previred</label>
-        <input type="password" id="f-clave-previred" placeholder="Clave Previred" autocomplete="new-password"/>
+        <input type="text" id="f-clave-previred" placeholder="Clave Previred" autocomplete="off"/>
       </div>
       <div class="fgroup">
         <label>Clave TGR</label>
-        <input type="password" id="f-clave-tgr" placeholder="Clave TGR" autocomplete="new-password"/>
+        <input type="text" id="f-clave-tgr" placeholder="Clave TGR" autocomplete="off"/>
       </div>
       <div class="fgroup">
         <label>Clave Banco</label>
-        <input type="password" id="f-clave-banco" placeholder="Clave acceso bancario" autocomplete="new-password"/>
+        <input type="text" id="f-clave-banco" placeholder="Clave acceso bancario" autocomplete="off"/>
       </div>
       <div class="fgroup">
         <label>Obs. acceso</label>
         <input type="text" id="f-obs-acceso" placeholder="Notas sobre acceso o credenciales especiales"/>
       </div>
-      <div class="fgroup">
+    </div>
+    <div class="card-hd">📝 Observaciones generales</div>
+    <div class="fgroup">
         <label>Observaciones generales</label>
       <textarea id="f-obs" rows="2" placeholder="Notas relevantes..."></textarea>
     </div>
@@ -731,41 +736,58 @@ function abrirModalNuevo(){
 }
 
 function abrirModalEditar(id){
-  var c=getClientes().find(function(x){return x.id===id;});
+  id=parseInt(id)||id;
+  var c=getClientes().find(function(x){return Number(x.id)===Number(id);});
   if(!c)return;
   _editId=id;
   resetForm();
-  document.getElementById('modalTitle').textContent='Editar  -  '+c.razon;
-  ['razon','rut','giro','email','tel','wa','ciudad','inicio','obs-trib','obs'].forEach(function(k){
-    var el=document.getElementById('f-'+k);if(el)el.value=c[k.replace('-','')]||c[k]||'';
-  });
-  document.getElementById('f-obs-trib').value=c.obsTrib||'';
-  document.getElementById('f-iva-condicion').value=c.ivaCondicion||'';
-  document.getElementById('f-modalidad-pago').value=c.modalidadPago||'';
-  document.getElementById('f-moneda-plan').value=c.monedaPlan||'UF';
-  document.getElementById('f-hon-uf').value=c.honUF||'';
-  document.getElementById('f-hon-variable').value=c.honVariable||'';
-  document.getElementById('f-trab-incluidos').value=c.trabIncluidos||'';
-  document.getElementById('f-desc-tipo').value=c.descTipo||'';
-  document.getElementById('f-desc-valor').value=c.descValor||'';
-  document.getElementById('f-precio-obs').value=c.precioObs||'';
-  document.getElementById('f-plan').value=c.plan||'';
-  document.getElementById('f-estado').value=c.estado||'activo';
-  document.getElementById('f-reg').value=c.reg||'';
-  document.getElementById('f-at').value=c.at||'2026';
-  document.getElementById('f-prioridad-contable').value=c.prioridadContable||'media';
+  document.getElementById('modalTitle').textContent='Editar — '+( c.razon||c.razonSocial||c.nombre||'Cliente');
+  // Campos básicos
+  var sv2=function(fid,val){var el=document.getElementById(fid);if(el)el.value=val||'';};
+  sv2('f-razon',   c.razon||c.razonSocial);
+  sv2('f-rut',     c.rut);
+  sv2('f-giro',    c.giro);
+  sv2('f-email',   c.email);
+  sv2('f-contacto',c.contacto);
+  sv2('f-tel',     c.tel);
+  sv2('f-wa',      c.wa);
+  sv2('f-ciudad',  c.ciudad);
+  sv2('f-inicio',  c.inicio||c.fechaInicio);
+  sv2('f-obs-trib',c.obsTrib);
+  sv2('f-obs',     c.obs);
+  sv2('f-plan',    c.plan);
+  sv2('f-estado',  c.estado||'activo');
+  sv2('f-reg',     c.reg||c.regimen);
+  sv2('f-at',      c.at||c.anioTributario||'2026');
+  sv2('f-iva-condicion',   c.ivaCondicion||'afecto');
+  sv2('f-modalidad-pago',  c.modalidadPago||'contadoor');
+  sv2('f-moneda-plan',     c.monedaPlan||'UF');
+  sv2('f-hon-uf',          c.honUF||c.montoBase);
+  sv2('f-hon-variable',    c.honVariable);
+  sv2('f-trab-incluidos',  c.trabIncluidos);
+  sv2('f-desc-tipo',       c.descTipo);
+  sv2('f-desc-valor',      c.descValor);
+  sv2('f-precio-obs',      c.precioObs);
+  sv2('f-prioridad-contable', c.prioridadContable||'media');
+  // Credenciales
+  sv2('f-clave-sii',    c.claveSii);
+  sv2('f-usuario-sii',  c.usuarioSii);
+  sv2('f-clave-previred',c.clavePrevired);
+  sv2('f-clave-tgr',    c.claveTgr);
+  sv2('f-clave-banco',  c.claveBanco);
+  sv2('f-obs-acceso',   c.obsAcceso);
   // Logo
   if(c.logoBase64){
     document.getElementById('f-logo-b64').value=c.logoBase64;
     var p=document.getElementById('logo-preview');
-    p.innerHTML='';var img=document.createElement('img');img.src=c.logoBase64;p.appendChild(img);
+    if(p){p.innerHTML='';var img=document.createElement('img');img.src=c.logoBase64;img.style.cssText='height:48px;object-fit:contain';p.appendChild(img);}
   }
-  // Analistas después de poblar
+  // Analistas
   poblarAnalistas();
-  document.getElementById('f-rrhh').value=c.analistaRrhh||'';
-  document.getElementById('f-contador').value=c.analistaContable||'';
-  document.getElementById('f-analista-pagos').value=c.analistaPagos||'';
-  // Creds y socios
+  sv2('f-rrhh',          c.analistaRrhh);
+  sv2('f-contador',      c.analistaContable);
+  sv2('f-analista-pagos',c.analistaPagos);
+  // Creds y socios (tabla dinámica)
   (c.credenciales||[]).forEach(function(cr){addCred(cr.concepto,cr.usuario,cr.clave);});
   (c.socios||[]).forEach(function(s){addSocio(s.nombre,s.rut,s.pct);});
   calcPreview();
@@ -910,7 +932,7 @@ function renderClientes(){
     return;
   }
 
-  var html='<table><thead><tr><th>Cliente</th><th>Plan</th><th>Equipo asignado</th><th>Nuestros Servicios</th><th>Estado</th><th></th></tr></thead><tbody>';
+  var html='<table><thead><tr><th>Cliente</th><th>Plan</th><th>Equipo asignado</th><th>Valor mensual</th><th>Estado</th><th></th></tr></thead><tbody>';
   arr.forEach(function(c){
     var est=ESTADOS[c.estado]||ESTADOS.inactivo;
     var planBadge=c.plan==='estrategico'?'badge-plan-e':c.plan==='asesoria'?'badge-plan-a':'badge-plan-c';
@@ -933,11 +955,16 @@ function renderClientes(){
     html+='</td>';
     html+='<td style="font-size:11px;">';
     var mon=c.monedaPlan||'UF';
-    if(c.honUF)html+='<span style="font-weight:600">'+c.honUF+(mon==='CLP'?'':' UF')+'</span> base<br/>';
-    if(c.trabIncluidos)html+='<span style="color:#9a849b">'+c.trabIncluidos+' incluidos</span><br/>';
-    if(c.honVariable)html+='+'+c.honVariable+(mon==='CLP'||mon==='mixto'?'':' UF')+'/trab adicional<br/>';
-    if(c.descTipo&&c.descValor)html+='<span style="color:#C07A1A">Desc. '+(c.descTipo==='pct'?c.descValor+'%':c.descValor+(mon==='CLP'?'':' UF'))+'</span><br/>';
-    if(mrr)html+='<span style="color:#904891;font-weight:700">≈ '+ff(mrr)+'</span>';
+    if(c.honUF||c.montoBase){
+      var base=c.honUF||c.montoBase;
+      html+='<span style="font-weight:600;color:#1a0a1b">'+base+(mon==='CLP'?'':' UF')+'</span> base';
+      if(c.trabIncluidos) html+=' · <span style="color:#9a849b">'+c.trabIncluidos+' trab.</span>';
+      html+='<br/>';
+    }
+    if(c.honVariable) html+='<span style="color:#5c4a5d;font-size:10px">+'+c.honVariable+(mon==='CLP'?'':' UF')+'/trab extra</span><br/>';
+    if(c.descTipo&&c.descValor) html+='<span style="color:#C07A1A;font-size:10px">Desc. '+(c.descTipo==='pct'?c.descValor+'%':c.descValor+(mon==='CLP'?'':' UF'))+'</span><br/>';
+    if(mrr) html+='<span style="color:#904891;font-weight:700">≈ '+ff(mrr)+'</span>';
+    else if(!c.honUF&&!c.montoBase) html+='<span style="color:#9a849b;font-size:10px">Sin valor definido</span>';
     html+='</td>';
     html+='<td><span class="badge '+est.c+'">'+(est.l)+'</span></td>';
     html+='<td style="text-align:right"><button class="btn-s btn-sm" onclick="verCredenciales('+c.id+')">&#128273; Claves</button> '+
