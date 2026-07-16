@@ -15,7 +15,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 .sb-logo{padding:16px 16px 12px;border-bottom:1px solid rgba(144,72,145,.3);flex-shrink:0;}
 .sb-logo img{width:130px;display:block;}
 .sb-tagline{font-size:9px;color:rgba(255,255,255,.28);letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
-.sb-nav{padding:10px 8px;flex:1;overflow-y:auto;overflow-x:hidden;}
+.sb-nav{padding:10px 8px;flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;}
 .sb-nav::-webkit-scrollbar{width:3px;}
 .sb-nav::-webkit-scrollbar-track{background:transparent;}
 .sb-nav::-webkit-scrollbar-thumb{background:rgba(144,72,145,.3);border-radius:3px;}
@@ -28,7 +28,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 .sb-logo{padding:18px 16px 12px;border-bottom:1px solid rgba(144,72,145,.3);}
 .sb-logo img{width:140px;display:block;}
 .sb-tagline{font-size:9px;color:rgba(255,255,255,.28);letter-spacing:1px;text-transform:uppercase;margin-top:5px;}
-.sb-nav{padding:12px 8px;flex:1;overflow-y:auto;}
+.sb-nav{padding:12px 8px;flex:1;overflow-y:auto;min-height:0;}
 .sb-sec{font-size:9px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.25);text-transform:uppercase;padding:10px 8px 4px;margin-top:4px;}
 .sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;font-size:12px;color:rgba(255,255,255,.55);transition:.15s;margin-bottom:1px;text-decoration:none;cursor:pointer;}
 .sb-item:hover{background:rgba(144,72,145,.18);color:#fff;}
@@ -160,6 +160,22 @@ tr:hover td{background:#f9fefb;}
 .rpt-tabla .num{text-align:right;font-family:monospace;font-weight:600;}
 .rpt-tabla .total td{font-weight:700;background:rgba(45,155,111,.06);color:var(--green);}
 .rpt-tabla .subtotal td{font-weight:600;background:var(--sur2);}
+
+/* PIPELINE ETAPAS */
+.pipeline{display:flex;align-items:center;gap:0;margin:4px 0;}
+.pipe-step{display:flex;flex-direction:column;align-items:center;position:relative;}
+.pipe-step .ps-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:2px solid var(--bdr);background:var(--sur2);color:var(--tm);transition:.2s;flex-shrink:0;}
+.pipe-step.done .ps-dot{background:var(--green);border-color:var(--green);color:#fff;}
+.pipe-step.active .ps-dot{background:var(--p);border-color:var(--p);color:#fff;box-shadow:0 0 0 3px rgba(144,72,145,.2);}
+.pipe-step.skip .ps-dot{background:#f3f4f6;border-color:#d1d5db;color:#9ca3af;}
+.pipe-lbl{font-size:8px;color:var(--tm);margin-top:3px;white-space:nowrap;text-align:center;}
+.pipe-step.done .pipe-lbl{color:var(--green);font-weight:600;}
+.pipe-step.active .pipe-lbl{color:var(--p);font-weight:700;}
+.pipe-line{width:20px;height:2px;background:var(--bdr);margin-bottom:14px;flex-shrink:0;}
+.pipe-line.done{background:var(--green);}
+/* BARRA ENVÍO MASIVO RRHH */
+.bulk-bar{display:none;background:var(--p);color:#fff;padding:10px 16px;border-radius:10px;margin-bottom:12px;align-items:center;gap:12px;}
+.bulk-bar.on{display:flex;}
 </style>
 </head>
 <body>
@@ -168,41 +184,33 @@ tr:hover td{background:#f9fefb;}
   <nav>
     <div class="sb-section">Principal</div>
     <a class="sb-item" href="../index.html">🏠 Dashboard</a>
-
     <div class="sb-section">Gestión</div>
-    <a class="sb-item " href="../clientes/index.html">👥 Clientes</a>
-    <a class="sb-item " href="../planes/index.html">📋 Planes y Servicios</a>
-    <a class="sb-item " href="../reportes/index.html">📋 Panel de Control</a>
-
+    <a class="sb-item" href="../clientes/index.html">👥 Clientes</a>
+    <a class="sb-item" href="../planes/index.html">📋 Planes y Servicios</a>
+    <a class="sb-item" href="../reportes/index.html">📋 Panel de Control</a>
     <div class="sb-section">Remuneraciones</div>
     <a class="sb-item on" href="../reportes-rrhh/index.html">👥 Reporte RRHH</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">👤 Gestión de Personal</a>
-
     <div class="sb-section">Contable</div>
-    <a class="sb-item " href="../reportes-contable/index.html">📊 Reporte Contable</a>
-    <a class="sb-item " href="../reportes-pagos/index.html">💰 Reporte Pagos</a>
+    <a class="sb-item" href="../reportes-contable/index.html">📊 Reporte Contable</a>
+    <a class="sb-item" href="../reportes-pagos/index.html">💰 Reporte Pagos</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">🤝 Convenios</a>
-
     <div class="sb-section">Tributario</div>
-    <a class="sb-item " href="../pir/index.html">📊 PIR</a>
-    <a class="sb-item " href="../pre-iva/index.html">📋 Pre-IVA</a>
-
+    <a class="sb-item" href="../pir/index.html">📊 PIR</a>
+    <a class="sb-item" href="../pre-iva/index.html">📋 Pre-IVA</a>
     <div class="sb-section">Financiero</div>
-    <a class="sb-item " href="../pagos/index.html">✅ Aprobaciones</a>
-    <a class="sb-item " href="../conciliacion/index.html">🏦 Conciliación</a>
+    <a class="sb-item" href="../pagos/index.html">✅ Aprobaciones</a>
+    <a class="sb-item" href="../conciliacion/index.html">🏦 Conciliación</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📋 CxC / Cobranza</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">🧾 Facturación</a>
-
     <div class="sb-section">Comercial</div>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📈 CRM</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📝 Cotizaciones</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📣 Campañas</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">✉️ Comunicaciones</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📊 Performance</a>
-
     <div class="sb-section">Configuración</div>
-    <a class="sb-item " href="../admin/index.html">👤 Admin</a>
-    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">🌐 Mi Contadoor</a>
+    <a class="sb-item" href="../admin/index.html">⚙️ Admin</a>
   </nav>
   <div class="sb-foot" id="sb-usuario">Gestoor v1.0</div>
 </aside>
@@ -253,6 +261,12 @@ tr:hover td{background:#f9fefb;}
     </div>
 
     <!-- TABLA -->
+    <!-- BARRA ENVÍO MASIVO -->
+    <div class="bulk-bar" id="bulkBar">
+      <span id="bulkCount" style="font-size:12px;font-weight:600"></span>
+      <button id="btnEnviarMasivo" style="background:#fff;color:var(--p);border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer">📤 Enviar seleccionados</button>
+      <button id="btnDeseleccionar" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer">✕ Deseleccionar</button>
+    </div>
     <div class="tabla-wrap">
       <div class="tabla-hdr">
         <div>
@@ -433,6 +447,12 @@ function setHistoricoRemu(o){localStorage.setItem('remu_historico',JSON.stringif
 // ═══════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',function(){
+  var btnM=document.getElementById('btnEnviarMasivo');
+  var btnD=document.getElementById('btnDeseleccionar');
+  if(btnM) btnM.onclick=enviarMasivoRrhh;
+  if(btnD) btnD.onclick=deseleccionarRrhh;
+});
 function init(){
   var u=getUsuario();
   document.getElementById('tb-analista-nombre').textContent=u.nombre||'Analista RRHH';
@@ -479,6 +499,75 @@ function cargarPeriodo(){
 // ═══════════════════════════════════════════════════
 // RENDER TABLA
 // ═══════════════════════════════════════════════════
+
+// ── PIPELINE VISUAL ──────────────────────────────────────────────────────
+function renderPipeline(r){
+  var est = getEstadoRrhh(r);
+  var tieneLibro = r.usaArchivo||r.afp>0||r.nTrab>0;
+  var completado = est==='completado'||est==='enviado';
+  var enviado    = est==='enviado';
+
+  var pasos = [
+    {key:'libro',   label:'Libro',      done:tieneLibro,          active:!tieneLibro},
+    {key:'datos',   label:'Datos',      done:r.afp>0||r.nTrab>0, active:tieneLibro&&!(r.afp>0||r.nTrab>0)},
+    {key:'revision',label:'Revisión',   done:completado,          active:(r.afp>0||r.nTrab>0)&&!completado},
+    {key:'enviado', label:'Enviado',    done:enviado,             active:completado&&!enviado},
+  ];
+
+  var html='<div class="pipeline">';
+  pasos.forEach(function(p,i){
+    var cls = p.done?'done':p.active?'active':'';
+    var icon = p.done?'✓':p.active?(i+1):' ';
+    html+='<div class="pipe-step '+cls+'">'
+      +'<div class="ps-dot">'+icon+'</div>'
+      +'<div class="pipe-lbl">'+p.label+'</div>'
+      +'</div>';
+    if(i<pasos.length-1){
+      html+='<div class="pipe-line'+(p.done?' done':'')+'"></div>';
+    }
+  });
+  html+='</div>';
+  return html;
+}
+
+// ── ENVÍO MASIVO ──────────────────────────────────────────────────────────
+function actualizarBulkBar(){
+  var chks=document.querySelectorAll('.rrhh-chk:checked');
+  var bar=document.getElementById('bulkBar');
+  var cnt=document.getElementById('bulkCount');
+  if(!bar) return;
+  if(chks.length>0){
+    bar.classList.add('on');
+    if(cnt) cnt.textContent=chks.length+' reporte'+(chks.length>1?'s':'')+' seleccionado'+(chks.length>1?'s':'');
+  }else{
+    bar.classList.remove('on');
+  }
+}
+function deseleccionarRrhh(){
+  document.querySelectorAll('.rrhh-chk').forEach(function(c){c.checked=false;});
+  actualizarBulkBar();
+}
+function enviarMasivoRrhh(){
+  var chks=document.querySelectorAll('.rrhh-chk:checked');
+  if(!chks.length){return;}
+  var ids=Array.from(chks).map(function(c){return c.getAttribute('data-id');});
+  var arr=getReportes();
+  var enviados=0;
+  ids.forEach(function(id){
+    var r=arr.find(function(x){return String(x.id)===String(id);});
+    if(!r) return;
+    if(getEstadoRrhh(r)!=='completado'&&getEstadoRrhh(r)!=='enviado'){
+      alert('El reporte de '+r.clienteNombre+' no está completo aún.');return;
+    }
+    r.estado='enviado_rrhh'; enviados++;
+  });
+  if(enviados>0){
+    setReportes(arr);
+    deseleccionarRrhh();
+    cargarPeriodo();
+  }
+}
+
 function renderTabla(periodo){
   var u=getUsuario();
   var analista=u.nombre||'';
@@ -529,11 +618,11 @@ function renderTabla(periodo){
   }
 
   var html='<table><thead><tr>'
+    +'<th style="width:30px"><input type="checkbox" id="chkAll" onchange="document.querySelectorAll(\'.rrhh-chk\').forEach(function(c){c.checked=document.getElementById(\'chkAll\').checked;});actualizarBulkBar();"></th>'
     +'<th>Cliente / Plan</th>'
-    +'<th>Prioridad RRHH</th>'
-    +'<th>Libro cargado</th>'
+    +'<th>Etapas</th>'
+    +'<th>Prioridad</th>'
     +'<th>Datos RRHH</th>'
-    +'<th>Estado</th>'
     +'<th>Cumplimiento</th>'
     +'<th style="text-align:right">Acciones</th>'
     +'</tr></thead><tbody>';
@@ -546,13 +635,17 @@ function renderTabla(periodo){
     var planCls=c&&c.plan?{estrategico:'plan-e',asesoria:'plan-a',cumplimiento:'plan-c'}[c.plan.toLowerCase()]||'plan-c':'plan-c';
     var planLabel=c&&c.plan?c.plan:' - ';
 
-    html+='<tr>';
+    var est_r=getEstadoRrhh(r);
+    html+='<tr>'
+      +'<td style="text-align:center"><input type="checkbox" class="rrhh-chk" data-id="'+r.id+'" data-estado="'+est_r+'" onchange="actualizarBulkBar()" style="width:14px;height:14px;accent-color:var(--p)"></td>';
     // Cliente
     html+='<td><div class="cli-nombre">'+hesc(r.clienteNombre||r.rut)+'</div>'
       +'<div class="cli-sub"><span class="cli-rut">'+hesc(r.rut)+'</span>'
       +'<span class="plan '+planCls+'">'+hesc(planLabel)+'</span>'
       +(r.clienteWa?'<a href="https://wa.me/56'+r.clienteWa.replace(/\D/g,'')+'" target="_blank" style="font-size:10px;color:#2D9B6F">💬</a>':'')
       +'</div></td>';
+    // Pipeline etapas
+    html+='<td>'+renderPipeline(r)+'</td>';
     // Prioridad
     html+='<td><span class="prio prio-'+(r.prioridadRrhh||'media')+'">'
       +{alta:'🔴 Alta',media:'🟡 Media',baja:'🟢 Baja'}[r.prioridadRrhh||'media']
