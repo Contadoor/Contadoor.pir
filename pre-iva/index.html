@@ -136,10 +136,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
     <button class="btn-generar" id="btn-enviar">✉️ Enviar Pre-IVA</button>
   </div>
   <div class="content-preiva">
-    <div class="panel-empty" id="panel-empty">
-      <div class="panel-empty-icon">📋</div>
-      <div style="font-size:13px;color:var(--tm)">Selecciona un cliente para generar la simulación</div>
-    </div>
+    <div id="panel-empty" style="display:none"></div>
     <div class="panel-simulacion" id="panel-simulacion">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
         <button id="btn-volver-nomina" style="background:none;border:none;color:var(--p);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:4px 0">&#8592; Volver a la nómina</button>
@@ -258,14 +255,13 @@ var _todosClientes=[];
 var _UF=39700;
 // ── CARGAR CLIENTES DESDE SUPABASE ────────────────────────────────────────
 function cargarClientes(){
-  return sbFetch('clientes?select=id,rut,razon_social,email,telefono,whatsapp,plan,estado,analista_contable,analista_rrhh&order=razon_social.asc')
+  return sbFetch('clientes?select=id,rut,razon_social,email,plan,estado,analista_contable,analista_rrhh&order=razon_social.asc')
     .then(function(r){return r.ok?r.json():[];})
     .then(function(data){
       _todosClientes=data.filter(function(c){return c.estado==='activo';}).map(function(c){
         return {
           id:c.id, rut:c.rut, razonSocial:c.razon_social,
-          email:c.email, tel:c.telefono, wa:c.whatsapp,
-          plan:c.plan, estado:c.estado,
+          email:c.email, plan:c.plan, estado:c.estado,
           analistaContable:c.analista_contable, analistaRrhh:c.analista_rrhh
         };
       });
@@ -274,7 +270,8 @@ function cargarClientes(){
       renderNomina();
       return _todosClientes;
     })
-    .catch(function(){
+    .catch(function(err){
+      console.error('cargarClientes error:', err);
       // Fallback a localStorage
       try{_todosClientes=JSON.parse(localStorage.getItem('clientes_bd')||'[]').filter(function(c){return c.estado==='activo';});}
       catch(e){_todosClientes=[];}
