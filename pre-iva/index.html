@@ -441,7 +441,15 @@ function calcularPPM(){
 function calcular(){
   var debReg=nv('inp-debito'), credReg=nv('inp-credito');
   var diasT=nv('inp-dias-transc')||22, diasTot=nv('inp-dias-tot')||31;
-  var remanente=_datos.remanente, vencimiento=20, diasRest=Math.max(vencimiento-diasT,0);
+  var remanente=_datos.remanente;
+  // Días restantes para actuar = días hasta el cierre del período (día 20 del mes siguiente)
+  // Calculado desde la fecha real del sistema
+  var _hoy=new Date();
+  var _anio=parseInt(_periodoActual.slice(0,4)), _mes=parseInt(_periodoActual.slice(4,6))-1;
+  var _vencMes=_mes+1>11?0:_mes+1, _vencAnio=_mes+1>11?_anio+1:_anio;
+  var _fechaVenc=new Date(_vencAnio,_vencMes,20);
+  var _diasRestReal=Math.max(0,Math.ceil((_fechaVenc-_hoy)/(1000*60*60*24)));
+  var diasRest=_diasRestReal;
   var tasaDiaria=diasT>0?debReg/diasT:0, tasaDiariaC=diasT>0?credReg/diasT:0;
   var debProy=Math.round(debReg+tasaDiaria*diasRest), credProy=Math.round(credReg+tasaDiariaC*diasRest);
   var ppm=calcularPPM();
@@ -642,7 +650,13 @@ function buildReporteHTML(){
   var credProy=document.getElementById('res-credito').textContent;
   var f29=document.getElementById('res-f29').textContent;
   var ppm=document.getElementById('res-ppm').textContent;
-  var diasRest=parseInt(document.getElementById('res-dias-rest').textContent)||0;
+  // Calcular diasRest desde fecha real (no desde DOM que puede tener default)
+  var _bhoy=new Date();
+  var _banio=parseInt(_periodoActual.slice(0,4)), _bmes=parseInt(_periodoActual.slice(4,6))-1;
+  var _bvencMes=_bmes+1>11?0:_bmes+1, _bvencAnio=_bmes+1>11?_banio+1:_banio;
+  var _bfechaVenc=new Date(_bvencAnio,_bvencMes,20);
+  var diasRest=Math.max(0,Math.ceil((_bfechaVenc-_bhoy)/(1000*60*60*24)));
+  var now=new Date(); // fecha de emisión del reporte
   var remanente=document.getElementById('res-remanente').textContent;
   var periodo=formatPeriodo(_periodoActual);
   var tasaPPM=_datos.tasaPPM||0;
