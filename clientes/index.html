@@ -106,7 +106,7 @@ tr:hover td{background:#faf5ff;}
     <div class="sb-section">Principal</div>
     <a class="sb-item" href="../index.html">🏠 Dashboard</a>
     <div class="sb-section">Gestión</div>
-    <a class="sb-item on" href="#">👥 Clientes</a>
+    <a class="sb-item on" href="../clientes/index.html">👥 Clientes</a>
     <a class="sb-item" href="../planes/index.html">📋 Planes y Servicios</a>
     <a class="sb-item" href="../reportes/index.html">📋 Panel de Control</a>
     <div class="sb-section">Remuneraciones</div>
@@ -115,6 +115,7 @@ tr:hover td{background:#faf5ff;}
     <div class="sb-section">Contable</div>
     <a class="sb-item" href="../reportes-contable/index.html">📊 Reporte Contable</a>
     <a class="sb-item" href="../reportes-pagos/index.html">💰 Reporte Pagos</a>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">🤝 Convenios</a>
     <div class="sb-section">Tributario</div>
     <a class="sb-item" href="../pir/index.html">📊 PIR</a>
     <a class="sb-item" href="../pre-iva/index.html">📋 Pre-IVA</a>
@@ -123,6 +124,12 @@ tr:hover td{background:#faf5ff;}
     <a class="sb-item" href="../conciliacion/index.html">🏦 Conciliación</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📋 CxC / Cobranza</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">🧾 Facturación</a>
+    <div class="sb-section">Comercial</div>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📈 CRM</a>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📝 Cotizaciones</a>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📣 Campañas</a>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">✉️ Comunicaciones</a>
+    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📊 Performance</a>
     <div class="sb-section">Configuración</div>
     <a class="sb-item" href="../admin/index.html">⚙️ Admin</a>
   </nav>
@@ -245,7 +252,7 @@ tr:hover td{background:#faf5ff;}
       </div>
 
       <div class="card-hd">💼 Valor mensual</div>
-      <div class="fg4" style="margin-bottom:10px">
+      <div class="fg2" style="margin-bottom:10px">
         <div class="fgroup">
           <label>Moneda base</label>
           <select id="f-moneda">
@@ -253,19 +260,21 @@ tr:hover td{background:#faf5ff;}
             <option value="CLP">CLP</option>
           </select>
         </div>
-        <div class="fgroup"><label>Monto base</label><input type="number" id="f-monto" placeholder="3.5" step="0.01"></div>
-        <div class="fgroup"><label>Trab. incluidos</label><input type="number" id="f-trab" placeholder="5"></div>
-        <div class="fgroup"><label>Obs. precio</label><input type="text" id="f-precio-obs" placeholder="Precio especial, descuento..."></div>
+        <div class="fgroup"><label>Monto base fijo mensual</label><input type="number" id="f-monto" placeholder="3.5" step="0.01"></div>
       </div>
-      <div class="fg3" style="margin-bottom:10px" id="wrap-variable">
+      <div class="fg3" style="margin-bottom:10px">
         <div class="fgroup">
-          <label>Moneda valor variable</label>
+          <label>Moneda por trabajador</label>
           <select id="f-moneda-var">
-            <option value="UF">UF (igual que base)</option>
+            <option value="UF">UF</option>
             <option value="CLP">CLP (mixto)</option>
           </select>
         </div>
-        <div class="fgroup"><label>Valor x trab. extra</label><input type="number" id="f-var" placeholder="0.3" step="0.01"></div>
+        <div class="fgroup"><label>Valor por trabajador</label><input type="number" id="f-var" placeholder="0.3" step="0.01"></div>
+        <div class="fgroup"><label>N° trabajadores actuales</label><input type="number" id="f-trab" placeholder="5"></div>
+      </div>
+      <div class="fg2" style="margin-bottom:10px">
+        <div class="fgroup"><label>Obs. precio</label><input type="text" id="f-precio-obs" placeholder="Precio especial, descuento..."></div>
         <div class="fgroup"><label>Vista previa</label><div class="preview-box" id="preview-val">—</div></div>
       </div>
 
@@ -543,39 +552,25 @@ var _detalleId = null;
 var _socioCount = 0;
 
 function calcPreview() {
-  var base     = nv('f-monto');
-  var incl     = nv('f-trab');
-  var vTrab    = nv('f-var');
-  var monBase  = gv('f-moneda')     || 'UF';
-  var monVar   = gv('f-moneda-var') || monBase;
-  var pb       = g('preview-val');
+  var base    = nv('f-monto');
+  var trab    = nv('f-trab');
+  var vTrab   = nv('f-var');
+  var monBase = gv('f-moneda')     || 'UF';
+  var monVar  = gv('f-moneda-var') || monBase;
+  var pb      = g('preview-val');
   if (!pb) return;
   if (!base) { pb.textContent = '—'; return; }
 
-  // Trab adicionales del mes anterior desde reporte RRHH
-  var trabMesAnt = 0;
-  try {
-    var rrhh = JSON.parse(localStorage.getItem('rrhh_ultimo') || '{}');
-    var rut  = gv('f-rut');
-    if (rrhh[rut] && rrhh[rut].totalTrab) {
-      trabMesAnt = Math.max(0, rrhh[rut].totalTrab - incl);
-    }
-  } catch(e) {}
+  var esMixto = monBase !== monVar && vTrab;
+  var baseClp = monBase === 'UF' ? base * UF : base;
+  var varClp  = trab && vTrab ? trab * vTrab * (monVar === 'UF' ? UF : 1) : 0;
+  var total   = baseClp + varClp;
 
-  var esMixto  = monBase !== monVar;
-  var baseClp  = monBase === 'UF' ? base * UF : base;
-  var varClp   = (vTrab && trabMesAnt) ? trabMesAnt * vTrab * (monVar === 'UF' ? UF : 1) : 0;
-  var totalClp = baseClp + varClp;
-
-  // Texto descriptivo
   var txt = base + ' ' + monBase + ' base';
-  if (incl) txt += ' · ' + incl + ' trab. incl.';
-  if (vTrab) {
-    txt += ' + ' + vTrab + ' ' + monVar + '/trab extra';
-    if (esMixto) txt += ' <span style="background:#fef3c7;color:#92400e;font-size:10px;padding:1px 6px;border-radius:4px">MIXTO</span>';
-  }
-  if (trabMesAnt) txt += ' · ' + trabMesAnt + ' adic. (mes ant.)';
-  txt += '<br><span style="color:var(--p);font-weight:700">≈ ' + ff(totalClp) + ' / mes</span>';
+  if (vTrab) txt += ' + ' + vTrab + ' ' + monVar + '/trab';
+  if (trab)  txt += ' · ' + trab + ' trabajadores';
+  if (esMixto) txt += ' <span style="background:#fef3c7;color:#92400e;font-size:10px;padding:1px 6px;border-radius:4px">MIXTO</span>';
+  txt += '<br><span style="color:var(--p);font-weight:700">≈ ' + ff(total) + ' / mes</span>';
   pb.innerHTML = txt;
 }
 
@@ -868,7 +863,11 @@ function renderClientes() {
   g('st-activos').textContent     = all.filter(function(c){ return c.estado==='activo'; }).length;
   g('st-onboarding').textContent  = all.filter(function(c){ return c.estado==='onboarding'; }).length;
   g('st-suspendidos').textContent = all.filter(function(c){ return c.estado==='suspendido'; }).length;
-  var mrr = all.filter(function(c){ return c.estado==='activo'; }).reduce(function(s,c){ var b=(c.moneda==='CLP')?(c.monto||0):(c.monto||0)*UF; return s+Math.round(b); }, 0);
+  var mrr = all.filter(function(c){ return c.estado==='activo'; }).reduce(function(s,c){
+    var b = (c.moneda==='CLP') ? (c.monto||0) : (c.monto||0)*UF;
+    var v = c.trab&&c.varTrab ? c.trab*c.varTrab*(c.monedaVar==='CLP'?1:UF) : 0;
+    return s + Math.round(b+v);
+  }, 0);
   g('st-mrr').textContent = '$' + Math.round(mrr/1000) + 'K';
   g('tabla-meta').textContent = arr.length + ' cliente' + (arr.length!==1?'s':'') + ' encontrado' + (arr.length!==1?'s':'');
 
@@ -916,11 +915,14 @@ function renderClientes() {
     // Valor
     var td4 = document.createElement('td'); td4.style.fontSize='11px';
     var esMixto2 = c.monedaVar && c.monedaVar !== c.moneda && c.varTrab;
+    var baseC  = c.moneda==='CLP' ? c.monto||0 : (c.monto||0)*UF;
+    var varC   = c.trab&&c.varTrab ? c.trab*c.varTrab*(c.monedaVar==='CLP'?1:UF) : 0;
+    var totalC = Math.round(baseC+varC);
     td4.innerHTML = c.monto
       ? '<span style="font-weight:600">'+c.monto+' '+(c.moneda||'UF')+'</span>'
         +(esMixto2?' <span style="background:#fef3c7;color:#92400e;font-size:9px;padding:1px 5px;border-radius:3px">MIXTO</span>':'')
-        +(c.trab?' · '+c.trab+' trab.':'')
-        +(mrr2?'<br><span style="color:var(--p);font-weight:700">≈ '+ff(mrr2)+'</span>':'')
+        +(c.trab?'<br><span style="font-size:10px;color:var(--tm)">'+c.trab+' trab · +'+ff(varC)+'</span>':'')
+        +(totalC?'<br><span style="color:var(--p);font-weight:700">≈ '+ff(totalC)+'</span>':'')
       : '<span style="color:var(--tm)">Sin valor</span>';
     tr.appendChild(td4);
 
