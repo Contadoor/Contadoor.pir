@@ -1494,7 +1494,7 @@ function abrirModalNuevo(rut,periodo){
 }
 
 function abrirModalEditar(id){
-  var r=getReportes().find(function(x){return x.id===id;});if(!r) return;
+  var r=getReportes().find(function(x){return String(x.id)===String(id);});if(!r) return;
   _editId=id;resetForm();popularSelectClientes();
   document.getElementById('modalTitle').textContent='Editar Reporte  -  '+formatPeriodo(r.periodo);
   setV('f-id',r.id);
@@ -1821,7 +1821,7 @@ function confirmarApertura(){
       var tieneCont=c.tieneContabilidad!==false;
       arr.unshift({
         id:Date.now()+Math.random(),rut:c.rut,
-        clienteNombre:c.razon,clienteWa:c.wa||'',clienteEmail:c.email||'',
+        clienteNombre:c.razon,clienteWa:c.wa||c.whatsapp||'',clienteEmail:c.email||'',
         periodo,estado:'borrador',
         secciones:{
           rrhh:{ok:!tieneRrhh,na:!tieneRrhh},
@@ -1848,6 +1848,12 @@ function confirmarApertura(){
     abiertoPor:((function(){try{return JSON.parse(sessionStorage.getItem('usuario_activo')||'{}').nombre||'Sistema';}catch(e){return'Sistema';}})())
   };
   localStorage.setItem('apertura_periodos',JSON.stringify(ps2));
+  // Sync a rpt_periodos para compatibilidad con módulos operativos
+  var _rptPer=[];try{_rptPer=JSON.parse(localStorage.getItem('rpt_periodos')||'[]');}catch(e){}
+  if(!_rptPer.find(function(p){return p.periodo===periodo;})){
+    _rptPer.unshift({periodo:periodo,uf:ufVal,utm:utmVal,ts:Date.now()});
+    localStorage.setItem('rpt_periodos',JSON.stringify(_rptPer));
+  }
   // Guardar UF/UTM en Supabase periodos
   fetch('https://ulxoxqbuxiuylaolaqxj.supabase.co/rest/v1/periodos',{
     method:'POST',
@@ -2040,7 +2046,7 @@ function filtrarNominaPrioridad(periodo,prioridad){
 // VISTA REPORTE AL CLIENTE
 // ═══════════════════════════════════════════════════════════
 function verReporte(id){
-  var r=getReportes().find(function(x){return x.id===id;});if(!r) return;
+  var r=getReportes().find(function(x){return String(x.id)===String(id);});if(!r) return;
   _vistaId=id;
   var usaArchivo=r.usaArchivo;
   var hoy=new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'});
