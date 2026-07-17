@@ -766,9 +766,9 @@ function setPeriodoActual(){
   if(ap&&!ap.value)ap.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
 }
 
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 // STORAGE
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 function getReportes(){try{return JSON.parse(localStorage.getItem('reportes_mensuales')||'[]');}catch(e){return[];}}
 function setReportes(arr){localStorage.setItem('reportes_mensuales',JSON.stringify(arr));renderAll();}
 // getPeriodos: see apertura_periodos below
@@ -800,9 +800,9 @@ function getClientesFiltrados(){
 function getHistoricoRemu(){try{return JSON.parse(localStorage.getItem('remu_historico')||'{}');}catch(e){return{};}}
 function setHistoricoRemu(obj){localStorage.setItem('remu_historico',JSON.stringify(obj));}
 
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 // PARSER LIBRO MAS REMUNERACIONES
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 function parsearLibroRemu(buffer){
   // SheetJS  -  leer .xls con raw:true para obtener valores numéricos reales
   var wb=XLSX.read(buffer,{type:'array',raw:true});
@@ -1036,9 +1036,9 @@ function limpiarRemu(){
   calcTotal();
 }
 
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
-// C\u00c1LCULOS IVA
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
+// CÁLCULOS IVA
+// ═══════════════════════════════════════════════════════════
 function calcIva(){
   var debito=gv('f-iva-debito');
   var credito=gv('f-iva-credito');
@@ -1087,9 +1087,9 @@ function calcIva(){
   actualizarF29Resumen();
 }
 
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
-// POSTERGACI\u00d3N IVA
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
+// POSTERGACIÓN IVA
+// ═══════════════════════════════════════════════════════════
 function onPostergacion(){
   var cb=document.getElementById('f-postergar-iva');
   var box=document.getElementById('postergacionBox');
@@ -1099,9 +1099,9 @@ function onPostergacion(){
   actualizarF29Resumen();
 }
 
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
-// C\u00c1LCULO PPM
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
+// CÁLCULO PPM
+// ═══════════════════════════════════════════════════════════
 function calcPpm(){
   var tasa=gv('f-ppm-tasa');
   var base=gv('f-ppm-base');
@@ -1137,9 +1137,9 @@ function calcPpm(){
   actualizarF29Resumen();
 }
 
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 // RESUMEN F29
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 function actualizarF29Resumen(){
   var box=document.getElementById('f29ResumenBox');
   var content=document.getElementById('f29ResumenContent');
@@ -1169,7 +1169,7 @@ function actualizarF29Resumen(){
   if(ppm>0) h+='<tr><td style="padding:5px 0;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">PPM ('+gv('f-ppm-tasa')+'%)</td><td style="text-align:right;padding:5px 0;border-bottom:0.5px solid #e8dde8">'+ff(ppm)+'</td></tr>';
   if(retHon>0) h+='<tr><td style="padding:5px 0;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">Retenc. boletas honorarios</td><td style="text-align:right;padding:5px 0;border-bottom:0.5px solid #e8dde8">'+ff(retHon)+'</td></tr>';
   if(ret2>0) h+='<tr><td style="padding:5px 0;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">Retenciones 2\u00aa Cat.</td><td style="text-align:right;padding:5px 0;border-bottom:0.5px solid #e8dde8">'+ff(ret2)+'</td></tr>';
-  if(iuSii>0) h+='<tr><td style="padding:5px 0;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">Imp. \u00danico 2\u00aa Cat. <span style="font-size:10px;color:#2D9B6F">(desde RRHH)</span></td><td style="text-align:right;padding:5px 0;border-bottom:0.5px solid #e8dde8">'+ff(iuSii)+'</td></tr>';
+  if(iuSii>0) h+='<tr><td style="padding:5px 0;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">Imp. Único 2\u00aa Cat. <span style="font-size:10px;color:#2D9B6F">(desde RRHH)</span></td><td style="text-align:right;padding:5px 0;border-bottom:0.5px solid #e8dde8">'+ff(iuSii)+'</td></tr>';
   if(otros>0) h+='<tr><td style="padding:5px 0;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">Otros impuestos</td><td style="text-align:right;padding:5px 0;border-bottom:0.5px solid #e8dde8">'+ff(otros)+'</td></tr>';
   if(postergar&&ivaNeto>0){
     h+='<tr style="background:rgba(45,155,111,.06)"><td style="padding:6px 0;font-weight:700;color:#2D9B6F">Pago inmediato SII</td><td style="text-align:right;padding:6px 0;font-weight:700;color:#2D9B6F">'+ff(pagaAhora)+'</td></tr>';
@@ -1181,9 +1181,9 @@ function actualizarF29Resumen(){
   content.innerHTML=h;
 }
 
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 // HONORARIOS CON UF
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 function calcHonTotal(){
   var baseUf=gv('f-hon-base-uf');
   var uf=gv('f-uf-periodo')||gv('f-uf-global')||0;
@@ -1204,9 +1204,9 @@ function calcHonTotal(){
   calcTotal();
 }
 
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 // ESTADO DE PAGO
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 function onEstadoPagoChange(){
   var estado=sv('f-estado-pago');
   var infoEl=document.getElementById('estadoPagoInfo');
@@ -1214,7 +1214,7 @@ function onEstadoPagoChange(){
   var msgs={
     'transferido':'💸 El cliente transfirió. El analista de pagos debe conciliar la transferencia y proceder con el pago.',
     'en_proceso':'🔄 El analista está ingresando el pago en la institución (AFP/SII/banco).',
-    'pendiente_firma':'\u270d️ Esperando autorización de Luciano. Aparecerá en la vista de aprobación masiva.',
+    'pendiente_firma':'✍️ Esperando autorización de Luciano. Aparecerá en la vista de aprobación masiva.',
     'pagado':'✅ Ciclo de pago cerrado para este período.',
     'pago_directo':'✅ El cliente pagó directamente a la institución. No requiere gestión de Contadoor.',
     'vencido':'🔴 Atención: esta obligación está vencida sin pago registrado.'
@@ -1254,15 +1254,15 @@ function onEstadoPagoChange(){
   }
 }
 
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
-// HIST\u00d3RICO LIBRO DIARIO
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
+// HISTÓRICO LIBRO DIARIO
+// ═══════════════════════════════════════════════════════════
 function getHistoricoDiario(){try{return JSON.parse(localStorage.getItem('diario_historico')||'{}');}catch(e){return{};}}
 function setHistoricoDiario(obj){localStorage.setItem('diario_historico',JSON.stringify(obj));}
 
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 // CALC TOTAL PRINCIPAL
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 function calcTotal(){
   // RRHH  -  cotizaciones
   var sis=gv('f-sis'),mutual=gv('f-mutual'),cesEmp=gv('f-ces-emp');
@@ -1311,16 +1311,16 @@ function calcTotal(){
   document.getElementById('totalDetalle').textContent=partes.join('  ·  ');
 }
 
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 // ATRASOS
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 function addAtraso(concepto,periodo,monto){
   _atCnt++;
   document.getElementById('atrasosEmpty').style.display='none';
   var wrap=document.getElementById('atrasosWrap');
   var div=document.createElement('div');div.className='atraso-row';div.id='at-'+_atCnt;
   var mkI=function(type,val,ph){var i=document.createElement('input');i.type=type;i.value=val||'';i.placeholder=ph;i.addEventListener('input',calcTotal);return i;};
-  var btn=document.createElement('button');btn.className='btn-danger btn-sm';btn.textContent='\u2715';
+  var btn=document.createElement('button');btn.className='btn-danger btn-sm';btn.textContent='✕';
   var id=_atCnt;
   btn.onclick=function(){
     var el=document.getElementById('at-'+id);if(el)el.remove();
@@ -1339,9 +1339,9 @@ function getAtrasos(){
   }).filter(function(a){return a.concepto||a.monto>0;});
 }
 
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
-// ESTADOS POR SECCI\u00d3N
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
+// ESTADOS POR SECCIÓN
+// ═══════════════════════════════════════════════════════════
 function marcarSeccion(sec){
   var r=getReportes();
   var id=sv('f-id');
@@ -1384,9 +1384,9 @@ function marcarSeccion(sec){
   alert('Sección '+sec.toUpperCase()+' marcada como completada.');
 }
 
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 // CLIENTE CHANGE
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ═══════════════════════════════════════════════════════════
 function onClienteChange(){
   var rut=sv('f-cliente');
   var box=document.getElementById('cliente-info-box');
@@ -1912,6 +1912,15 @@ function renderNomina(){
     var _cliFiltrados=getClientesFiltrados().map(function(c){return c.rut;});
     arr=arr.filter(function(r){return _cliFiltrados.indexOf(r.rut)>=0;});
   }
+  // Filtro manual por analista (master/admin)
+  var _fAnalista=window._filtroAnalista||'';
+  if(_fAnalista){
+    var _clisAnalista=getClientes().filter(function(c){
+      return c.contador===_fAnalista||c.analistaContable===_fAnalista||
+             c.rrhh===_fAnalista||c.analistaRrhh===_fAnalista;
+    }).map(function(c){return c.rut;});
+    arr=arr.filter(function(r){return _clisAnalista.indexOf(r.rut)>=0;});
+  }
   var periodos=getPeriodos();
 
   if(!arr.length&&!periodos.length){
@@ -1942,11 +1951,26 @@ function renderNomina(){
     html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">';
     html+='<div><div style="font-size:16px;font-weight:700;color:#904891">📅 '+formatPeriodo(periodo)+'</div>';
     html+='<div style="font-size:11px;color:#9a849b;margin-top:2px">'+lista.length+' clientes · '+completos+' secciones completas · '+enviados+' enviados · Total: '+ff(total)+'</div></div>';
-    html+='<div style="display:flex;gap:6px">';
+    // Obtener analistas únicos del período
+    var _analistas=[...new Set(lista.map(function(r){
+      var c=getClientes().find(function(x){return x.rut===r.rut;})||{};
+      return c.contador||c.analistaContable||'';
+    }).filter(Boolean))].sort();
+    html+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">';
+    html+='<span style="font-size:10px;color:rgba(255,255,255,.3);font-weight:600">PRIORIDAD:</span>';
     html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="alta">🔴 Alta</button>';
     html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="media">🟡 Media</button>';
     html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="baja">🟢 Baja</button>';
-    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="">Todos</button>';
+    html+='<button class="btn-s btn-sm" onclick="filtrarNominaPrioridad(this.dataset.per,this.dataset.p)" data-per="'+periodo+'" data-p="">Todas</button>';
+    if(_analistas.length>1){
+      html+='<span style="font-size:10px;color:rgba(255,255,255,.3);font-weight:600;margin-left:6px">ANALISTA:</span>';
+      _analistas.forEach(function(a){
+        var iniciales=a.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+        var _aEsc=a.replace(/'/g,'');
+        html+='<button class="btn-s btn-sm" data-analista="'+_aEsc+'" title="'+a+'">'+iniciales+'</button>';
+      });
+      html+='<button class="btn-s btn-sm" data-analista="">Todos</button>';
+    }
     html+='</div></div>';
 
     // Ordenar por prioridad
@@ -1978,11 +2002,11 @@ function renderNomina(){
         ?'<span style="font-size:9px;font-weight:700;background:#e8f0fe;color:#3B82F6;padding:1px 6px;border-radius:8px;margin-left:6px">🏦 Pago directo</span>'
         :'<span style="font-size:9px;font-weight:700;background:var(--pp);color:var(--p);padding:1px 6px;border-radius:8px;margin-left:6px">💳 Transfiere</span>';
       html+='<div class="nomina-rut">'+hesc(r.rut)+' <span class="badge '+priorBadge+'" style="margin-left:6px">'+( r.prioridadRrhh||'media')+'</span>'+modalBadge+(r.totalGeneral?'<span style="margin-left:8px;font-family:monospace;font-size:11.5px;font-weight:700;color:#904891">'+ff(r.totalGeneral)+'</span>':'')+'</div>';
-      html+='<div class="nomina-estados">'+chip('rrhh','RRHH')+chip('imp','Imp.')+chip('hon','Hon.')+'<span class="estado-chip '+(r.estado==='enviado_total'||r.estado==='enviado_rrhh'?'ok':'pend')+'">'+(r.estado==='enviado_total'?'\u1f4e4 Enviado':r.estado==='enviado_rrhh'?'\u1f4e4 RRHH env.':'\u1f4e4 Pendiente env.')+'</span></div>';
+      html+='<div class="nomina-estados">'+chip('rrhh','RRHH')+chip('imp','Imp.')+chip('hon','Hon.')+'<span class="estado-chip '+(r.estado==='enviado_total'||r.estado==='enviado_rrhh'?'ok':'pend')+'">'+(r.estado==='enviado_total'?'📤 Enviado':r.estado==='enviado_rrhh'?'📤 RRHH env.':'📤 Pendiente env.')+'</span></div>';
       html+='</div>';
       html+='<div style="display:flex;gap:5px;flex-shrink:0">';
       if(r.clienteWa) html+='<a class="btn-wa btn-sm" href="https://wa.me/56'+r.clienteWa.replace(/\D/g,'')+'" target="_blank">💬</a>';
-      var btnLabel=modalidad==='directo'?'\u2713 Validar':'✏️ Completar';
+      var btnLabel='✏️ Editar';
       html+='<button class="btn-p btn-sm" onclick="abrirModalEditar('+r.id+')">'+btnLabel+'</button>';
       if(r.totalGeneral>0) html+='<button class="btn-s btn-sm" onclick="verReporte('+r.id+')">👁 Ver</button>';
       html+='</div></div>';
@@ -1991,8 +2015,18 @@ function renderNomina(){
   });
 
   cont.innerHTML=html||'<div class="empty-state"><h3>Sin reportes</h3><p>Abre un período para generar la nómina.</p></div>';
+  // Wire analista filter buttons via delegation
+  cont.addEventListener('click',function(e){
+    var btn=e.target.closest('[data-analista]');
+    if(btn) filtrarNominaAnalista(btn.getAttribute('data-analista'));
+  });
 }
 
+function filtrarNominaAnalista(analista){
+  // Guardar filtro activo
+  window._filtroAnalista = analista;
+  renderNomina();
+}
 function filtrarNominaPrioridad(periodo,prioridad){
   var items=document.querySelectorAll('#nomina-'+periodo.replace(/[^a-z0-9]/gi,'_')+' .nomina-row');
   items.forEach(function(el){
@@ -2070,7 +2104,7 @@ function verReporte(id){
     if(r.salud) h+='<tr><td>Salud (ISAPRE/Fonasa)</td><td class="num">'+ff(r.salud)+'</td></tr>';
     if(r.apv) h+='<tr><td>APV</td><td class="num">'+ff(r.apv)+'</td></tr>';
     if(r.cesTrab) h+='<tr><td>Seg. Cesantía trabajador</td><td class="num">'+ff(r.cesTrab)+'</td></tr>';
-    if(r.iu) h+='<tr><td>Imp. \u00danico 2\u00aa Cat.</td><td class="num">'+ff(r.iu)+'</td></tr>';
+    if(r.iu) h+='<tr><td>Imp. Único 2\u00aa Cat.</td><td class="num">'+ff(r.iu)+'</td></tr>';
     if(r.otrosDesc) h+='<tr><td>Otros descuentos</td><td class="num">'+ff(r.otrosDesc)+'</td></tr>';
     h+='<tr class="subtotal"><td>Subtotal descuentos</td><td class="num">'+ff(totalDescTrab)+'</td></tr>';
   }else{
@@ -2079,7 +2113,7 @@ function verReporte(id){
   h+='</table></div>'+(r.obsRrhh?'<div style="font-size:11px;color:#9a849b;font-style:italic;margin-top:6px">'+hesc(r.obsRrhh)+'</div>':'')+'</div>';
 
   // Aportes patronales
-  h+='<div><div style="font-size:11px;font-weight:700;color:#5c4a5d;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">\u1f3e2 Aportes empresa</div>';
+  h+='<div><div style="font-size:11px;font-weight:700;color:#5c4a5d;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">🏢 Aportes empresa</div>';
   h+='<div style="background:#fff;border:1px solid #e8dde8;border-radius:10px;overflow:hidden">';
   h+='<table class="rpt-tabla">';
   if(usaArchivo){
@@ -2104,7 +2138,7 @@ function verReporte(id){
   if(r.iva) h+='<tr><td>IVA a pagar</td><td class="num">'+ff(r.iva)+'</td></tr>';
   if(r.ppm) h+='<tr><td>PPM (Pago Provisional Mensual)</td><td class="num">'+ff(r.ppm)+'</td></tr>';
   if(r.ret) h+='<tr><td>Retenciones 2\u00aa Categoría</td><td class="num">'+ff(r.ret)+'</td></tr>';
-  if(r.iuSii||r.iu) h+='<tr><td>Imp. \u00danico 2\u00aa Cat. <span style="font-size:10px;color:#C07A1A">(desde RRHH)</span></td><td class="num">'+ff(r.iuSii||r.iu)+'</td></tr>';
+  if(r.iuSii||r.iu) h+='<tr><td>Imp. Único 2\u00aa Cat. <span style="font-size:10px;color:#C07A1A">(desde RRHH)</span></td><td class="num">'+ff(r.iuSii||r.iu)+'</td></tr>';
   if(r.otrosImp) h+='<tr><td>Otros impuestos</td><td class="num">'+ff(r.otrosImp)+'</td></tr>';
   h+='<tr class="total"><td>Total Impuestos SII</td><td class="num">'+ff(totalImp)+'</td></tr>';
   h+='</table>';
@@ -2112,7 +2146,7 @@ function verReporte(id){
   h+='</div>';
 
   // HONORARIOS
-  h+='<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;color:#1e40af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">\u1f4bc Nuestros Servicios</div>';
+  h+='<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;color:#1e40af;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">💼 Nuestros Servicios</div>';
   h+='<div style="display:flex;gap:10px;flex-wrap:wrap">';
   if(r.honBase) h+='<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#185fa5;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">Base</div><div style="font-weight:700">'+ff(r.honBase)+'</div></div>';
   if(r.honVar) h+='<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#185fa5;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">Variable</div><div style="font-weight:700">'+ff(r.honVar)+'</div></div>';
@@ -2144,7 +2178,7 @@ function verReporte(id){
   // RECOMENDACIONES
   if(r.recomendaciones){
     h+='<div style="background:linear-gradient(135deg,#F5EAF5,#fff);border:1px solid rgba(144,72,145,.2);border-radius:10px;padding:16px 18px;margin-bottom:14px">';
-    h+='<div style="font-size:11px;font-weight:700;color:#904891;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">\u1f4a1 Recomendaciones del mes</div>';
+    h+='<div style="font-size:11px;font-weight:700;color:#904891;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">💡 Recomendaciones del mes</div>';
     h+='<div style="font-size:13px;color:#5c4a5d;line-height:1.7;white-space:pre-wrap">'+hesc(r.recomendaciones)+'</div></div>';
   }
 
@@ -2274,10 +2308,10 @@ function enviarWhatsApp(){
     +'👥 Cotizaciones: '+ff(r.totalCot)+'\n'
     +'📋 Impuestos SII: '+ff(r.totalImpInmediato||r.totalImp)+'\n'
     +(r.ivaPostergado?'⏳ IVA postergado (vence '+r.ivaFechaVenc+'): '+ff(r.ivaPostergado)+'\n':'')
-    +'\u1f4bc Honorarios: '+ff(r.honTotal)+'\n'
+    +'💼 Honorarios: '+ff(r.honTotal)+'\n'
     +(r.totalAtrasos?'⚠️ Obligaciones anteriores: '+ff(r.totalAtrasos)+'\n':'')
     +'✅ *TOTAL: '+ff(r.totalGeneral)+'*\n\n'
-    +(r.recomendaciones?'\u1f4a1 '+r.recomendaciones+'\n\n':'')
+    +(r.recomendaciones?'💡 '+r.recomendaciones+'\n\n':'')
     +'Transferencias a Itaú CC 0220729517 · RUT 77.166.269-2\n'
     +'Cualquier consulta, escríbanos. Saludos, Contadoor.';
   window.open('https://wa.me/56'+r.clienteWa.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank');
@@ -2304,7 +2338,7 @@ function renderLista(){
   cont.innerHTML=arr.map(function(r){
     var waHref=r.clienteWa?'https://wa.me/56'+r.clienteWa.replace(/\D/g,''):'';
     var estBadge=r.estado==='enviado_total'?'badge-ok':r.estado==='enviado_rrhh'?'badge-env':'badge-pend';
-    var estLabel=r.estado==='enviado_total'?'✅ Enviado':r.estado==='enviado_rrhh'?'\u1f4e4 RRHH env.':'📝 Borrador';
+    var estLabel=r.estado==='enviado_total'?'✅ Enviado':r.estado==='enviado_rrhh'?'📤 RRHH env.':'📝 Borrador';
     return'<div class="reporte-row">'
       +'<div style="font-size:24px;flex-shrink:0">📋</div>'
       +'<div class="reporte-row-info">'
