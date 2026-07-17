@@ -75,9 +75,20 @@
     admin:    null  // queda en dashboard
   };
 
+  var STORAGE_KEY='gestoor_sesion';
+  var DURACION_LARGA=30*24*60*60*1000;
+  var DURACION_CORTA=8*60*60*1000;
+
   function getSession(){
-    try{ return JSON.parse(sessionStorage.getItem('usuario_activo')||'null'); }
-    catch(e){ return null; }
+    try{var s=JSON.parse(sessionStorage.getItem('usuario_activo')||'null');if(s)return s;}catch(e){}
+    try{
+      var p=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+      if(!p)return null;
+      var dur=p.recordar?DURACION_LARGA:DURACION_CORTA;
+      if(Date.now()-p.tsLogin>dur){localStorage.removeItem(STORAGE_KEY);return null;}
+      sessionStorage.setItem('usuario_activo',JSON.stringify(p));
+      return p;
+    }catch(e){return null;}
   }
 
   function redirigirLogin(){
@@ -88,13 +99,6 @@
 
   // Sin sesión → login
   if(!sesion){ redirigirLogin(); return; }
-
-  // Sesión expirada (8 horas)
-  if(Date.now() - sesion.tsLogin > 8 * 60 * 60 * 1000){
-    sessionStorage.removeItem('usuario_activo');
-    redirigirLogin();
-    return;
-  }
 
   // Auto-redirección por rol si entra al dashboard
   if(MODULO_ACTUAL === 'dashboard' && !sesion.esMaster){
