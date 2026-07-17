@@ -325,7 +325,8 @@ function syncUsuarioSupabase(u){
     iniciales:u.iniciales||u.nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase(),
     rol:u.rol,rol_label:u.rolLabel||u.rol,
     email:u.email||'',wa:u.wa||'',
-    activo:u.activo!==false,modulos:u.modulos||[]
+    activo:u.activo!==false,modulos:u.modulos||[],
+    pin:u.pin||'0000'
   };
   if(u.sbId){
     sbFetch('usuarios?id=eq.'+u.sbId,{method:'PATCH',headers:{'Prefer':'return=representation'},body:JSON.stringify(row)}).catch(function(){});
