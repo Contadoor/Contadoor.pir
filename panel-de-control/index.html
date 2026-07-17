@@ -1920,10 +1920,22 @@ function renderNomina(){
       return rp===perKeyNorm;
     });
   }
-  // Si no hay reportes locales para el período activo, cargar desde Supabase
+  // Si no hay reportes locales para el período activo
   if(perKey&&arr.length===0){
-    cargarReportesSupabase(perKey,function(){renderNomina();});
-    cont.innerHTML='<div style="text-align:center;padding:32px;color:var(--tm);font-size:13px">Cargando reportes...</div>';
+    // 1. Intentar cargar desde Supabase
+    cargarReportesSupabase(perKey,function(){
+      var afterLoad=getReportes().filter(function(r){
+        return String(r.periodo||'').replace('-','')===perKey.replace('-','');
+      });
+      if(afterLoad.length>0){
+        renderNomina();
+      } else {
+        // 2. Si tampoco hay en Supabase, generar desde clientes activos
+        generarNominaDesdeClientes(perKey);
+        renderNomina();
+      }
+    });
+    cont.innerHTML='<div style="text-align:center;padding:32px;color:var(--tm);font-size:13px">⏳ Cargando clientes del período...</div>';
     return;
   }
   // Filtros UI
@@ -2215,6 +2227,46 @@ function renderAll(){
 // ═══════════════════════════════════════════════════════════
 
 
+
+// ── GENERAR NÓMINA DESDE CLIENTES ACTIVOS ────────────────────────────────
+function generarNominaDesdeClientes(perKey){
+  var clientes=getClientes().filter(function(c){
+    return c.estado==='activo'||c.estado==='onboarding'||c.estado==='suspendido';
+  });
+  if(!clientes.length) return;
+  var arr=getReportes();
+  var nuevos=0;
+  var perFmt=perKey.length===6?perKey.slice(0,4)+'-'+perKey.slice(4):perKey;
+  clientes.forEach(function(c){
+    var ya=arr.find(function(r){
+      return r.rut===c.rut&&String(r.periodo||'').replace('-','')===perKey.replace('-','');
+    });
+    if(!ya){
+      arr.unshift({
+        id:Date.now()+Math.random(),
+        rut:c.rut,
+        clienteNombre:c.razon||c.razonSocial||c.rut,
+        clienteWa:c.wa||c.whatsapp||'',
+        clienteEmail:c.email||'',
+        periodo:perFmt,
+        estado:'borrador',
+        secciones:{
+          rrhh:{ok:c.tieneRrhh===false,na:c.tieneRrhh===false},
+          imp:{ok:c.tieneContabilidad===false,na:c.tieneContabilidad===false},
+          hon:{ok:false,na:false}
+        },
+        prioridadRrhh:c.prioRrhh||c.prioridadRrhh||'media',
+        totalGeneral:0,totalCot:0,totalImp:0,honTotal:0,
+        ts:Date.now()
+      });
+      nuevos++;
+    }
+  });
+  if(nuevos>0){
+    localStorage.setItem('reportes_mensuales',JSON.stringify(arr));
+  }
+}
+
 // ── CARGAR REPORTES DESDE SUPABASE ───────────────────────────────────────
 function cargarReportesSupabase(periodo, callback){
   // Query con ambos formatos de período
@@ -2332,6 +2384,17 @@ fetch('https://ulxoxqbuxiuylaolaqxj.supabase.co/rest/v1/periodos?select=uf,utm,p
     // Cargar clientes desde Supabase antes de renderizar
     cargarClientesSupabase().then(function(){
       setupUploadRemu();
+      // Al cargar, si hay período activo y no hay reportes, generar nómina
+      var perActivo=getPeriodoActivo();
+      if(perActivo){
+        var perKey=perActivo.periodo;
+        var existentes=getReportes().filter(function(r){
+          return String(r.periodo||'').replace('-','')===perKey.replace('-','');
+        });
+        if(!existentes.length){
+          generarNominaDesdeClientes(perKey);
+        }
+      }
       renderAll();
       setPeriodoActual();
       setTimeout(verificarRecordatoriosAutomaticos, 2000);
