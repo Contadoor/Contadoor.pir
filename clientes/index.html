@@ -286,8 +286,15 @@ tr:hover td{background:#faf5ff;}
         <div class="fgroup"><label>Analista RRHH</label>
           <select id="f-rrhh"><option value="">Sin asignar</option></select>
         </div>
-        <div class="fgroup"><label>Prioridad</label>
-          <select id="f-prio">
+        <div class="fgroup"><label>Prioridad RRHH</label>
+          <select id="f-prio-rrhh">
+            <option value="alta">🔴 Alta</option>
+            <option value="media" selected>🟡 Media</option>
+            <option value="baja">🟢 Baja</option>
+          </select>
+        </div>
+        <div class="fgroup"><label>Prioridad Contable</label>
+          <select id="f-prio-cont">
             <option value="alta">🔴 Alta</option>
             <option value="media" selected>🟡 Media</option>
             <option value="baja">🟢 Baja</option>
@@ -489,7 +496,8 @@ function rowToCliente(r) {
     obsTrib: r.obs_trib,
     moneda: r.moneda_plan || 'UF', monedaVar: r.moneda_variable || r.moneda_plan || 'UF',
     monto: r.monto_base || 0, trab: r.trab_incluidos || 0, varTrab: r.hon_variable || 0, precioObs: r.precio_obs || '',
-    contador: r.analista_contable, rrhh: r.analista_rrhh, prio: r.prioridad_contable || 'media',
+    contador: r.analista_contable, rrhh: r.analista_rrhh, prioRrhh: r.prioridad_rrhh || 'media',
+          prioCont: r.prioridad_contable || 'media',
     siiU: r.usuario_sii,  siiK: r.clave_sii,
     prevU: r.usuario_previred, prevK: r.clave_previred,
     cuU:   r.usuario_cu,   cuK:   r.clave_cu,
@@ -512,7 +520,8 @@ function clienteToRow(c) {
     moneda_plan: c.moneda || 'UF', moneda_variable: c.monedaVar || c.moneda || 'UF',
     monto_base: c.monto || null, trab_incluidos: c.trab || 0, hon_variable: c.varTrab || null,
     precio_obs: c.precioObs || null,
-    analista_contable: c.contador || null, analista_rrhh: c.rrhh || null, prioridad_contable: c.prio || 'media',
+    analista_contable: c.contador || null, analista_rrhh: c.rrhh || null, prioridad_rrhh: c.prioRrhh || 'media',
+    prioridad_contable: c.prioCont || 'media',
     usuario_sii:  c.siiU  || null, clave_sii:  c.siiK  || null,
     usuario_previred: c.prevU || c.rut || null, clave_previred: c.prevK || null,
     usuario_cu:   c.cuU   || null, clave_cu:   c.cuK   || null,
@@ -669,7 +678,8 @@ function abrirEditar(id) {
   sv('f-moneda', c.moneda || 'UF'); sv('f-moneda-var', c.monedaVar || c.moneda || 'UF');
   sv('f-monto', c.monto || ''); sv('f-trab', c.trab || ''); sv('f-var', c.varTrab || '');
   sv('f-precio-obs', c.precioObs || '');
-  sv('f-prio', c.prio || 'media');
+  sv('f-prio-rrhh', c.prioRrhh || 'media');
+  sv('f-prio-cont', c.prioCont || 'media');
   // Credenciales
   sv('f-sii-u',  c.siiU  || c.rut); sv('f-sii-k',  c.siiK);
   sv('f-prev-u', c.prevU);          sv('f-prev-k', c.prevK); // Rep. Legal — no auto-fill RUT empresa
@@ -726,7 +736,7 @@ function guardarCliente() {
     reg:      gv('f-reg'), iva: gv('f-iva'), modalidad: gv('f-modalidad'), obsTrib: gv('f-obs-trib'),
     moneda:    gv('f-moneda') || 'UF', monedaVar: gv('f-moneda-var') || gv('f-moneda') || 'UF',
     monto: nv('f-monto'), trab: nv('f-trab'), varTrab: nv('f-var'), precioObs: gv('f-precio-obs'),
-    contador: gv('f-contador'), rrhh: gv('f-rrhh'), prio: gv('f-prio') || 'media',
+    contador: gv('f-contador'), rrhh: gv('f-rrhh'), prio: gv('f-prio-rrhh') || 'media',
     siiU:  gv('f-sii-u'),  siiK:  gv('f-sii-k'),
     prevU: gv('f-prev-u'), prevK: gv('f-prev-k'),
     cuU:   gv('f-cu-u'),   cuK:   gv('f-cu-k'),
@@ -909,7 +919,7 @@ function renderClientes() {
     // Analista
     var td3 = document.createElement('td'); td3.style.cssText='font-size:11px;color:var(--t2)';
     td3.innerHTML = (c.contador?'📊 '+esc(c.contador):c.rrhh?'👥 '+esc(c.rrhh):'<span style="color:var(--tm)">Sin asignar</span>')
-      + '<br><span style="font-size:10px;color:var(--tm)"><span class="prio-dot prio-'+prio+'"></span>'+prio.charAt(0).toUpperCase()+prio.slice(1)+'</span>';
+      + '<br><span style="font-size:10px;color:var(--tm)"><span class="prio-dot prio-'+prio+'"></span>R:'+prio.charAt(0).toUpperCase()+prio.slice(1)+' · C:'+prioCont2.charAt(0).toUpperCase()+prioCont2.slice(1)+'</span>';
     tr.appendChild(td3);
 
     // Valor
