@@ -2110,16 +2110,23 @@ function renderNomina(){
     // Acciones
     html+='<td style="padding:8px 14px"><div style="display:flex;gap:4px;justify-content:flex-end">';
     var rid=String(r.id);
-    html+='<button class="act-ico btn-ver" data-rid="'+rid+'" title="Ver reporte">👁</button>';
-    html+='<button class="act-ico btn-edit" data-rid="'+rid+'" title="Editar">✏️</button>';
-    html+='<button class="act-ico btn-nota" data-rid="'+rid+'" title="Nota analista">📝</button>';
+    // Guardar reporte en mapa global para acceso por id
+    window._rptMap=window._rptMap||{};
+    window._rptMap[rid]=r;
+    var _ver='verReporte("'+rid+'")';
+    var _nota='_vistaId="'+rid+'";abrirEditRapido()';
+    var _mail='enviarEmailDirecto("'+rid+'")';
+    var _rec='enviarRecordatorio("'+rid+'","manual")';
+    var _wa='_vistaId="'+rid+'";enviarWhatsApp()';
+    html+='<button class="act-ico" onclick="'+_ver+'" title="Ver reporte">👁</button>';
+    html+='<button class="act-ico" onclick="'+_nota+'" title="Nota analista">📝</button>';
     if(enviado){
-      html+='<button class="act-ico btn-rec" data-rid="'+rid+'" title="Recordatorio">🔔</button>';
+      html+='<button class="act-ico" onclick="'+_rec+'" title="Recordatorio">🔔</button>';
     }else{
-      html+='<button class="act-ico btn-mail" data-rid="'+rid+'" title="Enviar email" style="background:var(--p);border-color:var(--p)">✉️</button>';
+      html+='<button class="act-ico" style="background:var(--p);border-color:var(--p)" onclick="'+_mail+'" title="Enviar email">✉️</button>';
     }
     if(r.clienteWa){
-      html+='<button class="act-ico btn-wa" data-rid="'+rid+'" title="WhatsApp" style="border-color:#25d366">💬</button>';
+      html+='<button class="act-ico" style="border-color:#25d366" onclick="'+_wa+'" title="WhatsApp">💬</button>';
     }
     html+='</div></td>';
     html+='</tr>';
@@ -2804,9 +2811,14 @@ function editarDesdeVista(){if(_vistaId){closeVista();abrirModalEditar(_vistaId)
 // ── ENVÍO EMAIL ───────────────────────────────────────────────────────────
 function enviarEmail(){
   var r=getReportes().find(function(x){return String(x.id)===String(_vistaId);});
-  if(!r) return;
+  if(!r){alert('Reporte no encontrado.');return;}
   var to=r.clienteEmail||'';
-  if(!to){alert('El cliente no tiene email registrado.');return;}
+  if(!to){
+    // Buscar email desde clientes
+    var c=getClientes().find(function(x){return x.rut===r.rut;});
+    if(c&&c.email) to=c.email;
+  }
+  if(!to){alert('El cliente no tiene email registrado. Agrégalo en la ficha del cliente.');return;}
   var u=getUsuario();
   var periodo=formatPeriodo(r.periodo);
   if(!confirm('¿Enviar reporte de '+periodo+' a '+hesc(r.clienteNombre)+'?\nEmail: '+to)) return;
@@ -2827,10 +2839,20 @@ function enviarEmail(){
     +'</div>'
     +(r.obsAnalista?'<div style="padding:14px 24px"><div style="font-size:11px;font-weight:600;color:#904891;margin-bottom:4px">Nota del analista</div><div style="font-size:12px;color:#5c4a5d">'+hesc(r.obsAnalista)+'</div></div>':'')
     +'</div>';
+  var payload={
+    tipo:'reporte',
+    analistaNombre:u.nombre||'Contadoor',
+    analistaWa:u.wa||'979881891',
+    toEmail:to,
+    toNombre:r.contacto||r.clienteNombre||r.rut,
+    toEmpresa:r.clienteNombre||r.rut,
+    periodo:periodo,
+    htmlReporte:htmlRpt
+  };
   fetch('https://contafunnel-proxy.vercel.app/api/crear-evento',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({tipo:'reporte',analistaNombre:u.nombre||'Contadoor',analistaWa:u.wa||'979881891',toEmail:to,toNombre:r.clienteNombre,toEmpresa:r.clienteNombre,periodo:periodo,htmlReporte:htmlRpt})
+    body:JSON.stringify(payload)
   }).then(function(res){if(!res.ok)return res.text().then(function(t){throw new Error('HTTP '+res.status+': '+t.slice(0,200));});return res.json();}).then(function(data){
     if(data.ok||data.id){
       var arr=getReportes();
@@ -2862,19 +2884,7 @@ function enviarWhatsApp(){
   window.open('https://wa.me/56'+r.clienteWa.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank');
 }
 
-// ── DELEGACIÓN GLOBAL DE ACCIONES ────────────────────────────────────────
-document.addEventListener('click', function(e){
-  var btn = e.target.closest('[data-rid]');
-  if(!btn) return;
-  var rid = btn.getAttribute('data-rid');
-  if(btn.classList.contains('btn-ver'))       { verReporte(rid); }
-  else if(btn.classList.contains('btn-edit')) { abrirModalEditar(rid); }
-  else if(btn.classList.contains('btn-nota')) { _vistaId=rid; abrirEditRapido(); }
-  else if(btn.classList.contains('btn-rec'))  { enviarRecordatorio(rid,'manual'); }
-  else if(btn.classList.contains('btn-mail')) { _vistaId=rid; enviarEmailDirecto(rid); }
-  else if(btn.classList.contains('btn-wa'))   { _vistaId=rid; enviarWhatsApp(); }
-  else if(btn.classList.contains('nomina-chk')){ actualizarBarraEnvio(); }
-});
+// Acciones: onclick directos en cada botón de la tabla
 
 
 </script>
