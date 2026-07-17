@@ -897,7 +897,8 @@ function renderClientes() {
   arr.forEach(function(c) {
     var est  = ESTADOS[c.estado] || ESTADOS.inactivo;
     var pb   = c.plan==='estrategico'?'badge-plan-e':c.plan==='asesoria'?'badge-plan-a':'badge-plan-c';
-    var prio = c.prio || 'media';
+    var prio = c.prioRrhh || 'media';
+    var prioCont2 = c.prioCont || 'media';
     var baseClp2 = (c.moneda==='CLP') ? (c.monto||0) : (c.monto||0)*UF;
     var mrr2 = Math.round(baseClp2);
     var tr   = document.createElement('tr');
