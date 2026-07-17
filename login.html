@@ -9,73 +9,62 @@
 :root{--p:#904891;--pd:#6D2E6E;--pp:#F5EAF5;--deep:#08040f;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:var(--sans);background:var(--deep);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-
 .login-wrap{width:100%;max-width:420px;}
-
-/* LOGO */
 .logo-area{text-align:center;margin-bottom:32px;}
 .logo-area img{height:40px;margin-bottom:12px;}
 .app-name{font-size:18px;font-weight:700;color:#fff;letter-spacing:-.3px;}
 .app-sub{font-size:12px;color:rgba(255,255,255,.25);margin-top:3px;text-transform:uppercase;letter-spacing:1.5px;}
-
-/* CARD */
 .login-card{background:rgba(255,255,255,.04);border:1px solid rgba(144,72,145,.2);border-radius:16px;padding:28px;}
-
-/* PASO 1: SELECTOR DE USUARIO */
-.paso{display:none;}
-.paso.on{display:block;}
+.paso{display:none;}.paso.on{display:block;}
 .paso-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;}
-
 .usuario-btn{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:.15s;margin-bottom:8px;text-align:left;}
 .usuario-btn:hover{background:rgba(144,72,145,.12);border-color:rgba(144,72,145,.3);}
-.usuario-avatar{width:40px;height:40px;border-radius:50%;background:rgba(144,72,145,.3);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;font-family:var(--sans);}
+.usuario-avatar{width:40px;height:40px;border-radius:50%;background:rgba(144,72,145,.3);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;}
 .usuario-info{flex:1;}
 .usuario-nombre{font-size:14px;font-weight:600;color:#fff;}
 .usuario-rol{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;}
 .usuario-arrow{color:rgba(255,255,255,.2);font-size:16px;}
-
-/* PASO 2: PIN */
 .pin-usuario{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:12px 14px;background:rgba(144,72,145,.1);border:1px solid rgba(144,72,145,.2);border-radius:10px;}
 .pin-avatar{width:36px;height:36px;border-radius:50%;background:rgba(144,72,145,.3);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
 .pin-nombre{font-size:14px;font-weight:600;color:#fff;}
 .pin-rol{font-size:11px;color:rgba(255,255,255,.35);}
-
 .pin-dots{display:flex;gap:10px;justify-content:center;margin-bottom:20px;}
 .pin-dot{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.2);transition:.15s;}
 .pin-dot.filled{background:var(--p);border-color:var(--p);}
-
 .pin-teclado{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-.pin-key{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px;font-size:18px;font-weight:600;color:#fff;cursor:pointer;transition:.15s;text-align:center;font-family:var(--sans);}
+.pin-key{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px;font-size:18px;font-weight:600;color:#fff;cursor:pointer;transition:.15s;text-align:center;}
 .pin-key:hover{background:rgba(144,72,145,.2);border-color:rgba(144,72,145,.4);}
 .pin-key:active{transform:scale(.95);}
 .pin-key.del{font-size:14px;color:rgba(255,255,255,.4);}
 .pin-key.enter{background:var(--p);border-color:var(--p);font-size:13px;}
 .pin-key.enter:hover{background:var(--pd);}
-
 .pin-error{text-align:center;color:#f87171;font-size:12px;margin-top:10px;min-height:18px;}
 .back-link{text-align:center;margin-top:14px;}
-.back-link button{background:none;border:none;color:rgba(255,255,255,.3);font-size:12px;cursor:pointer;font-family:var(--sans);}
+.back-link button{background:none;border:none;color:rgba(255,255,255,.3);font-size:12px;cursor:pointer;}
 .back-link button:hover{color:rgba(255,255,255,.6);}
-
 .footer-txt{text-align:center;margin-top:20px;font-size:11px;color:rgba(255,255,255,.15);}
+.loading-msg{text-align:center;color:rgba(255,255,255,.3);font-size:13px;padding:20px;}
+.sync-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#2D9B6F;}
+.sync-dot.loading{background:#C07A1A;animation:pulse .8s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 </style>
 </head>
 <body>
 <div class="login-wrap">
   <div class="logo-area">
     <img src="https://assets.cdn.filesafe.space/kfq1F3czdejkInyTMLkO/media/6982b1a12dd9857339e39ae1.png" alt="Contadoor"/>
-    <div class="app-name">Contadoor.app</div>
+    <div class="app-name">Gestoor · Contadoor</div>
     <div class="app-sub">Sistema de Gestión Interno</div>
   </div>
-
   <div class="login-card">
-    <!-- PASO 1: SELECCIONAR USUARIO -->
     <div class="paso on" id="paso1">
       <div class="paso-title">¿Quién eres?</div>
-      <div id="listaUsuarios"></div>
+      <div id="listaUsuarios"><div class="loading-msg">Cargando usuarios...</div></div>
+      <div style="text-align:center;margin-top:8px">
+        <span class="sync-badge"><span class="sync-dot loading" id="syncDot"></span><span id="syncLabel">Conectando...</span></span>
+      </div>
     </div>
-
-    <!-- PASO 2: PIN -->
     <div class="paso" id="paso2">
       <div class="paso-title">Ingresa tu PIN</div>
       <div class="pin-usuario">
@@ -92,101 +81,150 @@ body{font-family:var(--sans);background:var(--deep);min-height:100vh;display:fle
         <div class="pin-dot" id="d3"></div>
       </div>
       <div class="pin-teclado">
-        <div class="pin-key" onclick="presionarTecla('1')">1</div>
-        <div class="pin-key" onclick="presionarTecla('2')">2</div>
-        <div class="pin-key" onclick="presionarTecla('3')">3</div>
-        <div class="pin-key" onclick="presionarTecla('4')">4</div>
-        <div class="pin-key" onclick="presionarTecla('5')">5</div>
-        <div class="pin-key" onclick="presionarTecla('6')">6</div>
-        <div class="pin-key" onclick="presionarTecla('7')">7</div>
-        <div class="pin-key" onclick="presionarTecla('8')">8</div>
-        <div class="pin-key" onclick="presionarTecla('9')">9</div>
-        <div class="pin-key del" onclick="borrarTecla()">⌫ Borrar</div>
-        <div class="pin-key" onclick="presionarTecla('0')">0</div>
-        <div class="pin-key enter" onclick="verificarPin()">Entrar →</div>
+        <div class="pin-key" id="k1">1</div>
+        <div class="pin-key" id="k2">2</div>
+        <div class="pin-key" id="k3">3</div>
+        <div class="pin-key" id="k4">4</div>
+        <div class="pin-key" id="k5">5</div>
+        <div class="pin-key" id="k6">6</div>
+        <div class="pin-key" id="k7">7</div>
+        <div class="pin-key" id="k8">8</div>
+        <div class="pin-key" id="k9">9</div>
+        <div class="pin-key del" id="kDel">⌫ Borrar</div>
+        <div class="pin-key" id="k0">0</div>
+        <div class="pin-key enter" id="kEnter">Entrar →</div>
       </div>
       <div class="pin-error" id="pinError"></div>
-      <div class="back-link"><button onclick="volverPaso1()">← Cambiar usuario</button></div>
+      <div class="back-link"><button id="btnVolver">← Cambiar usuario</button></div>
     </div>
   </div>
-
   <div class="footer-txt">Contadoor Chile · Solo uso interno autorizado</div>
 </div>
-
 <script>
-// ── USUARIOS POR DEFECTO ──────────────────────────────────────────────────
-var USUARIOS_DEFAULT = [
-  {
-    id: 1,
-    nombre: 'Luciano Duarte',
-    rol: 'master',
-    rolLabel: 'Master',
-    iniciales: 'LD',
-    pin: '1234',
-    esMaster: true,
-    modulos: ['*']
-  }
-];
+// ── SUPABASE ──────────────────────────────────────────────────────────────
+var SB_URL='https://ulxoxqbuxiuylaolaqxj.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA';
 
-function getUsuarios(){
-  try{
-    var u=JSON.parse(localStorage.getItem('usuarios_sistema')||'null');
-    if(!u||!u.length){
-      localStorage.setItem('usuarios_sistema',JSON.stringify(USUARIOS_DEFAULT));
-      return USUARIOS_DEFAULT;
-    }
-    // Migrar usuarios con formato antiguo (rol con texto largo)
-    var migrado=false;
-    u=u.map(function(usr){
-      if(usr.esMaster&&(usr.rol.length>20||!usr.rolLabel)){
-        migrado=true;
-        return Object.assign({},usr,{rol:'master',rolLabel:'Master',modulos:['*']});
+// ── USUARIO DEFAULT (siempre disponible) ──────────────────────────────────
+var USUARIOS_DEFAULT=[{
+  id:1,nombre:'Luciano Duarte',iniciales:'LD',
+  rol:'master',rolLabel:'Master · Acceso total',
+  pin:'1234',esMaster:true,activo:true,modulos:['*']
+}];
+
+// ── ESTADO ────────────────────────────────────────────────────────────────
+var _usuarios=[];
+var _usuarioSeleccionado=null;
+var _pinActual='';
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function hesc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function getLocal(){
+  try{var u=JSON.parse(localStorage.getItem('usuarios_sistema')||'null');return(u&&u.length)?u:USUARIOS_DEFAULT;}
+  catch(e){return USUARIOS_DEFAULT;}
+}
+
+// ── CARGAR USUARIOS ───────────────────────────────────────────────────────
+// 1. Mostrar locales de inmediato
+// 2. Cargar desde Supabase en background y actualizar lista
+function cargarUsuarios(){
+  // Primero mostrar locales
+  _usuarios=getLocal().filter(function(u){return u.activo!==false;});
+  renderLista();
+
+  // Luego Supabase
+  setSyncState('loading');
+  fetch(SB_URL+'/rest/v1/usuarios?select=*&activo=eq.true&order=nombre.asc',{
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+  })
+  .then(function(r){return r.ok?r.json():[];})
+  .then(function(data){
+    if(!data||!data.length){setSyncState('local');return;}
+    // Merge — Supabase es la fuente de verdad para usuarios del equipo
+    // Siempre incluir a Luciano (master) aunque no esté en Supabase
+    var local=getLocal();
+    var merged=[];
+    // Agregar Luciano primero
+    var luciano=local.find(function(u){return u.esMaster||u.rol==='master';});
+    if(luciano) merged.push(luciano);
+    // Agregar usuarios de Supabase
+    data.forEach(function(u){
+      var yaEsta=merged.find(function(x){return x.nombre===u.nombre;});
+      if(!yaEsta){
+        merged.push({
+          id:u.id, sbId:u.id,
+          nombre:u.nombre,
+          iniciales:u.iniciales||u.nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase(),
+          rol:u.rol, rolLabel:u.rol_label||u.rol,
+          email:u.email||'', wa:u.wa||'',
+          pin:u.pin||'0000',
+          esMaster:u.rol==='master',
+          activo:u.activo!==false,
+          modulos:u.modulos||[]
+        });
+      } else {
+        // Actualizar datos del usuario local con los de Supabase
+        yaEsta.sbId=u.id;
+        yaEsta.rolLabel=u.rol_label||u.rol||yaEsta.rolLabel;
+        yaEsta.email=u.email||yaEsta.email||'';
+        yaEsta.wa=u.wa||yaEsta.wa||'';
+        yaEsta.modulos=u.modulos||yaEsta.modulos||[];
+        if(u.pin) yaEsta.pin=u.pin;
       }
-      return usr;
     });
-    if(migrado) localStorage.setItem('usuarios_sistema',JSON.stringify(u));
-    return u;
-  }catch(e){return USUARIOS_DEFAULT;}
+    // Guardar merged en localStorage para próxima vez
+    localStorage.setItem('usuarios_sistema',JSON.stringify(merged));
+    _usuarios=merged.filter(function(u){return u.activo!==false;});
+    renderLista();
+    setSyncState('ok');
+  })
+  .catch(function(){
+    setSyncState('local');
+  });
 }
 
-// Si ya hay sesión activa, ir al dashboard
-if(sessionStorage.getItem('usuario_activo')){
-  window.location.href='index.html';
+function setSyncState(state){
+  var dot=document.getElementById('syncDot');
+  var lbl=document.getElementById('syncLabel');
+  if(!dot||!lbl)return;
+  if(state==='ok'){dot.className='sync-dot';dot.style.background='#2D9B6F';lbl.textContent='Usuarios sincronizados';}
+  else if(state==='loading'){dot.className='sync-dot loading';dot.style.background='#C07A1A';lbl.textContent='Cargando...';}
+  else{dot.className='sync-dot';dot.style.background='#C07A1A';lbl.textContent='Modo local';}
 }
 
-var _usuarioSeleccionado=null, _pinActual='';
-
-// ── RENDER LISTA USUARIOS ─────────────────────────────────────────────────
-function renderUsuarios(){
-  var arr=getUsuarios().filter(function(u){return u.activo!==false;});
+// ── RENDER LISTA ──────────────────────────────────────────────────────────
+function renderLista(){
   var cont=document.getElementById('listaUsuarios');
-  cont.innerHTML=arr.map(function(u){
-    return'<div class="usuario-btn" onclick="seleccionarUsuario('+u.id+')">'
-      +'<div class="usuario-avatar">'+hesc(u.iniciales||u.nombre.slice(0,2).toUpperCase())+'</div>'
+  if(!_usuarios.length){
+    cont.innerHTML='<div class="loading-msg">Sin usuarios configurados</div>';
+    return;
+  }
+  cont.innerHTML='';
+  _usuarios.forEach(function(u){
+    var btn=document.createElement('div');
+    btn.className='usuario-btn';
+    btn.innerHTML='<div class="usuario-avatar">'+hesc(u.iniciales||u.nombre.slice(0,2).toUpperCase())+'</div>'
       +'<div class="usuario-info">'
       +'<div class="usuario-nombre">'+hesc(u.nombre)+'</div>'
-      +'<div class="usuario-rol">'+hesc(u.rol)+'</div>'
+      +'<div class="usuario-rol">'+hesc(u.rolLabel||u.rol)+'</div>'
       +'</div>'
-      +'<div class="usuario-arrow">›</div>'
-      +'</div>';
-  }).join('');
+      +'<div class="usuario-arrow">›</div>';
+    btn.onclick=(function(usr){return function(){seleccionarUsuario(usr);};})(u);
+    cont.appendChild(btn);
+  });
 }
 
-function hesc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-function seleccionarUsuario(id){
-  var u=getUsuarios().find(function(x){return x.id===id;});
-  if(!u)return;
+// ── SELECCIONAR USUARIO ───────────────────────────────────────────────────
+function seleccionarUsuario(u){
   _usuarioSeleccionado=u;_pinActual='';
   document.getElementById('pinAvatar').textContent=u.iniciales||u.nombre.slice(0,2).toUpperCase();
   document.getElementById('pinNombre').textContent=u.nombre;
-  document.getElementById('pinRol').textContent=u.rol;
+  document.getElementById('pinRol').textContent=u.rolLabel||u.rol;
   document.getElementById('pinError').textContent='';
   actualizarDots();
   document.getElementById('paso1').classList.remove('on');
   document.getElementById('paso2').classList.add('on');
 }
-
 function volverPaso1(){
   _usuarioSeleccionado=null;_pinActual='';
   document.getElementById('paso2').classList.remove('on');
@@ -199,58 +237,71 @@ function volverPaso1(){
 function actualizarDots(){
   for(var i=0;i<4;i++){
     var d=document.getElementById('d'+i);
-    d.classList.toggle('filled',i<_pinActual.length);
+    if(d) d.classList.toggle('filled',i<_pinActual.length);
   }
 }
-
 function presionarTecla(n){
   if(_pinActual.length>=4)return;
-  _pinActual+=n;
-  actualizarDots();
+  _pinActual+=n;actualizarDots();
   document.getElementById('pinError').textContent='';
-  if(_pinActual.length===4) setTimeout(verificarPin,300);
+  if(_pinActual.length===4)setTimeout(verificarPin,300);
 }
-
-function borrarTecla(){
-  _pinActual=_pinActual.slice(0,-1);
-  actualizarDots();
-}
-
+function borrarTecla(){_pinActual=_pinActual.slice(0,-1);actualizarDots();}
 function verificarPin(){
   if(!_usuarioSeleccionado)return;
   if(_pinActual===_usuarioSeleccionado.pin){
-    // Guardar sesión
     sessionStorage.setItem('usuario_activo',JSON.stringify({
       id:_usuarioSeleccionado.id,
+      sbId:_usuarioSeleccionado.sbId||null,
       nombre:_usuarioSeleccionado.nombre,
+      iniciales:_usuarioSeleccionado.iniciales||_usuarioSeleccionado.nombre.slice(0,2).toUpperCase(),
       rol:_usuarioSeleccionado.rol,
       rolLabel:_usuarioSeleccionado.rolLabel||_usuarioSeleccionado.rol,
       email:_usuarioSeleccionado.email||'',
-      esMaster:_usuarioSeleccionado.esMaster||false,
+      wa:_usuarioSeleccionado.wa||'',
+      esMaster:_usuarioSeleccionado.esMaster||_usuarioSeleccionado.rol==='master',
       modulos:_usuarioSeleccionado.modulos||[],
       tsLogin:Date.now()
     }));
     window.location.href='index.html';
-  } else {
+  }else{
     document.getElementById('pinError').textContent='PIN incorrecto. Inténtalo de nuevo.';
     _pinActual='';actualizarDots();
-    // Vibrar visualmente
     var card=document.querySelector('.login-card');
     card.style.borderColor='#f87171';
     setTimeout(function(){card.style.borderColor='rgba(144,72,145,.2)';},600);
   }
 }
 
-// Teclado físico
-document.addEventListener('keydown',function(e){
-  if(document.getElementById('paso2').classList.contains('on')){
-    if(e.key>='0'&&e.key<='9') presionarTecla(e.key);
-    if(e.key==='Backspace') borrarTecla();
-    if(e.key==='Enter') verificarPin();
+// ── EVENTOS ───────────────────────────────────────────────────────────────
+(function(){
+  // Si ya hay sesión activa → ir al dashboard
+  if(sessionStorage.getItem('usuario_activo')){
+    window.location.href='index.html';
+    return;
   }
-});
 
-renderUsuarios();
+  // Wire teclas PIN
+  ['1','2','3','4','5','6','7','8','9','0'].forEach(function(n){
+    var el=document.getElementById('k'+n);
+    if(el) el.onclick=function(){presionarTecla(n);};
+  });
+  var kDel=document.getElementById('kDel');if(kDel)kDel.onclick=borrarTecla;
+  var kEnter=document.getElementById('kEnter');if(kEnter)kEnter.onclick=verificarPin;
+  var btnV=document.getElementById('btnVolver');if(btnV)btnV.onclick=volverPaso1;
+
+  // Teclado físico
+  document.addEventListener('keydown',function(e){
+    if(document.getElementById('paso2').classList.contains('on')){
+      if(e.key>='0'&&e.key<='9')presionarTecla(e.key);
+      if(e.key==='Backspace')borrarTecla();
+      if(e.key==='Enter')verificarPin();
+    }
+  });
+
+  // Cargar usuarios
+  cargarUsuarios();
+})();
 </script>
 </body>
 </html>
