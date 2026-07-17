@@ -774,7 +774,15 @@ function setReportes(arr){localStorage.setItem('reportes_mensuales',JSON.stringi
 // getPeriodos: see apertura_periodos below
 
 function getClientes(){
-  try{return JSON.parse(localStorage.getItem('clientes_bd')||'[]');}catch(e){return[];}
+  try{
+    var arr=JSON.parse(localStorage.getItem('clientes_bd')||'[]');
+    // Normalizar campo nombre: soporta razon y razonSocial
+    return arr.map(function(c){
+      if(!c.razon&&c.razonSocial) c.razon=c.razonSocial;
+      if(!c.razon&&c.nombre) c.razon=c.nombre;
+      return c;
+    });
+  }catch(e){return[];}
 }
 function getClientesFiltrados(){
   var todos=getClientes();
@@ -1792,10 +1800,9 @@ function confirmarApertura(){
   if(!clientes.length){alert('No hay clientes activos.');return;}
 
   var periodos=getPeriodos();
-  var existente=periodos.find(function(p){return p.periodo===periodo;});
-  if(existente){
+  // periodos es {} (objeto), no array — buscar por clave
+  if(periodos[periodo]){
     if(!confirm('Ya existe el período '+formatPeriodo(periodo)+'. ¿Deseas regenerar la nómina?')) return;
-    periodos=periodos.filter(function(p){return p.periodo!==periodo;});
   }
 
   var ufVal=parseFloat(document.getElementById('ap-uf').value)||0;
@@ -1831,9 +1838,9 @@ function confirmarApertura(){
     }
   });
 
-  // Guardar en apertura_periodos (nuevo sistema)
-  var ps2=getPeriodos();
-  Object.keys(ps2).forEach(function(k){if(ps2[k].estado==='activo')ps2[k].estado='cerrado';});
+  // Guardar en apertura_periodos
+  var ps2=periodos; // usar mismo objeto
+  Object.keys(ps2).forEach(function(k){if(ps2[k]&&ps2[k].estado==='activo')ps2[k].estado='cerrado';});
   var hoyAp=new Date();
   ps2[periodo]={periodo:periodo,estado:'activo',uf:ufVal,utm:utmVal,
     fechaApertura:hoyAp.toISOString(),
@@ -2443,6 +2450,33 @@ function renderAll(){
 // ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
+
+// ── CARGAR CLIENTES DESDE SUPABASE ───────────────────────────────────────
+function cargarClientesSupabase(){
+  return fetch('https://ulxoxqbuxiuylaolaqxj.supabase.co/rest/v1/clientes?select=id,rut,razon_social,email,tel,wa,plan,estado,analista_contable,analista_rrhh,prioridad_rrhh,prioridad_contable&order=razon_social.asc',{
+    headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA'}
+  })
+  .then(function(r){return r.ok?r.json():[];})
+  .then(function(data){
+    if(!data||!data.length) return;
+    var mapped=data.map(function(c){
+      return{
+        id:c.id, rut:c.rut,
+        razon:c.razon_social, razonSocial:c.razon_social,
+        email:c.email, tel:c.tel, wa:c.wa,
+        plan:c.plan, estado:c.estado||'activo',
+        contador:c.analista_contable, analistaContable:c.analista_contable,
+        rrhh:c.analista_rrhh, analistaRrhh:c.analista_rrhh,
+        prioridadRrhh:c.prioridad_rrhh||'media',
+        prioCont:c.prioridad_contable||'media'
+      };
+    });
+    localStorage.setItem('clientes_bd', JSON.stringify(mapped));
+    return mapped;
+  })
+  .catch(function(){});
+}
+
 // Cargar UF desde Supabase periodos
 fetch('https://ulxoxqbuxiuylaolaqxj.supabase.co/rest/v1/periodos?select=uf,utm,periodo&order=periodo.desc&limit=1',{headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA'}})
   .then(function(r){return r.ok?r.json():[];})
@@ -2453,9 +2487,17 @@ fetch('https://ulxoxqbuxiuylaolaqxj.supabase.co/rest/v1/periodos?select=uf,utm,p
     }
   }).catch(function(){})
   .finally(function(){
-    setupUploadRemu();
-    renderAll();
-    setPeriodoActual();
+    // Cargar clientes desde Supabase antes de renderizar
+    cargarClientesSupabase().then(function(){
+      setupUploadRemu();
+      renderAll();
+      setPeriodoActual();
+      setTimeout(verificarRecordatoriosAutomaticos, 2000);
+    }).catch(function(){
+      setupUploadRemu();
+      renderAll();
+      setPeriodoActual();
+    });
   });
 
 // ── NOTA RÁPIDA ANALISTA ─────────────────────────────────────────────────
