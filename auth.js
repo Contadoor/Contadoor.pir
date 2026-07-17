@@ -14,8 +14,6 @@
     _hostname === '127.0.0.1' ||
     _hostname.endsWith('.anthropic.com') ||
     _hostname.endsWith('.claude.ai') ||
-    _hostname === 'gestoor.contadoor.cl' ||
-    _hostname === 'contadoor.github.io' ||
     _hostname === ''
   );
   if(_isDevMode && !sessionStorage.getItem('usuario_activo')){
