@@ -2126,18 +2126,6 @@ function renderNomina(){
   });
   html+='</tbody></table>';
   cont.innerHTML=html;
-  cont.addEventListener('click',function(e){
-    var btn=e.target.closest('[data-rid]');
-    if(!btn) return;
-    var rid=btn.getAttribute('data-rid');
-    if(btn.classList.contains('btn-ver')) verReporte(rid);
-    else if(btn.classList.contains('btn-edit')) abrirModalEditar(rid);
-    else if(btn.classList.contains('btn-nota')){_vistaId=rid;abrirEditRapido();}
-    else if(btn.classList.contains('btn-rec')){enviarRecordatorio(rid,'manual');}
-    else if(btn.classList.contains('btn-mail')){_vistaId=rid;enviarEmailDirecto(rid);}
-    else if(btn.classList.contains('btn-wa')){_vistaId=rid;enviarWhatsApp();}
-    else if(btn.classList.contains('nomina-chk')) actualizarBarraEnvio();
-  },true);
 }
 
 function toggleTodos(checked){
@@ -2747,6 +2735,22 @@ function abrirPeriodo(){
   renderBannerPeriodo();
   alert('✅ Período '+formatPer(per)+' abierto. UF: $'+ffPer(uf)+' · UTM: $'+ffPer(utm));
 }
+
+// ── DELEGACIÓN GLOBAL DE ACCIONES ────────────────────────────────────────
+document.addEventListener('click', function(e){
+  var btn = e.target.closest('[data-rid]');
+  if(!btn) return;
+  var rid = btn.getAttribute('data-rid');
+  if(btn.classList.contains('btn-ver'))       { verReporte(rid); }
+  else if(btn.classList.contains('btn-edit')) { abrirModalEditar(rid); }
+  else if(btn.classList.contains('btn-nota')) { _vistaId=rid; abrirEditRapido(); }
+  else if(btn.classList.contains('btn-rec'))  { enviarRecordatorio(rid,'manual'); }
+  else if(btn.classList.contains('btn-mail')) { _vistaId=rid; enviarEmailDirecto(rid); }
+  else if(btn.classList.contains('btn-wa'))   { _vistaId=rid; enviarWhatsApp(); }
+  else if(btn.classList.contains('nomina-chk')){ actualizarBarraEnvio(); }
+});
+
+
 </script>
 <script src="../notifications.js"></script>
 <script src="../auth.js"></script>
