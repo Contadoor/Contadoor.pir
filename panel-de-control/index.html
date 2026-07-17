@@ -771,8 +771,8 @@ function setPeriodoActual(){
 // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 function getReportes(){try{return JSON.parse(localStorage.getItem('reportes_mensuales')||'[]');}catch(e){return[];}}
 function setReportes(arr){localStorage.setItem('reportes_mensuales',JSON.stringify(arr));renderAll();}
-function getPeriodos(){try{return JSON.parse(localStorage.getItem('rpt_periodos')||'[]');}catch(e){return[];}}
-function setPeriodos(arr){localStorage.setItem('rpt_periodos',JSON.stringify(arr));}
+// getPeriodos: see apertura_periodos below
+
 function getClientes(){
   try{return JSON.parse(localStorage.getItem('clientes_bd')||'[]');}catch(e){return[];}
 }
@@ -1643,8 +1643,7 @@ function guardarReporte(estado){
     var periodos=getPeriodos();
     var pidx=periodos.findIndex(function(p){return p.periodo===periodo;});
     if(pidx>=0) periodos[pidx].ppmTasa=ppmTasa;
-    setPeriodos(periodos);
-  }
+    }
 
   if(_editId){
     var idx=arr.findIndex(function(x){return x.id===_editId;});
@@ -1832,14 +1831,22 @@ function confirmarApertura(){
     }
   });
 
-  periodos.push({periodo,uf:ufVal,utm:utmVal,calendario,ts:Date.now()});
+  // Guardar en apertura_periodos (nuevo sistema)
+  var ps2=getPeriodos();
+  Object.keys(ps2).forEach(function(k){if(ps2[k].estado==='activo')ps2[k].estado='cerrado';});
+  var hoyAp=new Date();
+  ps2[periodo]={periodo:periodo,estado:'activo',uf:ufVal,utm:utmVal,
+    fechaApertura:hoyAp.toISOString(),
+    fechaCorta:hoyAp.getDate()+'/'+(hoyAp.getMonth()+1)+'/'+hoyAp.getFullYear(),
+    abiertoPor:((function(){try{return JSON.parse(sessionStorage.getItem('usuario_activo')||'{}').nombre||'Sistema';}catch(e){return'Sistema';}})())
+  };
+  localStorage.setItem('apertura_periodos',JSON.stringify(ps2));
   // Guardar UF/UTM en Supabase periodos
   fetch('https://ulxoxqbuxiuylaolaqxj.supabase.co/rest/v1/periodos',{
     method:'POST',
     headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA','Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'},
     body:JSON.stringify({periodo:periodo,uf:ufVal,utm:utmVal,calendario:calendario,abierto_por:((function(){try{return JSON.parse(sessionStorage.getItem('usuario_activo')||'{}').nombre||'Sistema';}catch(e){return 'Sistema';}}()))})
   }).catch(function(){console.warn('Supabase periodos: solo local');});
-  setPeriodos(periodos);
   localStorage.setItem('reportes_mensuales',JSON.stringify(arr));
   renderAll();
   closeApertura();
@@ -2219,8 +2226,7 @@ function enviarEmail(){
   var btn=document.querySelector('[onclick="enviarEmail()"]');
   if(btn){btn.disabled=true;btn.textContent='Enviando...';}
   var htmlReporte=buildReporteEmailHTML(r);
-  function minH(h){return h.replace(/\s{2,}/g,' ').replace(/\n/g,'').replace(/> </g,'><');}
-  fetch('https://contafunnel-proxy.vercel.app/api/crear-evento',{
+    fetch('https://contafunnel-proxy.vercel.app/api/crear-evento',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
