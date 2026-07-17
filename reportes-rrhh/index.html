@@ -501,7 +501,20 @@ function setReportesYSync(arr,rut,periodo,data){
   if(rut&&periodo) sbPatchReporte(rut,periodo,data).catch(function(){});
 }
 function getClientes(){try{return JSON.parse(localStorage.getItem('clientes_bd')||'[]');}catch(e){return[];}}
-function getPeriodos(){try{return JSON.parse(localStorage.getItem('rpt_periodos')||'[]');}catch(e){return[];}}
+function getPeriodos(){
+  try{
+    // Leer desde rpt_periodos (legacy) y apertura_periodos (nuevo)
+    var arr=JSON.parse(localStorage.getItem('rpt_periodos')||'[]');
+    var obj=JSON.parse(localStorage.getItem('apertura_periodos')||'{}');
+    // Convertir apertura_periodos (objeto) a array
+    Object.values(obj).forEach(function(p){
+      if(p&&p.periodo&&!arr.find(function(x){return x.periodo===p.periodo;})){
+        arr.push({periodo:p.periodo,uf:p.uf,utm:p.utm,ts:p.ts});
+      }
+    });
+    return arr.sort(function(a,b){return a.periodo>b.periodo?-1:1;});
+  }catch(e){return[];}
+}
 function getHistoricoRemu(){try{return JSON.parse(localStorage.getItem('remu_historico')||'{}');}catch(e){return{};}}
 function setHistoricoRemu(o){localStorage.setItem('remu_historico',JSON.stringify(o));}
 
