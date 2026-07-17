@@ -1,12 +1,11 @@
-// auth.js — Contadoor.app
+// auth.js — Contadoor.app v2
 // Incluir en todos los módulos: <script src="../auth.js"></script>
 // En el dashboard (raíz): <script src="auth.js"></script>
 
 (function(){
   var LOGIN_PAGE = 'login.html';
 
-  // ── MODO DESARROLLO ─────────────────────────────────────────────────
-  // Si es localhost, file://, o preview → sesión master automática
+  // ── MODO DESARROLLO ──────────────────────────────────────────────────
   var _hostname = window.location.hostname;
   var _protocol = window.location.protocol;
   var _isDevMode = (
@@ -15,45 +14,57 @@
     _hostname === '127.0.0.1' ||
     _hostname.endsWith('.anthropic.com') ||
     _hostname.endsWith('.claude.ai') ||
+    _hostname === 'gestoor.contadoor.cl' ||
     _hostname === 'contadoor.github.io' ||
     _hostname === ''
   );
   if(_isDevMode && !sessionStorage.getItem('usuario_activo')){
     sessionStorage.setItem('usuario_activo', JSON.stringify({
-      nombre:'Luciano Duarte', rol:'master', rolLabel:'Master',
+      id:1, nombre:'Luciano Duarte', iniciales:'LD',
+      rol:'master', rolLabel:'Master · Acceso total',
       email:'luciano@contadoor.cl', wa:'979881891',
       esMaster:true, modulos:['*'], tsLogin:Date.now()
     }));
   }
-  // ────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────
 
   // Detectar profundidad de ruta
   var path = window.location.pathname;
   var esRaiz = (path.endsWith('/') || path.endsWith('index.html')) &&
-               !path.includes('/clientes/') && !path.includes('/pir/') &&
-               !path.includes('/reportes') && !path.includes('/pagos/') &&
-               !path.includes('/admin/') && !path.includes('/conciliacion/') &&
-               !path.includes('/cobranza/') && !path.includes('/convenios/') &&
-               !path.includes('/portal/') && !path.includes('/performance/');
+               !path.includes('/clientes/') &&
+               !path.includes('/pir/') &&
+               !path.includes('/reportes') &&
+               !path.includes('/panel-de-control/') &&
+               !path.includes('/pagos/') &&
+               !path.includes('/admin/') &&
+               !path.includes('/conciliacion/') &&
+               !path.includes('/cobranza/') &&
+               !path.includes('/convenios/') &&
+               !path.includes('/portal/') &&
+               !path.includes('/performance/') &&
+               !path.includes('/planes/') &&
+               !path.includes('/pre-iva/') &&
+               !path.includes('/pre-iva/');
   var loginUrl = esRaiz ? LOGIN_PAGE : '../' + LOGIN_PAGE;
 
   // Módulo actual
   var MODULO_ACTUAL = (function(){
-    if(path.includes('/clientes/'))         return 'clientes';
-    if(path.includes('/pir/'))              return 'pir';
-    if(path.includes('/reportes-rrhh/'))    return 'reportes-rrhh';
-    if(path.includes('/reportes-contable/'))return 'reportes-contable';
-    if(path.includes('/reportes-pagos/'))   return 'reportes-pagos';
-    if(path.includes('/reportes/'))         return 'reportes';
-    if(path.includes('/pagos/'))            return 'pagos';
-    if(path.includes('/conciliacion/'))     return 'conciliacion';
-    if(path.includes('/cobranza/'))         return 'cobranza';
-    if(path.includes('/convenios/'))        return 'convenios';
-    if(path.includes('/portal/'))           return 'portal';
-    if(path.includes('/pre-iva/'))          return 'pre-iva';
-    if(path.includes('/planes/'))           return 'planes';
-    if(path.includes('/admin/'))            return 'admin';
-    if(path.includes('/performance/'))      return 'performance';
+    if(path.includes('/clientes/'))            return 'clientes';
+    if(path.includes('/pir/'))                 return 'pir';
+    if(path.includes('/pre-iva/'))             return 'pre-iva';
+    if(path.includes('/reportes-rrhh/'))       return 'reportes-rrhh';
+    if(path.includes('/reportes-contable/'))   return 'reportes-contable';
+    if(path.includes('/reportes-pagos/'))      return 'reportes-pagos';
+    if(path.includes('/panel-de-control/'))    return 'panel-de-control';
+    if(path.includes('/reportes/'))            return 'panel-de-control'; // legacy
+    if(path.includes('/pagos/'))               return 'pagos';
+    if(path.includes('/conciliacion/'))        return 'conciliacion';
+    if(path.includes('/cobranza/'))            return 'cobranza';
+    if(path.includes('/convenios/'))           return 'convenios';
+    if(path.includes('/portal/'))              return 'portal';
+    if(path.includes('/planes/'))              return 'planes';
+    if(path.includes('/admin/'))               return 'admin';
+    if(path.includes('/performance/'))         return 'performance';
     return 'dashboard';
   })();
 
@@ -98,18 +109,19 @@
 
   // Módulos permitidos por rol
   var MODULOS_POR_ROL = {
-    admin:    ['*'],  // todos
-    rrhh:     ['reportes-rrhh'],
-    contable: ['reportes-contable'],
-    pagos:    ['reportes-pagos','pagos','conciliacion'],
-    cobranza: ['cobranza']
+    master:   ['*'],
+    admin:    ['*'],
+    rrhh:     ['dashboard','reportes-rrhh','panel-de-control','clientes','pre-iva'],
+    contable: ['dashboard','reportes-contable','panel-de-control','clientes','pir','pre-iva','planes'],
+    pagos:    ['dashboard','reportes-pagos','pagos','conciliacion','panel-de-control','clientes'],
+    cobranza: ['dashboard','cobranza','conciliacion','clientes']
   };
 
   function puedeVerModulo(modulo){
     if(sesion.esMaster) return true;
-    var permisos = MODULOS_POR_ROL[sesion.rol] || [];
+    var permisos = MODULOS_POR_ROL[sesion.rol] || sesion.modulos || [];
     if(permisos[0] === '*') return true;
-    if(modulo === 'dashboard') return true; // todos ven el dashboard (aunque se redirigen)
+    if(modulo === 'dashboard') return true;
     return permisos.includes(modulo) || (sesion.modulos||[]).includes(modulo);
   }
 
@@ -138,19 +150,17 @@
     var topbar = document.querySelector('.topbar');
     if(!topbar) return;
 
-    // Badge usuario
     var badge = document.createElement('div');
     badge.style.cssText = 'display:flex;align-items:center;gap:8px;margin-right:8px;flex-shrink:0';
     badge.innerHTML =
       '<div style="width:28px;height:28px;border-radius:50%;background:rgba(144,72,145,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">'
-      + sesion.nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase()
+      + (sesion.iniciales || sesion.nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase())
       +'</div>'
       +'<div style="text-align:right">'
       +'<div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.8)">'+sesion.nombre+'</div>'
-      +'<div style="font-size:9px;color:rgba(255,255,255,.3)">'+sesion.rol+'</div>'
+      +'<div style="font-size:9px;color:rgba(255,255,255,.3)">'+(sesion.rolLabel||sesion.rol)+'</div>'
       +'</div>';
 
-    // Botón salir
     var btnLogout = document.createElement('button');
     btnLogout.textContent = 'Salir';
     btnLogout.style.cssText = 'background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:inherit;flex-shrink:0';
