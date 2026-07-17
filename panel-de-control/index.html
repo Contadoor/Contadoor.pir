@@ -2113,26 +2113,49 @@ function renderNomina(){
     // Guardar reporte en mapa global para acceso por id
     window._rptMap=window._rptMap||{};
     window._rptMap[rid]=r;
-    var _ver='verReporte("'+rid+'")';
-    var _nota='_vistaId="'+rid+'";abrirEditRapido()';
-    var _mail='enviarEmailDirecto("'+rid+'")';
-    var _rec='enviarRecordatorio("'+rid+'","manual")';
-    var _wa='_vistaId="'+rid+'";enviarWhatsApp()';
-    html+='<button class="act-ico" onclick="'+_ver+'" title="Ver reporte">👁</button>';
-    html+='<button class="act-ico" onclick="'+_nota+'" title="Nota analista">📝</button>';
+        html+='<button class="act-ico" data-accion="ver" data-rid="'+rid+'" title="Ver reporte">👁</button>';
+    html+='<button class="act-ico" data-accion="nota" data-rid="'+rid+'" title="Nota analista">📝</button>';
     if(enviado){
-      html+='<button class="act-ico" onclick="'+_rec+'" title="Recordatorio">🔔</button>';
+      html+='<button class="act-ico" data-accion="rec" data-rid="'+rid+'" title="Recordatorio">🔔</button>';
     }else{
-      html+='<button class="act-ico" style="background:var(--p);border-color:var(--p)" onclick="'+_mail+'" title="Enviar email">✉️</button>';
+      html+='<button class="act-ico" style="background:var(--p);border-color:var(--p)" data-accion="mail" data-rid="'+rid+'" title="Enviar email">✉️</button>';
     }
     if(r.clienteWa){
-      html+='<button class="act-ico" style="border-color:#25d366" onclick="'+_wa+'" title="WhatsApp">💬</button>';
+      html+='<button class="act-ico" style="border-color:#25d366" data-accion="wa" data-rid="'+rid+'" title="WhatsApp">💬</button>';
     }
-    html+='</div></td>';
+html+='</div></td>';
     html+='</tr>';
   });
   html+='</tbody></table>';
   cont.innerHTML=html;
+  // Listener único en el contenedor — captura clicks aunque el target sea el emoji
+  var tbody=cont.querySelector('tbody');
+  if(tbody){
+    tbody.addEventListener('click',function(e){
+      var btn=e.target.closest('[data-accion]');
+      if(!btn) return;
+      var rid=btn.getAttribute('data-rid');
+      var accion=btn.getAttribute('data-accion');
+      if(!rid||!accion) return;
+      if(accion==='ver')  verReporte(rid);
+      else if(accion==='nota'){ _vistaId=rid; abrirEditRapido(); }
+      else if(accion==='mail'){ enviarEmailDirecto(rid); }
+      else if(accion==='rec'){  enviarRecordatorio(rid,'manual'); }
+      else if(accion==='wa'){   _vistaId=rid; enviarWhatsApp(); }
+    });
+    // Checkbox select-all
+    var chkAll=cont.querySelector('#chk-all');
+    if(chkAll){
+      chkAll.addEventListener('change',function(){
+        cont.querySelectorAll('.nomina-chk').forEach(function(c){c.checked=chkAll.checked;});
+        actualizarBarraEnvio();
+      });
+    }
+    // Checkboxes individuales
+    cont.querySelectorAll('.nomina-chk').forEach(function(c){
+      c.addEventListener('change', actualizarBarraEnvio);
+    });
+  }
 }
 
 function toggleTodos(checked){
