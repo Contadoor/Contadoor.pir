@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -426,6 +425,7 @@ tr:hover td{background:#f9fefb;}
 // HELPERS
 // ═══════════════════════════════════════════════════
 var _remuData=null,_reporteActual=null,_filtros={prioridad:'',estado:''};
+var _btnIds={};
 var MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 function ff(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
 function sv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
@@ -647,6 +647,7 @@ function enviarMasivoRrhh(){
 }
 
 function renderTabla(periodo){
+  _btnIds={};
   var u=getUsuario();
   var analista=u.nombre||'';
   var reportes=getReportes().filter(function(r){
@@ -761,11 +762,13 @@ function renderTabla(periodo){
       +'<div class="cumpl-lbl">'+getCumplimientoLabel(est)+'</div></div></td>';
     // Acciones
     html+='<td><div class="acciones">';
+    var _k=Object.keys(_btnIds).length;
+    _btnIds[_k]=r.id;
     if(est==='completado'||est==='enviado'){
-      html+='<button class="btn-s" onclick="abrirModal(\''+r.id+'\')">✏️ Editar</button>';
-      if(est==='completado') html+='<button class="btn-p" onclick="abrirModal(\''+r.id+'\',true)" style="background:#904891">\u1f4e4 Enviar</button>';
+      html+='<button class="btn-s" onclick="abrirModal(_btnIds['+_k+'],false)">✏️ Editar</button>';
+      html+='<button class="btn-p" onclick="abrirModal(_btnIds['+_k+'],true)" style="background:#904891">📤 Enviar</button>';
     }else{
-      html+='<button class="btn-p" onclick="abrirModal(\''+r.id+'\')">✏️ Completar</button>';
+      html+='<button class="btn-p" onclick="abrirModal(_btnIds['+_k+'],false)">✏️ Completar</button>';
     }
     html+='</div></td>';
     html+='</tr>';
@@ -773,6 +776,7 @@ function renderTabla(periodo){
 
   html+='</tbody></table>';
   document.getElementById('tablaBody').innerHTML=html;
+  // Botones con onclick directo via _btnIds
 }
 
 function getEstadoRrhh(r){
@@ -1035,7 +1039,7 @@ function actualizarPreviewRpt(){
 // MODAL RRHH
 // ═══════════════════════════════════════════════════
 function abrirModal(id,enviar){
-  var r=getReportes().find(function(x){return x.id===id;});
+  var r=getReportes().find(function(x){return String(x.id)===String(id);});
   if(!r) return;
   _reporteActual=r;
   document.getElementById('modal-cliente-nombre').textContent=hesc(r.clienteNombre||r.rut)+'  -  '+formatPeriodo(r.periodo);
