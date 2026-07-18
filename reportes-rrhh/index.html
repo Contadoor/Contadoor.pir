@@ -818,58 +818,131 @@ function setFiltro(tipo,valor){
 // ═══════════════════════════════════════════════════
 // PARSER XLS
 // ═══════════════════════════════════════════════════
-function parsearLibro(buffer){
-  var wb=XLSX.read(buffer,{type:'array',raw:true});
-  var ws=wb.Sheets[wb.SheetNames[0]];
-  var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
-  var COL={PERIODO:0,RUT:1,SUELDO_MENSUAL:15,TOTAL_IMPONIBLE:19,TOTAL_NO_IMPONIBLE:25,
-    AFP:26,APV1:27,APV2:28,SALUD:29,CES_TRAB:30,IU:31,TOTAL_DESC:32,OTROS_DESC:33,
-    LIQUIDO:34,SIS:35,MUTUAL:36,CES_EMP:37,TRIBUTABLE:41};
-  var periodos={};
-  function toNum(v){
-    if(typeof v==='number') return v;
-    var s=String(v||'').trim().replace(/\./g,'').replace(',','.');
-    return parseFloat(s)||0;
-  }
-  var dataStart=0;
-  for(var i=0;i<Math.min(rows.length,10);i++){
-    if(String(rows[i][0]||'').toUpperCase().indexOf('PERIODO')>=0){dataStart=i+1;break;}
-  }
-  for(var ri=dataStart;ri<rows.length;ri++){
-    var row=rows[ri];
-    if(!row||row.length<35) continue;
-    var periodo=String(row[COL.PERIODO]||'').trim();
-    if(!periodo) continue;
-    var rut=String(row[COL.RUT]||'').trim();
-    if(!rut||!/\d/.test(rut)) continue;
-    if(!periodos[periodo]){
-      periodos[periodo]={periodo,ruts:new Set(),sueldoMensual:0,totalImponible:0,totalNoImponible:0,
-        afp:0,apv:0,salud:0,cesTrab:0,iu:0,otrosDesc:0,totalDesc:0,
-        sis:0,mutual:0,cesEmp:0,liquidoPagar:0,tributable:0};
-    }
-    var p=periodos[periodo];
-    p.ruts.add(rut);
-    p.sueldoMensual+=toNum(row[COL.SUELDO_MENSUAL]);
-    p.totalImponible+=toNum(row[COL.TOTAL_IMPONIBLE]);
-    p.totalNoImponible+=toNum(row[COL.TOTAL_NO_IMPONIBLE]);
-    p.afp+=toNum(row[COL.AFP]);
-    p.apv+=toNum(row[COL.APV1])+toNum(row[COL.APV2]);
-    p.salud+=toNum(row[COL.SALUD]);
-    p.cesTrab+=toNum(row[COL.CES_TRAB]);
-    p.iu+=toNum(row[COL.IU]);
-    p.totalDesc+=toNum(row[COL.TOTAL_DESC]);
-    p.otrosDesc+=toNum(row[COL.OTROS_DESC]);
-    p.liquidoPagar+=toNum(row[COL.LIQUIDO]);
-    p.sis+=toNum(row[COL.SIS]);
-    p.mutual+=toNum(row[COL.MUTUAL]);
-    p.cesEmp+=toNum(row[COL.CES_EMP]);
-    p.tributable+=toNum(row[COL.TRIBUTABLE]);
-  }
-  Object.keys(periodos).forEach(function(k){
-    periodos[k].nTrab=periodos[k].ruts.size;
-    delete periodos[k].ruts;
+function montoCLP(txt){
+  var t=String(txt||'').trim();
+  if(!t||t==='-'||t==='')return 0;
+  var n=parseFloat(t.replace(/\./g,'').replace(',','.').replace(/[^\d.\-]/g,''));
+  return isNaN(n)?0:n;
+}
+function parsearLibro(file){
+  return new Promise(function(resolve,reject){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        var buf=e.target.result;
+        var texto=new TextDecoder('iso-8859-1').decode(new Uint8Array(buf));
+        if(!texto.includes('<table')&&!texto.includes('<TABLE')){
+          reject(new Error('Formato no reconocido. Debe ser el libro .xls de MasContable.'));return;
+        }
+        var doc=new DOMParser().parseFromString(texto,'text/html');
+        var titulo=doc.body.textContent||'';
+        var mPer=titulo.match(/LIBRO DE REMUNERACIONES\s*(\d{2})-(\d{4})/i);
+        var periodo=mPer?(mPer[1]+'-'+mPer[2]):null;
+        // Buscar tabla con <th>
+        var tables=doc.querySelectorAll('table');
+        var tabla=null;
+        for(var i=0;i<tables.length;i++){if(tables[i].querySelector('th')){tabla=tables[i];break;}}
+        if(!tabla){
+          var maxC=0;
+          for(var i=0;i<tables.length;i++){var rs=tables[i].querySelectorAll('tr');if(rs.length>1){var cs=rs[1].querySelectorAll('td').length;if(cs>maxC){maxC=cs;tabla=tables[i];}}}
+        }
+        if(!tabla){reject(new Error('No se encontró tabla de datos.'));return;}
+        var IDX={rut:1,apPat:2,apMat:3,nombres:4,sueldoBase:5,dias:7,vacaciones:9,licencia:10,
+          salud:11,plan:12,afp:13,pctAfp:14,
+          totalImponible:19,totalNoImponible:24,
+          dctoAfp:25,apv1:26,apv2:27,dctoSalud:28,cesTrab:29,iu:30,
+          totalDescuentos:31,otrosDescuentos:32,liquido:33,
+          sis:34,mutual:35,cesEmp:36,capInd:37,expVida:38,rentProt:39,tributable:40};
+        var filas=tabla.querySelectorAll('tr');
+        var trabajadores=[];var totalesRow=null;
+        for(var fi=0;fi<filas.length;fi++){
+          var celdas=filas[fi].querySelectorAll('td');
+          if(celdas.length<20)continue;
+          var c=[];for(var ci=0;ci<celdas.length;ci++)c.push(celdas[ci].textContent.trim());
+          if(c[IDX.pctAfp]==='Totales'||c[IDX.pctAfp]==='TOTALES'){
+            totalesRow={totalImponible:montoCLP(c[IDX.totalImponible]),liquido:montoCLP(c[IDX.liquido])};break;
+          }
+          if(!/^\d{2}-\d{4}$/.test(c[0]))continue;
+          var diasT=parseInt(c[IDX.dias])||0,diasL=parseInt(c[IDX.licencia])||0;
+          trabajadores.push({
+            rut:c[IDX.rut],nombre:(c[IDX.nombres]+' '+c[IDX.apPat]+' '+c[IDX.apMat]).trim(),
+            afpNombre:c[IDX.afp],saludNombre:c[IDX.salud],plan:c[IDX.plan],
+            diasTrabajados:diasT,diasVacaciones:parseInt(c[IDX.vacaciones])||0,
+            diasLicencia:diasL,enLicenciaCompleta:diasT===0&&diasL>0,
+            sueldoBase:montoCLP(c[IDX.sueldoBase]),
+            totalImponible:montoCLP(c[IDX.totalImponible]),
+            totalNoImponible:montoCLP(c[IDX.totalNoImponible]),
+            totalDescuentos:montoCLP(c[IDX.totalDescuentos]),
+            otrosDescuentos:montoCLP(c[IDX.otrosDescuentos]),
+            liquido:montoCLP(c[IDX.liquido]),
+            dctoAfp:montoCLP(c[IDX.dctoAfp]),
+            apv:montoCLP(c[IDX.apv1])+montoCLP(c[IDX.apv2]),
+            dctoSalud:montoCLP(c[IDX.dctoSalud]),
+            cesTrab:montoCLP(c[IDX.cesTrab]),iu:montoCLP(c[IDX.iu]),
+            sis:montoCLP(c[IDX.sis]),mutual:montoCLP(c[IDX.mutual]),
+            cesEmp:montoCLP(c[IDX.cesEmp]),capInd:montoCLP(c[IDX.capInd]),
+            expVida:montoCLP(c[IDX.expVida]),rentProt:montoCLP(c[IDX.rentProt]),
+            tributable:montoCLP(c[IDX.tributable])
+          });
+        }
+        if(!trabajadores.length){reject(new Error('No se encontraron trabajadores. Verifica que el archivo sea el libro de remuneraciones correcto.'));return;}
+        var nomina=trabajadores.reduce(function(s,t){return s+t.liquido;},0);
+        var totalImp=trabajadores.reduce(function(s,t){return s+t.totalImponible;},0);
+        var totalNoImp=trabajadores.reduce(function(s,t){return s+t.totalNoImponible;},0);
+        var totalDesc=trabajadores.reduce(function(s,t){return s+t.totalDescuentos;},0);
+        var aportesEmp=trabajadores.reduce(function(s,t){return s+t.sis+t.mutual+t.cesEmp+t.capInd+t.expVida+t.rentProt;},0);
+        var alertas=[];
+        if(totalesRow&&Math.abs(totalesRow.liquido-nomina)>100)alertas.push('Diferencia en checksum: calculado '+ff(nomina)+' vs archivo '+ff(totalesRow.liquido));
+        resolve({
+          periodo:periodo,trabajadores:trabajadores,
+          nTrab:trabajadores.length,
+          nTrabActivos:trabajadores.filter(function(t){return t.diasTrabajados>0;}).length,
+          nLicencia:trabajadores.filter(function(t){return t.enLicenciaCompleta;}).length,
+          nomina:nomina,totalImponible:totalImp,totalNoImponible:totalNoImp,
+          totalDescuentos:totalDesc,aportesEmpleador:aportesEmp,
+          costoEmpresa:totalImp+totalNoImp+aportesEmp,
+          totalesRow:totalesRow,alertas:alertas
+        });
+      }catch(err){reject(new Error('Error al procesar: '+err.message));}
+    };
+    reader.onerror=function(){reject(new Error('Error al leer el archivo.'));};
+    reader.readAsArrayBuffer(file);
   });
-  return periodos;
+}
+function llenarCamposDesdeLibro(data){
+  // Totales
+  setV('m-ntrab', data.nTrab);
+  setV('m-ntrab-activos', data.nTrabActivos||data.nTrab);
+  setV('m-nlicencia', data.nLicencia||0);
+  setV('m-timponible', data.totalImponible);
+  setV('m-tnoimponible', data.totalNoImponible);
+  setV('m-liquido', data.nomina);
+  setV('m-total-desc', data.totalDescuentos);
+  // Aportes empleador
+  var aporteTot=data.aportesEmpleador||0;
+  var sis=data.trabajadores.reduce(function(s,t){return s+t.sis;},0);
+  var mutual=data.trabajadores.reduce(function(s,t){return s+t.mutual;},0);
+  var cesEmp=data.trabajadores.reduce(function(s,t){return s+t.cesEmp;},0);
+  setV('m-sis', sis);
+  setV('m-mutual', mutual);
+  setV('m-ces-emp', cesEmp);
+  // Descuentos trabajador
+  var dctoAfp=data.trabajadores.reduce(function(s,t){return s+t.dctoAfp;},0);
+  var dctoSalud=data.trabajadores.reduce(function(s,t){return s+t.dctoSalud;},0);
+  var apv=data.trabajadores.reduce(function(s,t){return s+t.apv;},0);
+  var cesTrab=data.trabajadores.reduce(function(s,t){return s+t.cesTrab;},0);
+  var iu=data.trabajadores.reduce(function(s,t){return s+t.iu;},0);
+  setV('m-afp', dctoAfp);
+  setV('m-salud', dctoSalud);
+  setV('m-apv', apv);
+  setV('m-ces-trab', cesTrab);
+  setV('m-iu', iu);
+  // Mostrar sección datos libro
+  var wrap=document.getElementById('datosLibroWrap');
+  if(wrap)wrap.style.display='block';
+  var manualWrap=document.getElementById('modoManualWrap');
+  if(manualWrap)manualWrap.style.display='none';
+  calcTotalesModal();
 }
 
 function setupUpload(){
@@ -877,38 +950,34 @@ function setupUpload(){
   var zone=document.getElementById('uzLibro');
   if(!inp||!zone) return;
   function handle(file){
-    if(!file) return;
-    var r=new FileReader();
-    r.onload=function(e){
-      try{
-        if(typeof XLSX==='undefined'){alert('Error: librería Excel no disponible.');return;}
-        _remuData=parsearLibro(new Uint8Array(e.target.result));
-        var periodos=Object.keys(_remuData).sort();
-        if(!periodos.length){alert('No se encontraron datos en el archivo.');return;}
-        document.getElementById('libroFileName').textContent=file.name;
-        document.getElementById('libroMeta').textContent=periodos.length+' período(s): '+periodos.join(', ');
-        document.getElementById('libroOk').classList.add('show');
-        document.getElementById('uzLibro').style.display='none';
-        document.getElementById('modoManualWrap').style.display='none';
-        var sel=document.getElementById('selectPeriodoLibro');
-        sel.innerHTML='<option value="">Selecciona el período...</option>';
-        periodos.forEach(function(p){
-          var opt=document.createElement('option');
-          opt.value=p;
-          var pts=p.split('-');
-          opt.textContent=MESES[parseInt(pts[0])-1]+' '+pts[1];
-          sel.appendChild(opt);
-        });
-        document.getElementById('selectPeriodoLibroWrap').style.display='block';
-        // Auto-match con período del reporte
-        if(_reporteActual){
-          var pf=_reporteActual.periodo.split('-');
-          var periodoLibro=pf[1]+'-'+pf[0];
-          if(_remuData[periodoLibro]){sel.value=periodoLibro;procesarPeriodo();}
-        }
-      }catch(err){alert('Error: '+err.message);console.error(err);}
-    };
-    r.readAsArrayBuffer(file);
+    if(!file)return;
+    // Validar extensión
+    var ext=file.name.split('.').pop().toLowerCase();
+    if(ext!=='xls'&&ext!=='xlsx'){alert('Sube el archivo .xls del libro de remuneraciones.');return;}
+    // Mostrar cargando
+    var zone=document.getElementById('uzRemu');
+    if(zone)zone.querySelector('div').textContent='Procesando...';
+    // Usar nuevo parser async con DOMParser + ISO-8859-1
+    parsearLibro(file).then(function(data){
+      _remuData=data;
+      // Mostrar resultado
+      var okEl=document.getElementById('remuOk');
+      var fnEl=document.getElementById('remuFileName');
+      var metaEl=document.getElementById('remuMeta');
+      if(fnEl)fnEl.textContent=file.name;
+      if(metaEl)metaEl.textContent=data.nTrab+' trabajadores · Período: '+(data.periodo||'detectado')+(data.alertas&&data.alertas.length?' ⚠️ '+data.alertas[0]:'');
+      if(okEl)okEl.classList.add('show');
+      if(zone)zone.style.display='none';
+      // Llenar campos del modal con totales
+      llenarCamposDesdeLibro(data);
+      // Mostrar alertas si hay
+      if(data.alertas&&data.alertas.length){
+        console.warn('Alertas libro:', data.alertas);
+      }
+    }).catch(function(err){
+      alert('Error al leer el archivo:\n'+err.message);
+      if(zone){zone.style.display='block';zone.querySelector('div').textContent='';}
+    });
   }
   inp.addEventListener('change',function(e){if(e.target.files[0])handle(e.target.files[0]);});
   zone.addEventListener('dragover',function(e){e.preventDefault();zone.classList.add('drag');});
