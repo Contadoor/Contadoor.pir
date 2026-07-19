@@ -14,7 +14,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 .sb-logo{padding:16px 16px 12px;border-bottom:1px solid rgba(144,72,145,.3);flex-shrink:0;}
 .sb-logo img{width:130px;display:block;}
 .sb-tagline{font-size:9px;color:rgba(255,255,255,.28);letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
-.sb-nav{padding:10px 8px;flex:1;overflow-y:auto;overflow-x:hidden;}
+.sb-nav{padding:10px 8px;flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;}
 .sb-nav::-webkit-scrollbar{width:3px;}
 .sb-nav::-webkit-scrollbar-track{background:transparent;}
 .sb-nav::-webkit-scrollbar-thumb{background:rgba(144,72,145,.3);border-radius:3px;}
@@ -104,6 +104,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 /* BADGE */
 .badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;display:inline-block;white-space:nowrap;}
 .b-creada{background:#f3f4f6;color:#374151;border:1px solid #d1d5db;}
+.b-aviso{background:#fef9ec;color:#854F0B;border:1px solid #EF9F27;}
+.b-previred{background:#e0f2fe;color:#0c4a6e;border:1px solid #7dd3fc;}
+.b-finalizado{background:#ecfdf5;color:#064e3b;border:1px solid #6ee7b7;}
 .b-transferido{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;}
 .b-aprobacion{background:#fef3c7;color:#78350f;border:1px solid #fde68a;}
 .b-aprobado{background:#ecfdf5;color:#064e3b;border:1px solid #a7f3d0;}
@@ -135,41 +138,33 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
   <nav>
     <div class="sb-section">Principal</div>
     <a class="sb-item" href="../index.html">🏠 Dashboard</a>
-
     <div class="sb-section">Gestión</div>
-    <a class="sb-item " href="../clientes/index.html">👥 Clientes</a>
-    <a class="sb-item " href="../planes/index.html">📋 Planes y Servicios</a>
-    <a class="sb-item " href="../reportes/index.html">📋 Panel de Control</a>
-
+    <a class="sb-item" href="../clientes/index.html">👥 Clientes</a>
+    <a class="sb-item" href="../planes/index.html">📋 Planes y Servicios</a>
+    <a class="sb-item" href="../panel-de-control/index.html">📋 Panel de Control</a>
     <div class="sb-section">Remuneraciones</div>
-    <a class="sb-item " href="../reportes-rrhh/index.html">👥 Reporte RRHH</a>
+    <a class="sb-item" href="../reportes-rrhh/index.html">👥 Reporte RRHH</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">👤 Gestión de Personal</a>
-
     <div class="sb-section">Contable</div>
-    <a class="sb-item " href="../reportes-contable/index.html">📊 Reporte Contable</a>
-    <a class="sb-item " href="../reportes-pagos/index.html">💰 Reporte Pagos</a>
+    <a class="sb-item" href="../reportes-contable/index.html">📊 Reporte Contable</a>
+    <a class="sb-item" href="../reportes-pagos/index.html">💰 Reporte Pagos</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">🤝 Convenios</a>
-
     <div class="sb-section">Tributario</div>
-    <a class="sb-item " href="../pir/index.html">📊 PIR</a>
-    <a class="sb-item " href="../pre-iva/index.html">📋 Pre-IVA</a>
-
+    <a class="sb-item" href="../pir/index.html">📊 PIR</a>
+    <a class="sb-item" href="../pre-iva/index.html">📋 Pre-IVA</a>
     <div class="sb-section">Financiero</div>
     <a class="sb-item on" href="../pagos/index.html">✅ Aprobaciones</a>
-    <a class="sb-item " href="../conciliacion/index.html">🏦 Conciliación</a>
+    <a class="sb-item" href="../conciliacion/index.html">🏦 Conciliación</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📋 CxC / Cobranza</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">🧾 Facturación</a>
-
     <div class="sb-section">Comercial</div>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📈 CRM</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📝 Cotizaciones</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📣 Campañas</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">✉️ Comunicaciones</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📊 Performance</a>
-
     <div class="sb-section">Configuración</div>
-    <a class="sb-item " href="../admin/index.html">👤 Admin</a>
-    <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">🌐 Mi Contadoor</a>
+    <a class="sb-item" href="../admin/index.html">⚙️ Admin</a>
   </nav>
   <div class="sb-foot" id="sb-usuario">Gestoor v1.0</div>
 </aside>
@@ -451,17 +446,35 @@ var AREA_LABELS = {
 };
 
 var ESTADOS = {
-  creada:      {label:'Creada',         cls:'b-creada',      icon:'✏️',  orden:0},
-  transferido: {label:'Transferido',    cls:'b-transferido', icon:'💳',  orden:1},
-  aprobacion:  {label:'En aprobación', cls:'b-aprobacion',  icon:'⏳',  orden:2},
-  aprobado:    {label:'Aprobado',       cls:'b-aprobado',    icon:'✅',  orden:3},
-  rechazado:   {label:'Rechazado',      cls:'b-rechazado',   icon:'❌',  orden:1},
-  procesado:   {label:'Procesado',      cls:'b-procesado',   icon:'🔒',  orden:5},
-  cobrado:     {label:'Cobrado',        cls:'b-cobrado',     icon:'💜',  orden:4}
+  creada:              {label:'Creada',            cls:'b-creada',      icon:'editar',  orden:0},
+  aviso_enviado:       {label:'Aviso enviado',     cls:'b-aviso',       icon:'mail',    orden:1},
+  transferido:         {label:'Transferido',       cls:'b-transferido', icon:'bank',    orden:2},
+  en_previred:         {label:'En Previred',       cls:'b-previred',    icon:'clock',   orden:3},
+  aprobacion:          {label:'En aprobacion',     cls:'b-aprobacion',  icon:'loading', orden:4},
+  aprobado:            {label:'Aprobado',          cls:'b-aprobado',    icon:'check',   orden:5},
+  finalizado:          {label:'Finalizado',        cls:'b-finalizado',  icon:'lock',    orden:6},
+  rechazado:           {label:'Rechazado',         cls:'b-rechazado',   icon:'x',       orden:1}
 };
-var FLUJO_PASOS = ['creada','transferido','aprobacion','aprobado','procesado','cobrado'];
+var FLUJO_PASOS = ['creada','aviso_enviado','transferido','en_previred','aprobacion','aprobado','finalizado'];
 
-var _editId=null, _accionId=null, _viewActual='todas', _seleccionados=new Set();
+var _editId=null, _accionId=null, _btnIds={}, _viewActual='todas', _seleccionados=new Set();
+var SB_URL='https://ulxoxqbuxiuylaolaqxj.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA';
+function sbH(){return{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};}
+function sbPatch(path,data){return fetch(SB_URL+'/rest/v1/'+path,{method:'PATCH',headers:Object.assign({'Prefer':'return=representation'},sbH()),body:JSON.stringify(data)}).catch(function(){});}
+function getReportesMensuales(){try{return JSON.parse(localStorage.getItem('reportes_mensuales')||'[]');}catch(e){return[];}}
+function setReportesMensuales(arr){localStorage.setItem('reportes_mensuales',JSON.stringify(arr));}
+function syncEstadoReporte(ob, nuevoEstado){
+  // Sincroniza el estado del reporte mensual vinculado a esta obligacion
+  if(!ob||!ob.refReporteId) return;
+  var rpts=getReportesMensuales();
+  var ri=rpts.findIndex(function(r){return String(r.id)===String(ob.refReporteId);});
+  if(ri>=0){
+    rpts[ri].estado=nuevoEstado;
+    setReportesMensuales(rpts);
+    sbPatch('reportes_mensuales?id=eq.'+encodeURIComponent(ob.refReporteId),{estado:nuevoEstado});
+  }
+}
 
 function hesc(s){return String(s||'').replace(/&/g,'\x26amp;').replace(/</g,'\x26lt;').replace(/>/g,'\x26gt;').replace(/"/g,'\x26quot;');}
 function ff(n){return '$'+Math.round(n||0).toLocaleString('es-CL');}
@@ -696,7 +709,10 @@ function aprobarPago(){
   var idx=arr.findIndex(function(x){return x.id===_accionId;});if(idx<0)return;
   arr[idx].estado='aprobado';
   arr[idx].aprobacion={quien:MASTER_NOMBRE,obs:sv('a-obs'),ts:ts()};
-  setObs(arr);closeAprobar();
+  setObs(arr);
+  syncEstadoReporte(arr[idx],'aprobado');
+  closeAprobar();
+  renderAll();
 }
 function rechazarPago(){
   var obs=sv('a-obs');
@@ -721,6 +737,51 @@ function eliminarObligacion(id){
 }
 
 // \u2500\u2500 RENDER STATS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+
+function solicitarAprobacionUno(id){
+  var arr=getObs();
+  var idx=arr.findIndex(function(x){return x.id===id;});if(idx<0)return;
+  if(arr[idx].estado!=='en_previred'){alert('La obligación debe estar en estado En Previred.');return;}
+  arr[idx].estado='aprobacion';
+  arr[idx].fechaAprobacion=ts();
+  setObs(arr);
+  syncEstadoReporte(arr[idx],'pendiente_aprobacion');
+  renderAll();
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:24px;right:24px;background:#1a2e1a;border:1px solid #4ade80;color:#4ade80;padding:12px 18px;border-radius:8px;font-size:13px;z-index:9999';
+  t.textContent='Enviado a aprobacion';document.body.appendChild(t);
+  setTimeout(function(){t.remove();},3000);
+}
+
+function marcarEnPrevired(id){
+  var arr=getObs();
+  var idx=arr.findIndex(function(x){return x.id===id;});if(idx<0)return;
+  if(!confirm('¿Marcar como ingresado en Previred/sistema de pago?'))return;
+  arr[idx].estado='en_previred';
+  arr[idx].fechaPrevired=ts();
+  arr[idx].quienPrevired=getUsuario().nombre||'';
+  setObs(arr);
+  syncEstadoReporte(arr[idx],'en_previred');
+  renderAll();
+}
+
+function marcarFinalizado(id){
+  var arr=getObs();
+  var idx=arr.findIndex(function(x){return x.id===id;});if(idx<0)return;
+  if(!confirm('¿Verificaste que el pago quedó correctamente registrado? Esto cerrará el proceso.'))return;
+  arr[idx].estado='finalizado';
+  arr[idx].fechaFinalizado=ts();
+  arr[idx].quienFinalizo=getUsuario().nombre||'';
+  setObs(arr);
+  syncEstadoReporte(arr[idx],'finalizado');
+  renderAll();
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:24px;right:24px;background:#1a2e1a;border:1px solid #4ade80;color:#4ade80;padding:12px 18px;border-radius:8px;font-size:13px;z-index:9999';
+  t.textContent='Proceso finalizado correctamente';document.body.appendChild(t);
+  setTimeout(function(){t.remove();},4000);
+}
+
 function renderStats(){
   var arr=getObs();
   var creadas=arr.filter(function(ob){return ob.estado==='creada';});
@@ -779,6 +840,7 @@ function filtrarObs(){
 }
 
 function renderObligaciones(){
+  _btnIds={};
   var arr=filtrarObs();
   var cont=document.getElementById('obligacionesList');
   if(!arr.length){
@@ -837,9 +899,10 @@ function renderObligaciones(){
     if(waHref) accionesHTML+='<a class="btn-wa btn-sm" href="'+waHref+'" target="_blank">💬</a>';
     if(ob.estado==='creada') accionesHTML+='<button class="btn-s btn-sm" onclick="abrirModalEditar('+ob.id+')">✏️ Editar</button>';
     if(ob.estado==='creada') accionesHTML+='<button class="btn-p btn-sm" onclick="abrirConciliar('+ob.id+')">💳 Registrar transferencia</button>';
-    if(ob.estado==='aprobacion'&&_viewActual==='aprobar') accionesHTML+='<button class="btn-approve btn-sm" onclick="abrirAprobar('+ob.id+')">✅ Revisar y aprobar</button>';
-    if(ob.estado==='aprobado'&&ob.cobrar==='si') accionesHTML+='<button class="btn-p btn-sm" onclick="marcarCobrado('+ob.id+')">💜 Marcar cobrado</button>';
-    if(ob.estado==='aprobado') accionesHTML+='<button class="btn-s btn-sm" onclick="marcarProcesado('+ob.id+')">🔒 Marcar Procesado</button>';
+    if(ob.estado==='en_previred') accionesHTML+='<button class="btn-p btn-sm" onclick="marcarEnPrevired(_btnIds['+_k+'])" style="font-size:11px">Ingresar a Previred</button>';
+    if(ob.estado==='en_previred') accionesHTML+='<button class="btn-s btn-sm" onclick="solicitarAprobacionUno(_btnIds['+_k+'])" style="font-size:11px">Enviar a aprobacion</button>';
+    if(ob.estado==='aprobacion'&&_viewActual==='aprobar') accionesHTML+='<button class="btn-approve btn-sm" onclick="abrirAprobar(_btnIds['+_k+'])">Revisar y aprobar</button>';
+    if(ob.estado==='aprobado') accionesHTML+='<button class="btn-p btn-sm" onclick="marcarFinalizado(_btnIds['+_k+'])" style="background:var(--green);font-size:11px">Marcar finalizado</button>';
     if(ob.estado==='rechazado') accionesHTML+='<button class="btn-s btn-sm" onclick="abrirModalEditar('+ob.id+')">🔄 Corregir y reenviar</button>';
     accionesHTML+='<button class="btn-danger btn-sm" onclick="eliminarObligacion('+ob.id+')">🗑</button>';
     accionesHTML+='</div>';
