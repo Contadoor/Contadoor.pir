@@ -1198,39 +1198,27 @@ function enviarReporteParcial(){
   if(!_reporteActual){alert('No hay reporte activo.');return;}
   var r=_reporteActual;
   var to=r.clienteEmail||'';
-  if(!to){
-    var c=getClientes().find(function(x){return x.rut===r.rut;});
-    if(c&&c.email)to=c.email;
-  }
+  if(!to){var c=getClientes().find(function(x){return x.rut===r.rut;});if(c&&c.email)to=c.email;}
   if(!to){alert('El cliente no tiene email registrado. Agrégalo en la ficha del cliente.');return;}
   var u=getUsuario();
   var periodo=formatPeriodo(r.periodo);
   if(!confirm('¿Enviar Pre-Reporte RRHH de '+periodo+' a '+hesc(r.clienteNombre)+'?\nEmail: '+to+'\n\nSale desde: reportes@contadoor.cl'))return;
   var btn=document.getElementById('btnEnviarParcial');
   if(btn){btn.disabled=true;btn.textContent='Enviando...';}
-  // Usar datos del libro si están cargados, sino usar datos del reporte guardado
-  var data=null;
-  if(_remuData&&_remuData.trabajadores&&_remuData.trabajadores.length){
-    data=_remuData;
-  }
+  var data=(_remuData&&_remuData.trabajadores&&_remuData.trabajadores.length)?_remuData:null;
   var htmlContent=buildPreReporteRrhhHTML(r,data);
-  var htmlEmail='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>'
-    +'<body style="margin:0;padding:20px;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">'
-    +'<div style="max-width:600px;margin:0 auto">'+htmlContent+'</div>'
-    +'</body></html>';
-  fetch('https://contafunnel-proxy.vercel.app/api/crear-evento',{
+  var htmlEmail='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+    +'<style>body{margin:0;padding:20px;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}</style>'
+    +'</head><body><div style="max-width:600px;margin:0 auto">'+htmlContent+'</div></body></html>';
+  fetch('https://contafunnel-proxy.vercel.app/api/enviar-reporte',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      tipo:'reporte',
-      analistaNombre:u.nombre||'Contadoor',
-      analistaWa:u.wa||'979881891',
       toEmail:to,
-      replyTo:u.email||'info@contadoor.cl',
       toNombre:r.clienteNombre||r.rut,
-      toEmpresa:r.clienteNombre||r.rut,
-      periodo:periodo,
-      htmlReporte:htmlEmail
+      subject:'Pre-Reporte RRHH · '+periodo+' · '+hesc(r.clienteNombre||r.rut),
+      htmlReporte:htmlEmail,
+      replyTo:u.email||'info@contadoor.cl'
     })
   })
   .then(function(res){
@@ -1238,11 +1226,10 @@ function enviarReporteParcial(){
     return res.json();
   })
   .then(function(d){
-    if(d.ok||d.id||d.messageId){
-      // Guardar estado
+    if(d.ok){
       var arr=getReportes();
-      var idx2=arr.findIndex(function(x){return String(x.id)===String(r.id);});
-      if(idx2>=0){arr[idx2].preReporteEnviado=true;arr[idx2].preReporteFecha=new Date().toISOString();}
+      var i=arr.findIndex(function(x){return String(x.id)===String(r.id);});
+      if(i>=0){arr[i].preReporteEnviado=true;arr[i].preReporteFecha=new Date().toISOString();arr[i].estado='enviado';}
       localStorage.setItem('reportes_mensuales',JSON.stringify(arr));
       closeModalRrhh();
       renderTabla();
@@ -1251,16 +1238,11 @@ function enviarReporteParcial(){
       t.textContent='✅ Pre-Reporte enviado a '+to;document.body.appendChild(t);
       setTimeout(function(){t.remove();},4000);
     }else{
-      alert('Error al enviar: '+(d.error||d.message||JSON.stringify(d).slice(0,200)));
+      alert('Error al enviar: '+(d.error||JSON.stringify(d).slice(0,200)));
     }
   })
-  .catch(function(err){
-    console.error('Pre-Reporte error:',err);
-    alert('Error de conexión: '+err.message);
-  })
-  .finally(function(){
-    if(btn){btn.disabled=false;btn.textContent='📨 Enviar Pre-Reporte';}
-  });
+  .catch(function(err){alert('Error de conexión: '+err.message);})
+  .finally(function(){if(btn){btn.disabled=false;btn.textContent='📨 Enviar Pre-Reporte';}});
 }
 function buildPreReporteRrhhHTML(r,data){
   var periodo=formatPeriodo(r.periodo);
@@ -1352,31 +1334,25 @@ function enviarPreReporteRrhh(id){
   var u=getUsuario();
   var periodo=formatPeriodo(r.periodo);
   if(!confirm('¿Enviar Pre-Reporte RRHH de '+periodo+' a '+hesc(r.clienteNombre)+'?\nEmail: '+to+'\n\nSale desde: reportes@contadoor.cl'))return;
-  // Usar datos del libro si coincide el período, sino solo datos del reporte
   var data=null;
   if(_remuData&&_remuData.trabajadores&&_remuData.trabajadores.length){
     var perLibro=String(_remuData.periodo||'').replace('-','');
-    var perReporte=String(r.periodo||'').replace('-','');
-    if(perLibro===perReporte||!perLibro)data=_remuData;
+    var perRep=String(r.periodo||'').replace('-','');
+    if(!perLibro||perLibro===perRep)data=_remuData;
   }
   var htmlContent=buildPreReporteRrhhHTML(r,data);
-  var htmlEmail='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>'
-    +'<body style="margin:0;padding:20px;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">'
-    +'<div style="max-width:600px;margin:0 auto">'+htmlContent+'</div>'
-    +'</body></html>';
-  fetch('https://contafunnel-proxy.vercel.app/api/crear-evento',{
+  var htmlEmail='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+    +'<style>body{margin:0;padding:20px;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}</style>'
+    +'</head><body><div style="max-width:600px;margin:0 auto">'+htmlContent+'</div></body></html>';
+  fetch('https://contafunnel-proxy.vercel.app/api/enviar-reporte',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      tipo:'reporte',
-      analistaNombre:u.nombre||'Contadoor',
-      analistaWa:u.wa||'979881891',
       toEmail:to,
-      replyTo:u.email||'info@contadoor.cl',
       toNombre:r.clienteNombre||r.rut,
-      toEmpresa:r.clienteNombre||r.rut,
-      periodo:periodo,
-      htmlReporte:htmlEmail
+      subject:'Pre-Reporte RRHH · '+periodo+' · '+hesc(r.clienteNombre||r.rut),
+      htmlReporte:htmlEmail,
+      replyTo:u.email||'info@contadoor.cl'
     })
   })
   .then(function(res){
@@ -1384,7 +1360,7 @@ function enviarPreReporteRrhh(id){
     return res.json();
   })
   .then(function(d){
-    if(d.ok||d.id||d.messageId){
+    if(d.ok){
       var arr=getReportes();
       var i=arr.findIndex(function(x){return String(x.id)===String(id);});
       if(i>=0){arr[i].preReporteEnviado=true;arr[i].preReporteFecha=new Date().toISOString();}
@@ -1395,7 +1371,7 @@ function enviarPreReporteRrhh(id){
       t.textContent='✅ Pre-Reporte enviado a '+to;document.body.appendChild(t);
       setTimeout(function(){t.remove();},4000);
     }else{
-      alert('Error: '+(d.error||d.message||JSON.stringify(d).slice(0,200)));
+      alert('Error: '+(d.error||JSON.stringify(d).slice(0,200)));
     }
   })
   .catch(function(err){alert('Error de conexión: '+err.message);});
