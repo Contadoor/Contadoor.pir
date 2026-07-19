@@ -218,7 +218,7 @@ tr:hover td{background:#f9fefb;}
 <main class="main">
   <div class="topbar">
     <div class="tb-title">👥 Módulo RRHH — Reportes Mensuales</div>
-    <button onclick="enviarPreReporteMasivo()" style="background:var(--p);color:#fff;border:none;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;margin-right:6px">📨 Pre-Reporte masivo</button><span class="tb-analista" id="tb-analista-nombre">Analista RRHH</span>
+    <span class="tb-analista" id="tb-analista-nombre">Analista RRHH</span>
     <div id="notBtn" onclick="toggleNotPanel(event)" style="position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.08);flex-shrink:0;">
       <span style="font-size:18px">🔔</span>
       <div id="notBadge" style="display:none;position:absolute;top:2px;right:2px;min-width:16px;height:16px;background:#C0392B;border-radius:20px;font-size:9px;font-weight:700;color:#fff;align-items:center;justify-content:center;padding:0 4px;border:1.5px solid #08040f;"></div>
@@ -752,7 +752,7 @@ function renderTabla(periodo){
       pendiente:{cls:'ec-pendiente',label:'⏳ Pendiente'},
       libro_ok:{cls:'ec-libro-ok',label:'📊 Libro cargado'},
       completado:{cls:'ec-completado',label:'✅ RRHH OK'},
-      enviado:{cls:'ec-enviado',label:'\u1f4e4 Enviado al cliente'},
+      enviado:{cls:'ec-enviado',label:'📤 Enviado al cliente'},
       atrasado:{cls:'ec-atrasado',label:'⚠️ Atrasado'}
     };
     var ecInfo=ecMap[est]||ecMap.pendiente;
@@ -767,7 +767,7 @@ function renderTabla(periodo){
     _btnIds[_k]=r.id;
     if(est==='completado'||est==='enviado'){
       html+='<button class="btn-s" onclick="abrirModal(_btnIds['+_k+'],false)">✏️ Editar</button>';
-      html+='<button class="btn-p" onclick="abrirModal(_btnIds['+_k+'],true)" style="background:#904891">📤 Enviar</button>';
+      html+='<button class="btn-p" onclick="enviarPreReporteRrhh(_btnIds['+_k+'])" style="background:#904891">📨 Pre-Reporte</button>';
     }else{
       html+='<button class="btn-p" onclick="abrirModal(_btnIds['+_k+'],false)">✏️ Completar</button>';
     }
