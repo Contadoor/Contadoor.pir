@@ -1505,7 +1505,23 @@ function toast(msg){
   t.textContent=msg;document.body.appendChild(t);
   setTimeout(function(){t.remove();},3500);
 }
-function enviarAvisoCot(id){_vistaId=id;enviarPreReporteRrhh(id);}
+function enviarAvisoCot(id){
+  _vistaId=id;
+  // Verificar que el reporte existe
+  var r=getReportes().find(function(x){return String(x.id)===String(id);});
+  if(!r){alert('Reporte no encontrado. Recarga la página.');return;}
+  // Verificar email
+  var to=r.clienteEmail||'';
+  if(!to){
+    var c=getClientes().find(function(x){return x.rut===r.rut;});
+    if(c&&c.email)to=c.email;
+  }
+  if(!to){
+    alert('El cliente '+hesc(r.clienteNombre||r.rut)+' no tiene email registrado.\n\nAgrégalo en Clientes → ficha del cliente.');
+    return;
+  }
+  enviarPreReporteRrhh(id);
+}
 function marcarTransferido(id){
   var r=getReportes().find(function(x){return String(x.id)===String(id);});if(!r)return;
   if(!confirm('¿Confirmar que '+hesc(r.clienteNombre)+' ya realizó la transferencia?'))return;
