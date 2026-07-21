@@ -591,20 +591,34 @@ function cargarPeriodo(){
 function renderPipeline(r){
   var est = getEstadoRrhh(r);
   var tieneLibro = r.usaArchivo||r.afp>0||r.nTrab>0;
-  var completado = est==='completado'||est==='enviado';
-  var enviado    = est==='enviado';
+  var completado = est==='completado'||est==='aviso_enviado'||est==='enviado'||
+                  est==='transferido'||est==='en_previred'||
+                  est==='pendiente_aprobacion'||est==='aprobacion'||
+                  est==='aprobado'||est==='finalizado';
+  var enviado    = est==='aviso_enviado'||est==='enviado'||est==='transferido'||
+                  est==='en_previred'||est==='pendiente_aprobacion'||
+                  est==='aprobacion'||est==='aprobado'||est==='finalizado';
 
+  // Pasos del flujo completo
+  var est2=r.estado||'pendiente';
+  var ordenEst={pendiente:0,libro_ok:1,completado:2,aviso_enviado:3,enviado:3,
+    transferido:4,en_previred:5,pendiente_aprobacion:6,aprobacion:6,aprobado:7,finalizado:8};
+  var ordenActual=ordenEst[est2]||0;
   var pasos = [
-    {key:'libro',   label:'Libro',      done:tieneLibro,          active:!tieneLibro},
-    {key:'datos',   label:'Datos',      done:r.afp>0||r.nTrab>0, active:tieneLibro&&!(r.afp>0||r.nTrab>0)},
-    {key:'revision',label:'Revisión',   done:completado,          active:(r.afp>0||r.nTrab>0)&&!completado},
-    {key:'enviado', label:'Enviado',    done:enviado,             active:completado&&!enviado},
+    {key:'libro',      label:'Libro',       done:ordenActual>=1},
+    {key:'completado', label:'Completado',  done:ordenActual>=2},
+    {key:'aviso',      label:'Aviso',       done:ordenActual>=3},
+    {key:'transf',     label:'Transferido', done:ordenActual>=4},
+    {key:'previred',   label:'Previred',    done:ordenActual>=5},
+    {key:'aprobacion', label:'Aprobación',  done:ordenActual>=7},
+    {key:'final',      label:'Finalizado',  done:ordenActual>=8},
   ];
+  var pasoActivo=pasos.findIndex(function(p,i){return !p.done&&(i===0||pasos[i-1].done);});
 
   var html='<div class="pipeline">';
   pasos.forEach(function(p,i){
-    var cls = p.done?'done':p.active?'active':'';
-    var icon = p.done?'✓':p.active?(i+1):' ';
+    var cls = p.done?'done':(i===pasoActivo?'active':'');
+    var icon = p.done?'✓':(i===pasoActivo?(i+1):' ');
     html+='<div class="pipe-step '+cls+'">'
       +'<div class="ps-dot">'+icon+'</div>'
       +'<div class="pipe-lbl">'+p.label+'</div>'
@@ -826,9 +840,22 @@ function getEstadoRrhh(r){
 }
 
 function getCumplimiento(r){
-  var est=getEstadoRrhh(r);
-  var map={pendiente:10,libro_ok:40,completado:80,enviado:100,atrasado:10};
-  return map[est]||10;
+  var est=getEstadoRrhh(r)||r.estado||'pendiente';
+  var map={
+    pendiente:5,
+    libro_ok:15,
+    completado:25,
+    aviso_enviado:35,
+    enviado:35,
+    transferido:50,
+    en_previred:65,
+    pendiente_aprobacion:75,
+    aprobacion:75,
+    aprobado:90,
+    finalizado:100,
+    atrasado:5
+  };
+  return map[est]||5;
 }
 
 function getCumplimientoLabel(est){
