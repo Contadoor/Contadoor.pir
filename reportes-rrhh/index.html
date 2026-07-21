@@ -1279,10 +1279,11 @@ function enviarReporteParcial(){
     if(btn){btn.disabled=false;btn.textContent='📨 Aviso de Cotizaciones';}
     return;
   }
-  fetch('https://contafunnel-proxy.vercel.app/api/enviar-reporte',{
+  fetch('https://contafunnel-proxy.vercel.app/api/crear-evento',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
+      tipo:'reporte',
       toEmail:to,
       toNombre:r.clienteNombre||r.rut,
       subject:'Aviso de Cotizaciones RRHH · '+periodo+' · '+hesc(r.clienteNombre||r.rut),
@@ -1402,10 +1403,11 @@ function enviarPreReporteRrhh(id){
     if(btn){btn.disabled=false;btn.textContent='📨 Aviso de Cotizaciones';}
     return;
   }
-  fetch('https://contafunnel-proxy.vercel.app/api/enviar-reporte',{
+  fetch('https://contafunnel-proxy.vercel.app/api/crear-evento',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
+      tipo:'reporte',
       toEmail:to,
       toNombre:r.clienteNombre||r.rut,
       subject:'Aviso de Cotizaciones RRHH · '+periodo+' · '+hesc(r.clienteNombre||r.rut),
@@ -1469,7 +1471,7 @@ function enviarPreReporteMasivo(){
     toastEl.textContent='Enviando '+(idx+1)+' / '+total+': '+hesc(r.clienteNombre||r.rut)+'...';
     var htmlContent=buildPreReporteRrhhHTML(r,null);
     var htmlEmail='<div style="max-width:600px;margin:0 auto;background:#fff;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;border-radius:4px;overflow:hidden">'+htmlContent+'</div>';
-    fetch('https://contafunnel-proxy.vercel.app/api/enviar-reporte',{
+    fetch('https://contafunnel-proxy.vercel.app/api/crear-evento',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({tipo:'reporte',analistaNombre:u.nombre||'Contadoor',analistaWa:u.wa||'979881891',
         toEmail:to,replyTo:u.email||'reportes@contadoor.cl',
