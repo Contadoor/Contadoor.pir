@@ -735,7 +735,7 @@ function renderTabla(periodo){
     html+='<td><div class="libro-status">'
       +(tieneLibro
         ?'<span class="libro-ok">✅ Cargado</span><span style="font-size:10px;color:#9a849b">'+(r.nTrab||0)+' trabajadores</span>'
-        :'<span class="libro-no">\u1f4c2 Sin cargar</span>'
+        :'<span class="libro-no">📂 Sin cargar</span>'
       )+'</div></td>';
     // Datos
     html+='<td><div class="datos-rrhh">';
@@ -797,7 +797,7 @@ function getCumplimiento(r){
 }
 
 function getCumplimientoLabel(est){
-  var map={pendiente:'⏳ Por iniciar',libro_ok:'📊 Libro listo',completado:'✅ Listo para enviar',enviado:'\u1f4e4 Enviado',atrasado:'⚠️ Requiere atención'};
+  var map={pendiente:'⏳ Por iniciar',libro_ok:'📊 Libro listo',completado:'✅ Listo para enviar',enviado:'📤 Enviado',atrasado:'⚠️ Requiere atención'};
   return map[est]||' - ';
 }
 
