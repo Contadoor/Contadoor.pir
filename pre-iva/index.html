@@ -978,6 +978,7 @@ function limpiarEdicion(){
   Promise.all([cargarUF(), cargarClientes()]).then(function(){setSyncStatus('ok');}).catch(function(){setSyncStatus('error');});
 })();
 </script>
+<script src="../supabase.js"></script>
 <script src="../auth.js"></script>
 </body>
 </html>
