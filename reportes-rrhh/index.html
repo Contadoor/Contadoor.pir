@@ -1716,7 +1716,14 @@ function enviarReporteParcial(){
   var btn=document.getElementById('btnEnviarParcial');
   if(btn){btn.disabled=true;btn.textContent='Enviando...';}
   var data=(_remuData&&_remuData.trabajadores&&_remuData.trabajadores.length)?_remuData:null;
-  var htmlContent=buildPreReporteRrhhHTML(r,data);
+  var htmlContent;
+  try{
+    htmlContent=buildPreReporteRrhhHTML(r,data);
+  }catch(buildErr){
+    alert('Error al generar el email: '+buildErr.message);
+    console.error('buildPreReporteRrhhHTML error:', buildErr);
+    return;
+  }
   // Compactar HTML para no superar límite Vercel (4.5MB)
   var htmlEmail='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>'
     +'<body style="margin:0;padding:16px;background:#f4f4f4">'+htmlContent+'</body></html>';
@@ -1727,6 +1734,7 @@ function enviarReporteParcial(){
     if(btn){btn.disabled=false;btn.textContent='📨 Aviso de Cotizaciones';}
     return;
   }
+  console.log('[RRHH] Enviando a API enviar-cotizaciones...');
   fetch('https://contafunnel-v2.vercel.app/api/enviar-cotizaciones',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -1738,7 +1746,7 @@ function enviarReporteParcial(){
       toEmpresa:r.clienteNombre||r.rut,
       periodo:periodo,
       htmlReporte:htmlEmail,
-      replyTo:u.email||'reportes@contadoor.cl'
+      replyTo:u.email||(getClientes().find(function(x){return x.rut===r.rut;})||{}).emailAnalista||'reportes@contadoor.cl'
     })
   })
   .then(function(res){
@@ -1752,7 +1760,7 @@ function enviarReporteParcial(){
       if(i>=0){arr[i].preReporteEnviado=true;arr[i].preReporteFecha=new Date().toISOString();arr[i].estado='enviado';}
       setReportesCache(arr);
       closeModalRrhh();
-      renderTabla();
+      renderTabla(sv('selectPeriodo'));
       var t=document.createElement('div');
       t.style.cssText='position:fixed;bottom:24px;right:24px;background:#1a2e1a;border:1px solid #4ade80;color:#4ade80;padding:12px 18px;border-radius:8px;font-size:13px;z-index:9999';
       t.textContent='✅ Aviso de Cotizaciones enviado a '+to;document.body.appendChild(t);
@@ -1882,8 +1890,12 @@ function enviarPreReporteRrhh(id){
   var r=getReportes().find(function(x){return String(x.id)===String(id);});
   if(!r){alert('Reporte no encontrado.');return;}
   var to=r.clienteEmail||'';
-  if(!to){var c=getClientes().find(function(x){return x.rut===r.rut;});if(c&&c.email)to=c.email;}
-  if(!to){alert('El cliente no tiene email registrado.');return;}
+  if(!to){
+    var _cliMail=getClientes().find(function(x){return x.rut===r.rut;});
+    if(_cliMail&&_cliMail.email) to=_cliMail.email;
+  }
+  if(!to){alert('El cliente '+hesc(r.clienteNombre||r.rut)+' no tiene email.\nAgrégalo en Módulo Clientes.');return;}
+  console.log('[RRHH] Enviando aviso cotizaciones a:', to);
   var u=getUsuario();
   var periodo=formatPeriodo(r.periodo);
   if(!confirm('¿Enviar Aviso de Cotizaciones RRHH de '+periodo+' a '+hesc(r.clienteNombre)+'?\nEmail: '+to+'\n\nSale desde: reportes@contadoor.cl'))return;
@@ -1893,7 +1905,14 @@ function enviarPreReporteRrhh(id){
     var perRep=String(r.periodo||'').replace('-','');
     if(!perLibro||perLibro===perRep)data=_remuData;
   }
-  var htmlContent=buildPreReporteRrhhHTML(r,data);
+  var htmlContent;
+  try{
+    htmlContent=buildPreReporteRrhhHTML(r,data);
+  }catch(buildErr){
+    alert('Error al generar el email: '+buildErr.message);
+    console.error('buildPreReporteRrhhHTML error:', buildErr);
+    return;
+  }
   // Compactar HTML para no superar límite Vercel (4.5MB)
   var htmlEmail='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>'
     +'<body style="margin:0;padding:16px;background:#f4f4f4">'+htmlContent+'</body></html>';
@@ -1915,7 +1934,7 @@ function enviarPreReporteRrhh(id){
       toEmpresa:r.clienteNombre||r.rut,
       periodo:periodo,
       htmlReporte:htmlEmail,
-      replyTo:u.email||'reportes@contadoor.cl'
+      replyTo:u.email||(getClientes().find(function(x){return x.rut===r.rut;})||{}).emailAnalista||'reportes@contadoor.cl'
     })
   })
   .then(function(res){
@@ -1928,7 +1947,7 @@ function enviarPreReporteRrhh(id){
       var i=arr.findIndex(function(x){return String(x.id)===String(id);});
       if(i>=0){arr[i].preReporteEnviado=true;arr[i].preReporteFecha=new Date().toISOString();}
       setReportesCache(arr);
-      renderTabla();
+      renderTabla(sv('selectPeriodo'));
       var t=document.createElement('div');
       t.style.cssText='position:fixed;bottom:24px;right:24px;background:#1a2e1a;border:1px solid #4ade80;color:#4ade80;padding:12px 18px;border-radius:8px;font-size:13px;z-index:9999';
       t.textContent='✅ Aviso de Cotizaciones enviado a '+to;document.body.appendChild(t);
@@ -1977,7 +1996,7 @@ function enviarPreReporteMasivo(){
     fetch('https://contafunnel-v2.vercel.app/api/enviar-cotizaciones',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({analistaNombre:u.nombre||'Contadoor',analistaWa:u.wa||'979881891',
-        toEmail:to,replyTo:u.email||'reportes@contadoor.cl',
+        toEmail:to,replyTo:u.email||(getClientes().find(function(x){return x.rut===r.rut;})||{}).emailAnalista||'reportes@contadoor.cl',
         toNombre:r.clienteNombre||r.rut,toEmpresa:r.clienteNombre||r.rut,
         periodo:formatPeriodo(r.periodo),htmlReporte:minH(htmlEmail)})
     })
@@ -2037,26 +2056,27 @@ function enviarAvisoCot(id){
   // Verificar email
   var to=r.clienteEmail||'';
   if(!to){
-    var c=getClientes().find(function(x){return x.rut===r.rut;});
-    if(c&&c.email)to=c.email;
+    var _c2=getClientes().find(function(x){return x.rut===r.rut;});
+    if(_c2&&_c2.email) to=_c2.email;
   }
   if(!to){
-    alert('El cliente '+hesc(r.clienteNombre||r.rut)+' no tiene email registrado.\n\nAgrégalo en Clientes → ficha del cliente.');
+    alert('El cliente '+hesc(r.clienteNombre||r.rut)+' no tiene email.\nAgrégalo en Módulo Clientes.');
     return;
   }
+  console.log('[RRHH] Email destino:', to);
   enviarPreReporteRrhh(id);
 }
 function marcarTransferido(id){
   var r=getReportes().find(function(x){return String(x.id)===String(id);});if(!r)return;
   if(!confirm('¿Confirmar que '+hesc(r.clienteNombre)+' ya realizó la transferencia?'))return;
   actualizarEstadoRrhh(id,'transferido',{fechaTransferido:new Date().toISOString()});
-  renderTabla();toast('💳 Marcado como transferido');
+  renderTabla(sv('selectPeriodo'));toast('💳 Marcado como transferido');
 }
 function marcarEnPreviredRrhh(id){
   var r=getReportes().find(function(x){return String(x.id)===String(id);});if(!r)return;
   if(!confirm('¿Confirmar ingreso en Previred para '+hesc(r.clienteNombre)+'?'))return;
   actualizarEstadoRrhh(id,'en_previred',{fechaPrevired:new Date().toISOString(),quienPrevired:getUsuario().nombre||''});
-  renderTabla();toast('⚙️ Ingresado en Previred');
+  renderTabla(sv('selectPeriodo'));toast('⚙️ Ingresado en Previred');
 }
 function enviarAprobacionRrhh(id){
   var r=getReportes().find(function(x){return String(x.id)===String(id);});if(!r)return;
@@ -2090,13 +2110,13 @@ function enviarAprobacionRrhh(id){
       localStorage.setItem('pagos_bd',JSON.stringify(obs));
     }catch(e){}
   });
-  renderTabla();toast('⏳ Enviado a aprobación');
+  renderTabla(sv('selectPeriodo'));toast('⏳ Enviado a aprobación');
 }
 function marcarFinalizadoRrhh(id){
   var r=getReportes().find(function(x){return String(x.id)===String(id);});if(!r)return;
   if(!confirm('¿Verificaste que las cotizaciones quedaron pagadas correctamente?\nEsto cierra el proceso de '+hesc(r.clienteNombre)+'.'))return;
   actualizarEstadoRrhh(id,'finalizado',{fechaFinalizado:new Date().toISOString(),quienFinalizo:getUsuario().nombre||''});
-  renderTabla();toast('🔒 Proceso finalizado correctamente');
+  renderTabla(sv('selectPeriodo'));toast('🔒 Proceso finalizado correctamente');
 }
 
 // ── RECORDATORIOS AUTOMÁTICOS ────────────────────────────────────────────────
