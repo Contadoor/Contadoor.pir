@@ -227,7 +227,9 @@ tr:hover td{background:#f9fefb;}
 
 <main class="main">
   <div class="topbar">
-    <div class="tb-title">👥 Módulo RRHH — Reportes Mensuales</div>
+    <img src="https://agenda.contadoor.cl/logo_blanco_new.png" style="height:26px;object-fit:contain;flex-shrink:0" alt="Contadoor">
+    <div class="tb-title">Reportes RRHH — Remuneraciones</div>
+    <span id="tb-periodo-badge" style="font-size:11px;background:rgba(144,72,145,.3);color:#e9d5ff;border:1px solid rgba(144,72,145,.4);border-radius:20px;padding:3px 12px;white-space:nowrap"></span>
     <span class="tb-analista" id="tb-analista-nombre">Analista RRHH</span>
     <div id="notBtn" onclick="toggleNotPanel(event)" style="position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.08);flex-shrink:0;">
       <span style="font-size:18px">🔔</span>
@@ -422,6 +424,11 @@ tr:hover td{background:#f9fefb;}
       </div>
     </div>
 
+    <!-- Historial 6 meses -->
+    <div style="padding:12px 20px;background:var(--sur2);border-top:1px solid var(--bdr)">
+      <div style="font-size:10px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">📊 Comportamiento últimos 6 meses</div>
+      <div id="historial-6m"><div style="font-size:11px;color:var(--tm)">Cargando...</div></div>
+    </div>
     <div class="modal-footer">
       <button class="btn-s" onclick="closeModalRrhh()">Cancelar</button>
       <button class="btn-s" onclick="guardarRrhh('borrador')" style="color:var(--green);border-color:var(--green)">💾 Guardar borrador</button>
@@ -508,6 +515,8 @@ function cargarDesdeSupabase(periodo,callback){
 function getReportes(){try{return JSON.parse(localStorage.getItem('reportes_mensuales')||'[]');}catch(e){return[];}}
 function setReportes(arr){
   localStorage.setItem('reportes_mensuales',JSON.stringify(arr));
+  var per=sv('selectPeriodo');
+  if(per&&document.getElementById('tablaBody')) renderTabla(per);
 }
 function setReportesYSync(arr,rut,periodo,data){
   setReportes(arr);
@@ -547,7 +556,15 @@ function init(){
   popularSelectPeriodos();
   // Auto-cargar el período más reciente
   var sel=document.getElementById('selectPeriodo');
-  if(sel.options.length>1){sel.selectedIndex=1;cargarPeriodo();}
+  // Auto-seleccionar período actual (YYYY-MM)
+  var hoyPer=new Date();
+  var periodoActualStr=hoyPer.getFullYear()+'-'+String(hoyPer.getMonth()+1).padStart(2,'0');
+  var foundActual=false;
+  for(var oi=0;oi<sel.options.length;oi++){
+    if(sel.options[oi].value===periodoActualStr){sel.selectedIndex=oi;foundActual=true;break;}
+  }
+  if(!foundActual&&sel.options.length>1) sel.selectedIndex=1;
+  cargarPeriodo();
   // Fecha hoy en calendario
   var hoy=new Date();
   document.getElementById('cal-hoy-label').textContent='Hoy: '+hoy.getDate()+'/'+( hoy.getMonth()+1);
@@ -566,7 +583,10 @@ function popularSelectPeriodos(){
 }
 
 function cargarPeriodo(){
-
+  var periodo=sv('selectPeriodo');
+  // Actualizar badge período en topbar
+  var badge=document.getElementById('tb-periodo-badge');
+  if(badge&&periodo) badge.textContent=formatPeriodo(periodo);
   var periodo=sv('selectPeriodo');
   if(!periodo){document.getElementById('tablaBody').innerHTML='';return;}
   var periodos=getPeriodos();
@@ -804,7 +824,12 @@ function renderTabla(periodo){
       html+='<button class="btn-p" onclick="enviarAvisoCot(_btnIds['+_k+'])" style="background:#904891;font-size:11px">📨 Aviso Cotizaciones</button>';
     }else if(est==='aviso_enviado'||est==='enviado'){
       html+='<button class="btn-s" onclick="abrirModal(_btnIds['+_k+'],false)">✏️ Editar</button>';
-      html+='<span style="font-size:10px;background:#fef9ec;color:#854F0B;border:1px solid #fde68a;padding:2px 8px;border-radius:20px">⏳ Esperando pago</span>';
+      if(!r.haPostergado){
+        html+='<span style="font-size:10px;background:#fef9ec;color:#854F0B;border:1px solid #fde68a;padding:2px 8px;border-radius:20px">⏳ Esperando pago</span>';
+        html+='<button onclick="marcarPostergado(_btnIds['+_k+'])" style="font-size:10px;background:#fff;color:#904891;border:1px solid #e8dde8;border-radius:6px;padding:2px 8px;cursor:pointer">📅 Postergó</button>';
+      }else{
+        html+='<span style="font-size:10px;background:#f5f0f8;color:#904891;border:1px solid #e8dde8;padding:2px 8px;border-radius:20px">📅 Postergó — rec. 25-30</span>';
+      }
     }else if(est==='transferido'){
       html+='<div style="display:flex;flex-direction:column;gap:4px">';
       html+='<span style="font-size:10px;background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;padding:2px 8px;border-radius:20px;text-align:center">💳 Cliente transfirió</span>';
@@ -1002,7 +1027,7 @@ function mostrarKpisLibro(data){
   var nActivos=data.nTrabActivos||data.nTrab;
   var nLic=data.nLicencia||0;
   var h='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0">';
-  h+=_kpiBox('👥 Dotación',data.nTrab+' trabajadores',nActivos+' activos'+(nLic?' · '+nLic+' en licencia':''),'var(--p)');
+  h+=_kpiBox('👥 Trabajadores activos',nActivos+(nLic?' ('+nLic+' lic)':'')+'',nActivos+' activos'+(nLic?' · '+nLic+' en licencia':''),'var(--p)');
   h+=_kpiBox('💰 Nómina líquida',ff(data.nomina),'Total a pagar trabajadores','var(--green)');
   h+=_kpiBox('🏦 Cotizaciones',ff(data.totalDescuentos),'Descuentos del período','var(--blue)');
   h+=_kpiBox('🏢 Costo empresa',ff(data.costoEmpresa||0),'Incl. aportes empleador','var(--amber)');
@@ -1186,6 +1211,8 @@ function abrirModal(id,enviar){
   var r=getReportes().find(function(x){return String(x.id)===String(id);});
   if(!r) return;
   _reporteActual=r;
+  // Cargar historial 6 meses del cliente
+  setTimeout(function(){renderHistorialCliente6m(r.rut);},100);
   document.getElementById('modal-cliente-nombre').textContent=hesc(r.clienteNombre||r.rut)+'  -  '+formatPeriodo(r.periodo);
   setV('m-reporte-id',r.id);
   setV('m-cliente-rut',r.rut);
@@ -1287,7 +1314,7 @@ function enviarReporteParcial(){
       analistaNombre:u.nombre||'Contadoor',
       analistaWa:u.wa||'979881891',
       toEmail:to,
-      toNombre:r.clienteNombre||r.rut,
+      toNombre:(function(){var _c=getClientes().find(function(x){return x.rut===r.rut;});return (_c&&(_c.contacto||_c.contact))||r.clienteNombre||r.rut;})(),
       toEmpresa:r.clienteNombre||r.rut,
       periodo:periodo,
       htmlReporte:htmlEmail
@@ -1374,7 +1401,7 @@ function buildPreReporteRrhhHTML(r,data){
   +'</div></div>'
   // KPIs
   +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e8dde8">'
-  +'<div style="background:#fff;padding:14px 16px"><div style="font-size:10px;color:#9a849b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Dotación</div><div style="font-size:22px;font-weight:700;color:#1a0a1b">'+nTrab+'</div><div style="font-size:10px;color:#9a849b;margin-top:2px">'+nActivos+' activos'+(nLic?' · '+nLic+' licencia':'')+'</div></div>'
+  +'<div style="background:#fff;padding:14px 16px"><div style="font-size:10px;color:#9a849b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Trab. activos</div><div style="font-size:22px;font-weight:700;color:#1a0a1b">'+nTrab+'</div><div style="font-size:10px;color:#9a849b;margin-top:2px">'+nActivos+' activos'+(nLic?' · '+nLic+' licencia':'')+'</div></div>'
   +'<div style="background:#fff;padding:14px 16px"><div style="font-size:10px;color:#9a849b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Nómina líquida</div><div style="font-size:22px;font-weight:700;color:#2D9B6F">'+ff(nomina)+'</div><div style="font-size:10px;color:#9a849b;margin-top:2px">Total a pagar trabajadores</div></div>'
   +'<div style="background:#fff;padding:14px 16px"><div style="font-size:10px;color:#9a849b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total cotizaciones</div><div style="font-size:22px;font-weight:700;color:#904891">'+ff(totalCot)+'</div><div style="font-size:10px;color:#9a849b;margin-top:2px">Incluye aportes empleador</div></div>'
   +'</div>'
@@ -1401,15 +1428,37 @@ function buildPreReporteRrhhHTML(r,data){
   +'<a href="'+mailPost+'" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#854F0B;border:1px solid #EF9F27;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:600;text-decoration:none">⏳ Quiero postergar</a>'
   +'<a href="'+waUrl+'" style="display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:600;text-decoration:none">💬 WhatsApp</a>'
   +'</div>'
-  +'<div style="border-top:1px dashed #e8dde8;padding-top:12px;display:flex;align-items:center;gap:12px">'
-  +'<span style="font-size:11px;color:#9a849b;flex:1">¿No tienes nuestros datos bancarios?</span>'
-  +'<a href="mailto:'+analistaEmail+'?subject=Necesito datos bancarios cotizaciones '+periodo+'" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#904891;border:1px solid #e8dde8;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;text-decoration:none">📋 Solicitar datos</a>'
-  +'</div></div>'
+  +'<div style="border-top:1px dashed #e8dde8;padding-top:12px">'
+  +'<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">'
+  +'<span style="font-size:11px;color:#9a849b">¿No tienes nuestros datos bancarios?</span>'
+  +'<button onclick="var p=this.parentNode.parentNode.querySelector(\'#datos-bancarios-panel\');p.style.display=p.style.display===\'none\'?\'block\':\'none\';this.textContent=p.style.display===\'block\'?\'✕ Cerrar\':\'📋 Ver datos bancarios\'" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#904891;border:1px solid #e8dde8;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer">📋 Ver datos bancarios</button>'
+  +'</div>'
+  +'<div id="datos-bancarios-panel" style="display:none;margin-top:12px;background:#faf7fa;border:1px solid #e8dde8;border-radius:10px;padding:14px 16px">'
+  +'<div style="font-size:11px;font-weight:600;color:#904891;margin-bottom:10px">Datos para tu transferencia</div>'
+  +'<table style="width:100%;font-size:12px;border-collapse:collapse">'
+  +'<tr><td style="padding:4px 0;color:#9a849b;width:130px">Empresa</td><td style="font-weight:600;color:#1a0a1b">Asesorías Contadoor Ltda.</td></tr>'
+  +'<tr><td style="padding:4px 0;color:#9a849b">RUT</td><td style="font-weight:600;color:#1a0a1b">77.166.269-2</td></tr>'
+  +'<tr><td style="padding:4px 0;color:#9a849b">Banco</td><td style="font-weight:600;color:#1a0a1b">Itaú</td></tr>'
+  +'<tr><td style="padding:4px 0;color:#9a849b">Tipo de cuenta</td><td style="font-weight:600;color:#1a0a1b">Cuenta corriente</td></tr>'
+  +'<tr><td style="padding:4px 0;color:#9a849b">N° de cuenta</td><td style="font-weight:600;color:#1a0a1b">0220729517</td></tr>'
+  +'<tr style="border-top:1px solid #e8dde8"><td style="padding:8px 0;color:#9a849b">Monto a transferir</td><td style="font-weight:700;color:#904891;font-size:14px">'+ff(totalCot)+'</td></tr>'
+  +'</table>'
+  +'<button onclick="navigator.clipboard.writeText(\'Empresa: Asesorías Contadoor Ltda.\\nRUT: 77.166.269-2\\nBanco: Itaú\\nTipo: Cuenta corriente\\nN° cuenta: 0220729517\\nMonto: '+ff(totalCot)+'\').then(function(){var b=event.target;b.textContent=\'✅ ¡Copiado!\';b.style.background=\'#2D9B6F\';b.style.color=\'#fff\';setTimeout(function(){b.textContent=\'📋 Copiar datos\';b.style.background=\'\';b.style.color=\'\';},2500);})" style="margin-top:12px;width:100%;background:#904891;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer">📋 Copiar datos</button>'
+  +'</div></div></div>'
   // Aviso legal
   +'<div style="padding:12px 24px;background:#f5f0f8;border-top:1px solid #e8dde8;border-bottom:1px solid #e8dde8">'
   +'<p style="font-size:10px;color:#9a849b;line-height:1.6;margin:0;font-style:italic">'+AVISO+'</p>'
   +'</div>'
   // Footer
+  +'<div style="padding:14px 24px;background:#f5f0f8;border-top:1px solid #e8dde8">'
+  +'<div style="font-size:11px;font-weight:600;color:#904891;margin-bottom:8px">Tu asesor de remuneraciones</div>'
+  +'<div style="display:flex;align-items:center;gap:12px">'
+  +'<div style="width:38px;height:38px;border-radius:50%;background:#904891;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0">'+analistaNombre.charAt(0).toUpperCase()+'</div>'
+  +'<div><div style="font-size:12px;font-weight:600;color:#1a0a1b">'+analistaNombre+'</div>'
+  +'<div style="display:flex;gap:8px;margin-top:5px">'
+  +'<a href="mailto:'+analistaEmail+'" style="font-size:11px;color:#904891;text-decoration:none;background:#fff;border:1px solid #e8dde8;border-radius:6px;padding:3px 8px">✉️ Email</a>'
+  +'<a href="https://wa.me/56'+analistaWa.replace(/\D/g,'')+'" style="font-size:11px;color:#2D9B6F;text-decoration:none;background:#fff;border:1px solid #e8dde8;border-radius:6px;padding:3px 8px">💬 WhatsApp</a>'
+  +'</div></div></div></div>'
   +'<div style="padding:12px 24px;background:#1a0a1b;text-align:center">'
   +'<p style="font-size:11px;color:#c9a6e8;margin:0 0 2px">'+analistaNombre+' · Asesorías Contadoor Ltda.</p>'
   +'<p style="font-size:10px;color:#4a3060;margin:0">reportes@contadoor.cl · contadoor.cl · +56 9 7988 1891</p>'
@@ -1449,7 +1498,7 @@ function enviarPreReporteRrhh(id){
       analistaNombre:u.nombre||'Contadoor',
       analistaWa:u.wa||'979881891',
       toEmail:to,
-      toNombre:r.clienteNombre||r.rut,
+      toNombre:(function(){var _c=getClientes().find(function(x){return x.rut===r.rut;});return (_c&&(_c.contacto||_c.contact))||r.clienteNombre||r.rut;})(),
       toEmpresa:r.clienteNombre||r.rut,
       periodo:periodo,
       htmlReporte:htmlEmail
@@ -1646,13 +1695,35 @@ function buildRecordatorioRrhhHTML(r,diasSinPagar,esUrgente){
   +(esUrgente?'':'<a href="'+mailPost+'" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#854F0B;border:1px solid #EF9F27;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;text-decoration:none">⏳ Quiero postergar</a>')
   +'<a href="https://wa.me/56'+analistaWa.replace(/\D/g,'')+'" style="display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;text-decoration:none">💬 WhatsApp</a>'
   +'</div>'
-  +'<div style="border-top:1px dashed #e8dde8;padding-top:12px;display:flex;align-items:center;gap:12px">'
-  +'<span style="font-size:11px;color:#9a849b;flex:1">¿No tienes nuestros datos bancarios?</span>'
-  +'<a href="mailto:'+analistaEmail+'?subject=Necesito datos bancarios cotizaciones '+periodo+'" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#904891;border:1px solid #e8dde8;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;text-decoration:none">📋 Solicitar datos</a>'
-  +'</div></div>'
+  +'<div style="border-top:1px dashed #e8dde8;padding-top:12px">'
+  +'<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">'
+  +'<span style="font-size:11px;color:#9a849b">¿No tienes nuestros datos bancarios?</span>'
+  +'<button onclick="var p=this.parentNode.parentNode.querySelector(\'#datos-bancarios-panel\');p.style.display=p.style.display===\'none\'?\'block\':\'none\';this.textContent=p.style.display===\'block\'?\'✕ Cerrar\':\'📋 Ver datos bancarios\'" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#904891;border:1px solid #e8dde8;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer">📋 Ver datos bancarios</button>'
+  +'</div>'
+  +'<div id="datos-bancarios-panel" style="display:none;margin-top:12px;background:#faf7fa;border:1px solid #e8dde8;border-radius:10px;padding:14px 16px">'
+  +'<div style="font-size:11px;font-weight:600;color:#904891;margin-bottom:10px">Datos para tu transferencia</div>'
+  +'<table style="width:100%;font-size:12px;border-collapse:collapse">'
+  +'<tr><td style="padding:4px 0;color:#9a849b;width:130px">Empresa</td><td style="font-weight:600;color:#1a0a1b">Asesorías Contadoor Ltda.</td></tr>'
+  +'<tr><td style="padding:4px 0;color:#9a849b">RUT</td><td style="font-weight:600;color:#1a0a1b">77.166.269-2</td></tr>'
+  +'<tr><td style="padding:4px 0;color:#9a849b">Banco</td><td style="font-weight:600;color:#1a0a1b">Itaú</td></tr>'
+  +'<tr><td style="padding:4px 0;color:#9a849b">Tipo de cuenta</td><td style="font-weight:600;color:#1a0a1b">Cuenta corriente</td></tr>'
+  +'<tr><td style="padding:4px 0;color:#9a849b">N° de cuenta</td><td style="font-weight:600;color:#1a0a1b">0220729517</td></tr>'
+  +'<tr style="border-top:1px solid #e8dde8"><td style="padding:8px 0;color:#9a849b">Monto a transferir</td><td style="font-weight:700;color:#904891;font-size:14px">'+ff(totalCot)+'</td></tr>'
+  +'</table>'
+  +'<button onclick="navigator.clipboard.writeText(\'Empresa: Asesorías Contadoor Ltda.\\nRUT: 77.166.269-2\\nBanco: Itaú\\nTipo: Cuenta corriente\\nN° cuenta: 0220729517\\nMonto: '+ff(totalCot)+'\').then(function(){var b=event.target;b.textContent=\'✅ ¡Copiado!\';b.style.background=\'#2D9B6F\';b.style.color=\'#fff\';setTimeout(function(){b.textContent=\'📋 Copiar datos\';b.style.background=\'\';b.style.color=\'\';},2500);})" style="margin-top:12px;width:100%;background:#904891;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer">📋 Copiar datos</button>'
+  +'</div></div></div>'
   +'<div style="padding:12px 24px;background:#f5f0f8;border-top:1px solid #e8dde8;border-bottom:1px solid #e8dde8">'
   +'<p style="font-size:10px;color:#9a849b;line-height:1.6;margin:0;font-style:italic">'+AVISO+'</p>'
   +'</div>'
+  +'<div style="padding:14px 24px;background:#f5f0f8;border-top:1px solid #e8dde8">'
+  +'<div style="font-size:11px;font-weight:600;color:#904891;margin-bottom:8px">Tu asesor de remuneraciones</div>'
+  +'<div style="display:flex;align-items:center;gap:12px">'
+  +'<div style="width:38px;height:38px;border-radius:50%;background:#904891;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0">'+analistaNombre.charAt(0).toUpperCase()+'</div>'
+  +'<div><div style="font-size:12px;font-weight:600;color:#1a0a1b">'+analistaNombre+'</div>'
+  +'<div style="display:flex;gap:8px;margin-top:5px">'
+  +'<a href="mailto:'+analistaEmail+'" style="font-size:11px;color:#904891;text-decoration:none;background:#fff;border:1px solid #e8dde8;border-radius:6px;padding:3px 8px">✉️ Email</a>'
+  +'<a href="https://wa.me/56'+analistaWa.replace(/\D/g,'')+'" style="font-size:11px;color:#2D9B6F;text-decoration:none;background:#fff;border:1px solid #e8dde8;border-radius:6px;padding:3px 8px">💬 WhatsApp</a>'
+  +'</div></div></div></div>'
   +'<div style="padding:12px 24px;background:#1a0a1b;text-align:center">'
   +'<p style="font-size:11px;color:#c9a6e8;margin:0 0 2px">'+analistaNombre+' · Asesorías Contadoor Ltda.</p>'
   +'<p style="font-size:10px;color:#4a3060;margin:0">reportes@contadoor.cl · contadoor.cl · +56 9 7988 1891</p>'
@@ -1664,15 +1735,31 @@ function enviarRecordatorioRrhh(id, forzar){
   if(!r) return;
   if(!r.clienteEmail) return;
   if(r.estado==='transferido'||r.estado==='en_previred'||r.estado==='aprobacion'||r.estado==='aprobado'||r.estado==='finalizado') return;
-  if(r.estado!=='aviso_enviado'&&r.estado!=='enviado') return;
   var ahora=new Date();
   var fechaEnvio=r.preReporteFecha?new Date(r.preReporteFecha):null;
   if(!fechaEnvio) return;
   var diasSinPagar=Math.floor((ahora-fechaEnvio)/(1000*60*60*24));
   var ultimoRec=r.ultimoRecordatorio?new Date(r.ultimoRecordatorio):null;
   var diasDesdeUltimoRec=ultimoRec?Math.floor((ahora-ultimoRec)/(1000*60*60*24)):999;
-  // Solo enviar si pasaron 5 días y no se envió en los últimos 5 días
-  if(!forzar&&(diasSinPagar<5||diasDesdeUltimoRec<5)) return;
+  var horaActual=ahora.getHours();
+  var esHorarioHabil=(horaActual>=9&&horaActual<18);
+  // Postergación confirmada: recordatorios días 25-30, cada 2 días, máx 3
+  if(r.haPostergado){
+    var partes=String(r.periodo||'').split('-');
+    var anio=parseInt(partes[0]),mes=parseInt(partes[1]);
+    var diaActual=ahora.getDate();
+    var mesActual=ahora.getMonth()+1;
+    var anioActual=ahora.getFullYear();
+    var mismoMes=(mesActual===mes&&anioActual===anio);
+    if(!mismoMes||diaActual<25||diaActual>30)return;
+    if(!esHorarioHabil&&!forzar)return;
+    var nRec=r.nRecordatorios||0;
+    if(nRec>=3)return;
+    if(!forzar&&diasDesdeUltimoRec<2)return;
+  }else{
+    if(r.estado!=='aviso_enviado'&&r.estado!=='enviado') return;
+    if(!forzar&&(diasSinPagar<5||diasDesdeUltimoRec<5)) return;
+  }
   var esUrgente=diasSinPagar>=10;
   var u=getUsuario();
   var htmlRec=buildRecordatorioRrhhHTML(r,diasSinPagar,esUrgente);
@@ -1721,6 +1808,118 @@ if(!window.toggleNotPanel) window.toggleNotPanel=function(){};
 // ═══════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════
+
+function enviarSeleccionados(){
+  var chks=document.querySelectorAll('.rrhh-chk:checked');
+  if(!chks.length){alert('Selecciona al menos un reporte.');return;}
+  var ids=Array.from(chks).map(function(c){return c.getAttribute('data-id');});
+  var total=ids.length;
+  var enviados=0;var errores=[];
+  if(!confirm('¿Enviar Aviso de Cotizaciones a '+total+' cliente(s)?'))return;
+  var btnBar=document.getElementById('barraEnvio');
+  if(btnBar)btnBar.innerHTML='<span style="color:#fff;font-size:12px">Enviando '+total+' avisos...</span>';
+  function enviarUno(i){
+    if(i>=ids.length){
+      var msg=enviados+' enviados correctamente'+(errores.length?' · '+errores.length+' errores':'');
+      toast(errores.length?'⚠️ '+msg:'✅ '+msg);
+      document.querySelectorAll('.rrhh-chk').forEach(function(c){c.checked=false;});
+      actualizarBarraEnvio();
+      renderTabla(sv('selectPeriodo'));
+      return;
+    }
+    enviarAvisoCotSilencioso(ids[i], function(ok){
+      if(ok)enviados++;else errores.push(ids[i]);
+      setTimeout(function(){enviarUno(i+1);},800);
+    });
+  }
+  enviarUno(0);
+}
+
+function enviarAvisoCotSilencioso(id, cb){
+  var r=getReportes().find(function(x){return String(x.id)===String(id);});
+  if(!r){cb(false);return;}
+  var c=getClientes().find(function(x){return x.rut===r.rut;});
+  var to=r.clienteEmail||(c&&c.email)||'';
+  if(!to){cb(false);return;}
+  var u=getUsuario();
+  var periodo=formatPeriodo(r.periodo);
+  var htmlContent=buildPreReporteRrhhHTML(r,null);
+  var htmlEmail=htmlContent.replace(/\s{2,}/g,' ').replace(/> </g,'><');
+  fetch('https://contafunnel-v2.vercel.app/api/enviar-cotizaciones',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      analistaNombre:u.nombre||'Contadoor',
+      analistaWa:u.wa||'979881891',
+      toEmail:to,
+      toNombre:(c&&(c.contacto||c.contact))||r.clienteNombre||r.rut,
+      toEmpresa:r.clienteNombre||r.rut,
+      periodo:periodo,
+      htmlReporte:htmlEmail
+    })
+  }).then(function(res){return res.json();})
+  .then(function(d){
+    if(d.ok){
+      var arr=getReportes();
+      var i=arr.findIndex(function(x){return String(x.id)===String(id);});
+      if(i>=0){arr[i].estado='aviso_enviado';arr[i].preReporteFecha=new Date().toISOString();setReportes(arr);}
+      cb(true);
+    }else{cb(false);}
+  }).catch(function(){cb(false);});
+}
+
+function actualizarBarraEnvio(){
+  var chks=document.querySelectorAll('.rrhh-chk:checked');
+  var barra=document.getElementById('barraEnvio');
+  var count=document.getElementById('barraEnvioCount');
+  if(!barra)return;
+  if(chks.length>0){
+    barra.style.display='flex';
+    if(count)count.textContent=chks.length+' seleccionado'+(chks.length>1?'s':'');
+  }else{
+    barra.style.display='none';
+  }
+}
+
+
+function renderHistorialCliente6m(rut){
+  var el=document.getElementById('historial-6m');
+  if(!el) return;
+  var arr=getReportes().filter(function(r){return r.rut===rut;});
+  // Últimos 6 meses ordenados
+  arr.sort(function(a,b){return b.periodo>a.periodo?1:-1;});
+  arr=arr.slice(0,6);
+  if(!arr.length){el.innerHTML='<div style="font-size:11px;color:var(--tm);padding:8px 0">Sin historial previo.</div>';return;}
+  var html='<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">';
+  arr.forEach(function(r){
+    var est=r.estado||'pendiente';
+    var ecMap={pendiente:'#fef3c7',aviso_enviado:'#eff6ff',transferido:'#eff6ff',en_previred:'#e0f2fe',aprobado:'#ecfdf5',finalizado:'#f0fdf4'};
+    var ecCol={pendiente:'#78350f',aviso_enviado:'#1e40af',transferido:'#1e40af',en_previred:'#0c4a6e',aprobado:'#064e3b',finalizado:'#14532d'};
+    var bg=ecMap[est]||'#faf7fa';
+    var col=ecCol[est]||'#5c4a5d';
+    var totalCot=(r.afp||0)+(r.salud||0)+(r.cesTrab||0)+(r.sis||0)+(r.mutual||0)+(r.cesEmp||0)||r.totalCot||0;
+    var partes=String(r.periodo||'').split('-');
+    var mesCorto=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(partes[1])-1]||'?';
+    html+='<div style="background:'+bg+';border-radius:6px;padding:7px 6px;text-align:center">'
+      +'<div style="font-size:10px;font-weight:600;color:'+col+'">'+mesCorto+' '+String(partes[0]).slice(2)+'</div>'
+      +'<div style="font-size:11px;font-weight:700;color:#1a0a1b;margin-top:3px">'+ff(totalCot)+'</div>'
+      +'<div style="font-size:9px;color:'+col+';margin-top:2px;text-transform:uppercase">'+est.replace('_',' ')+'</div>'
+      +'</div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+
+function marcarPostergado(id){
+  var r=getReportes().find(function(x){return String(x.id)===String(id);});
+  if(!r)return;
+  if(!confirm('¿Confirmar que '+hesc(r.clienteNombre)+' informó que postergará el pago?\n\nSe activarán recordatorios del día 25 al 30.'))return;
+  actualizarEstadoRrhh(id,'aviso_enviado',{haPostergado:true,fechaPostergacion:new Date().toISOString()});
+  renderTabla(sv('selectPeriodo'));
+  toast('📅 Postergación registrada — recordatorios días 25-30');
+}
+
 setupUpload();
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',init);
