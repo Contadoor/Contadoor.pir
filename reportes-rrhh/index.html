@@ -857,12 +857,13 @@ function renderTabla(periodo){
   _btnIds={};
   var u=getUsuario();
   var analista=u.nombre||'';
+  var _u=getUsuario();
+  var esMaster=_u.esMaster||_u.rol==='master'||_u.rol==='admin';
+
+  // 1. Reportes ya existentes para este período
   var reportes=getReportes().filter(function(r){
     if(r.periodo!==periodo) return false;
-    if(r.tieneRrhh===false) return false; // cliente sin RRHH no aparece aquí
-    // Filtro por analista — master ve todo
-    var _u=getUsuario();
-    var esMaster=_u.esMaster||_u.rol==='master'||_u.rol==='admin';
+    if(r.tieneRrhh===false) return false;
     if(analista && !esMaster){
       var _cli=getClientes().find(function(x){return x.rut===r.rut;});
       var analistaAsignado=(_cli&&(_cli.rrhh||_cli.analistaRrhh))||r.preparado||'';
@@ -872,6 +873,34 @@ function renderTabla(periodo){
       if(_a1 && _a1!==_a2 && !_emailMatch) return false;
     }
     return true;
+  });
+
+  // 2. Agregar clientes activos con RRHH que aún no tienen reporte en este período
+  var rutsConReporte=reportes.map(function(r){return r.rut;});
+  getClientes().forEach(function(c){
+    if(c.tieneRrhh===false) return;
+    if(c.estado&&c.estado!=='activo') return;
+    if(rutsConReporte.indexOf(c.rut)>=0) return; // ya tiene reporte
+    // Filtro por analista
+    if(analista && !esMaster){
+      var _a1=((c.rrhh||c.analistaRrhh)||'').trim().toLowerCase();
+      var _a2=(analista||'').trim().toLowerCase();
+      var _emailMatch=_u.email&&(c.emailAnalista||'').toLowerCase()===(_u.email||'').toLowerCase();
+      if(_a1 && _a1!==_a2 && !_emailMatch) return;
+    }
+    reportes.push({
+      id:'nuevo_'+c.rut+'_'+periodo,
+      rut:c.rut,
+      periodo:periodo,
+      clienteNombre:c.razon,
+      clienteEmail:c.email,
+      clienteWa:c.wa,
+      clientePlan:c.plan,
+      tieneRrhh:true,
+      estado:'pendiente',
+      prioridadRrhh:c.prioRrhh||'media',
+      preparado:c.rrhh||c.analistaRrhh||analista
+    });
   });
 
   // Aplicar filtros
