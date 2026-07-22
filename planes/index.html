@@ -301,7 +301,15 @@ function sbFetch(path,opts){
 }
 function getPlanes(){try{return JSON.parse(localStorage.getItem('planes_bd')||'null')||PLANES_DEFAULT;}catch(e){return PLANES_DEFAULT;}}
 function setPlanes(p){localStorage.setItem('planes_bd',JSON.stringify(p));}
-function getClientes(){try{return JSON.parse(localStorage.getItem('clientes_bd')||'[]');}catch(e){return[];}}
+function getClientes(){
+  var c=sbCacheGetOrLocal('clientes','clientes_bd');
+  return c||[];
+}
+function inicializarClientes(cb){
+  sbGetClientes(function(rows){
+    if(cb)cb(rows);
+  });
+}
 
 function cargarUF(){
   return sbFetch('periodos?select=uf&order=periodo.desc&limit=1')
@@ -514,6 +522,7 @@ var mSvc=g('modalServicio');if(mSvc)mSvc.addEventListener('click',function(e){if
   }).catch(function(){renderPlanes();});
 })();
 </script>
+<script src="../supabase.js"></script>
 <script src="../auth.js"></script>
 </body>
 </html>
