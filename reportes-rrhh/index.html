@@ -534,6 +534,30 @@ function cargarReportesDesdeSupabase(periodo,cb){
     var all=JSON.parse(localStorage.getItem('reportes_mensuales')||'[]');
     // Quitar los del período actual y reemplazar con Supabase
     all=all.filter(function(x){return x.periodo!==periodo;});
+    rows=rows.map(function(r){
+      if(!r.rut&&r.cliente_rut) r.rut=r.cliente_rut;
+      // Mapear nombres de columnas Supabase → app
+      if(r.n_trabajadores!==undefined&&r.nTrab===undefined) r.nTrab=r.n_trabajadores;
+      if(r.debito_iva!==undefined) r.ivaDebito=r.debito_iva;
+      if(r.credito_iva!==undefined) r.ivaCredito=r.credito_iva;
+      if(r.f29!==undefined&&!r.totalImpInmediato) r.totalImpInmediato=r.f29;
+      if(r.total_descuentos!==undefined&&!r.totalDesc) r.totalDesc=r.total_descuentos;
+      if(r.aporte_patronal!==undefined&&!r.totalAportes) r.totalAportes=r.aporte_patronal;
+      if(r.total_general!==undefined&&!r.totalGeneral) r.totalGeneral=r.total_general;
+      if(r.pre_reporte_enviado!==undefined) r.preReporteEnviado=r.pre_reporte_enviado;
+      if(r.pre_reporte_fecha!==undefined) r.preReporteFecha=r.pre_reporte_fecha;
+      if(r.ha_postergado!==undefined) r.haPostergado=r.ha_postergado;
+      if(r.n_recordatorios!==undefined) r.nRecordatorios=r.n_recordatorios;
+      if(r.ultimo_recordatorio!==undefined) r.ultimoRecordatorio=r.ultimo_recordatorio;
+      if(r.obs_analista!==undefined) r.obsAnalista=r.obs_analista;
+      if(r.email_analista!==undefined) r.emailAnalista=r.email_analista;
+      if(r.analista_rrhh!==undefined&&!r.preparado) r.preparado=r.analista_rrhh;
+      if(r.analista_contable!==undefined&&!r.revisado) r.revisado=r.analista_contable;
+      if(r.cliente_nombre!==undefined) r.clienteNombre=r.cliente_nombre;
+      if(r.cliente_email!==undefined) r.clienteEmail=r.cliente_email;
+      if(r.cliente_wa!==undefined) r.clienteWa=r.cliente_wa;
+      return r;
+    });
     all=all.concat(rows);
     _reportesCache=all;
     localStorage.setItem('reportes_mensuales',JSON.stringify(all));
@@ -560,8 +584,56 @@ function getClientes(){
 function cargarClientesDesdeSupabase(cb){
   sbGet('clientes?select=*&order=razon_social.asc').then(function(rows){
     if(rows&&rows.length){
-      _clientesCache=rows;
-      try{localStorage.setItem('clientes_bd',JSON.stringify(rows));}catch(e){}
+      // Mapear snake_case Supabase → camelCase app
+      var mapped=rows.map(function(row){
+        return {
+          id:              row.id,
+          rut:             row.rut,
+          razon:           row.razon_social,
+          giro:            row.giro,
+          email:           row.email,
+          contacto:        row.contacto,
+          tel:             row.tel,
+          wa:              row.wa,
+          ciudad:          row.ciudad,
+          plan:            row.plan,
+          estado:          row.estado||'activo',
+          inicio:          row.fecha_inicio,
+          reg:             row.regimen,
+          iva:             row.iva_condicion,
+          modalidad:       row.modalidad_pago,
+          moneda:          row.moneda_plan,
+          monedaVar:       row.moneda_variable,
+          monto:           row.monto_base,
+          trab:            row.trab_incluidos||0,
+          varTrab:         row.valor_por_trab||row.hon_variable,
+          // Analistas — campos reales en Supabase
+          rrhh:            row.analista_rrhh,
+          analistaRrhh:    row.analista_rrhh,
+          contador:        row.analista_contable,
+          analistaContable:row.analista_contable,
+          analistaPagos:   row.analista_pagos,
+          emailAnalista:   row.email_analista,
+          waAnalista:      row.wa_analista,
+          prioRrhh:        row.prioridad_rrhh||'media',
+          prioCont:        row.prioridad_contable||'media',
+          // Flags
+          tieneRrhh:         row.tiene_rrhh!==false,
+          tieneContabilidad: row.tiene_contabilidad!==false,
+          // Credenciales
+          siiU:  row.usuario_sii,    siiK:  row.clave_sii,
+          prevU: row.usuario_previred, prevK: row.clave_previred,
+          cuU:   row.usuario_cu,     cuK:   row.clave_cu,
+          factU: row.usuario_fact,   factK: row.clave_fact,
+          licU:  row.usuario_lic,    licK:  row.clave_lic,
+          credsExtra: row.creds_extra||[],
+          obsAcceso:  row.obs_acceso,
+          obs:        row.obs,
+          socios:     row.socios||[]
+        };
+      });
+      _clientesCache=mapped;
+      try{localStorage.setItem('clientes_bd',JSON.stringify(mapped));}catch(e){}
     }
     cb&&cb();
   }).catch(function(){cb&&cb();});
@@ -819,11 +891,14 @@ function renderTabla(periodo){
     // Esto asegura que si se reasigna el analista en Clientes, el nuevo analista ve los reportes
     if(analista){
       var _cli=getClientes().find(function(x){return x.rut===r.rut;});
-      var analistaAsignado=(_cli&&(_cli.rrhh||_cli.analistaRrhh))||r.preparado||'';
+      var analistaAsignado=(_cli&&(_cli.rrhh||_cli.analistaRrhh))||r.preparado||r.analistaRrhh||'';
       // Comparar ignorando mayúsculas/minúsculas y espacios extra
       var _a1=(analistaAsignado||'').trim().toLowerCase();
       var _a2=(analista||'').trim().toLowerCase();
-      if(_a1 && _a1!==_a2) return false;
+      // También comparar por email si el nombre no coincide
+      var _u=getUsuario();
+      var _emailMatch=_u.email&&_cli&&(_cli.emailAnalista||'').toLowerCase()===_u.email.toLowerCase();
+      if(_a1 && _a1!==_a2 && !_emailMatch) return false;
     }
     return true;
   });
@@ -1691,6 +1766,27 @@ function enviarPreReporteMasivo(){
     .finally(function(){setTimeout
 // ── FLUJO DE PAGOS RRHH ──────────────────────────────────────────────────────
 function sbPatchRrhh(id,data){
+  // Convertir camelCase→snake_case para Supabase
+  var sb={};
+  var map={
+    estado:'estado', nTrab:'n_trabajadores', totalCot:'total_cot',
+    totalGeneral:'total_general', preReporteEnviado:'pre_reporte_enviado',
+    preReporteFecha:'pre_reporte_fecha', haPostergado:'ha_postergado',
+    fechaPostergacion:'fecha_postergacion', nRecordatorios:'n_recordatorios',
+    ultimoRecordatorio:'ultimo_recordatorio', fechaTransferido:'fecha_transferido',
+    quienTransferido:'quien_transferido', fechaPrevired:'fecha_previred',
+    quienPrevired:'quien_previred', fechaAprobacion:'fecha_aprobacion',
+    fechaFinalizado:'fecha_finalizado', quienFinalizado:'quien_finalizado',
+    obsAnalista:'obs_analista', obsRrhh:'obs_rrhh', obsCont:'obs_cont',
+    ivaDebito:'debito_iva', ivaCredito:'credito_iva', ivaPostergado:'iva_postergado',
+    totalImpInmediato:'f29', preparado:'analista_rrhh', revisado:'analista_contable',
+    pagado:'pagado', pagosValidado:'pagos_validado', decisionCotiz:'decision_cotiz',
+    secciones:'secciones', usaArchivo:'usa_archivo'
+  };
+  Object.keys(data).forEach(function(k){
+    var sbKey=map[k]||k;
+    sb[sbKey]=data[k];
+  });
   fetch('https://ulxoxqbuxiuylaolaqxj.supabase.co/rest/v1/reportes_mensuales?id=eq.'+encodeURIComponent(id),{
     method:'PATCH',
     headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA','Content-Type':'application/json','Prefer':'return=representation'},
@@ -2035,7 +2131,7 @@ function enviarAvisoCotSilencioso(id, cb){
         arr[i].preReporteFecha=new Date().toISOString();
         setReportesCache(arr);
         // Patch a Supabase
-        sbPatchRrhh(arr[i].id,{estado:'aviso_enviado',pre_reporte_enviado:true,pre_reporte_fecha:arr[i].preReporteFecha});
+        sbPatchRrhh(arr[i].id,{estado:'aviso_enviado',preReporteEnviado:true,preReporteFecha:arr[i].preReporteFecha});
         crearNotificacion({modulo:'rrhh',tipo:'info',prioridad:'media',clienteNombre:arr[i].clienteNombre,clienteRut:arr[i].rut,periodo:arr[i].periodo,mensaje:'Aviso enviado a '+to+'.'});
       }
       cb(true);
