@@ -1408,6 +1408,27 @@ function actualizarPreviewRpt(){
 // ═══════════════════════════════════════════════════
 function abrirModal(id,enviar){
   var r=getReportes().find(function(x){return String(x.id)===String(id);});
+  // Si no hay reporte existente (cliente nuevo en período) → crear placeholder
+  if(!r && String(id).indexOf('nuevo_')===0){
+    var partes=String(id).replace('nuevo_','').split('_');
+    var rut=partes.slice(0,-2).join('_')||partes[0];
+    var per=partes[partes.length-2]+'-'+partes[partes.length-1];
+    if(isNaN(partes[partes.length-1])) per=partes.slice(partes.indexOf('2026')).join('-');
+    var c=getClientes().find(function(x){return x.rut===rut;});
+    r={
+      id:id, rut:rut, periodo:per,
+      clienteNombre:c?c.razon:rut,
+      clienteEmail:c?c.email:'',
+      clienteWa:c?c.wa:'',
+      clientePlan:c?c.plan:'',
+      tieneRrhh:true, estado:'pendiente',
+      prioridadRrhh:(c&&c.prioRrhh)||'media'
+    };
+    // Agregar a caché para que guardarRrhh pueda encontrarlo
+    var arr=getReportes();
+    arr.push(r);
+    setReportesCache(arr);
+  }
   if(!r) return;
   _reporteActual=r;
   // Cargar historial 6 meses del cliente
@@ -1475,6 +1496,25 @@ function guardarRrhh(accion){
       accion:null,accionUrl:'../reportes-contable/index.html'
     });
     alert('✅ Sección RRHH marcada como completada.');
+  }
+  // Guardar en Supabase
+  var esNuevo=String(arr[idx2].id).indexOf('nuevo_')===0;
+  if(esNuevo){
+    // Crear nuevo reporte en Supabase
+    sbFetch('reportes_mensuales',{
+      method:'POST',
+      headers:{'Prefer':'return=representation'},
+      body:JSON.stringify(sbReporteToRow?sbReporteToRow(arr[idx2]):arr[idx2])
+    }).then(function(r){return r.ok?r.json():null;})
+    .then(function(rows){
+      if(rows&&rows[0]&&rows[0].id){
+        // Actualizar id real de Supabase
+        var i=getReportes().findIndex(function(x){return x.id===arr[idx2].id;});
+        if(i>=0){getReportes()[i].id=rows[0].id;setReportesCache(getReportes());}
+      }
+    }).catch(function(e){console.warn('Supabase create reporte:',e);});
+  } else {
+    sbPatchRrhh(arr[idx2].id, arr[idx2]);
   }
   setReportes(arr);
   if(_reporteActual)syncEstado(_reporteActual.rut,String(_reporteActual.periodo),{secciones:arr[idx]&&arr[idx].secciones||{},estado:arr[idx]&&arr[idx].estado||'en_proceso'});
@@ -2194,6 +2234,32 @@ function marcarPostergado(id){
   toast('📅 Postergación registrada — recordatorios días 25-30');
 }
 
+
+function sbReporteToRow(r){
+  return {
+    cliente_rut:r.rut, periodo:r.periodo, estado:r.estado||'borrador',
+    cliente_nombre:r.clienteNombre||null, cliente_email:r.clienteEmail||null,
+    cliente_wa:r.clienteWa||null, cliente_plan:r.clientePlan||null,
+    n_trabajadores:r.nTrab||0, liquido_pagar:r.liquidoPagar||0,
+    afp:r.afp||0, salud:r.salud||0, apv:r.apv||0,
+    ces_trab:r.cesTrab||0, iu:r.iu||0, otros_desc:r.otrosDesc||0,
+    total_desc:r.totalDesc||0, total_descuentos:r.totalDesc||0,
+    sis:r.sis||0, mutual:r.mutual||0, ces_emp:r.cesEmp||0,
+    aporte_patronal:(r.sis||0)+(r.mutual||0)+(r.cesEmp||0),
+    total_cot:r.totalCot||0, obs_rrhh:r.obsRrhh||null,
+    debito_iva:r.ivaDebito||0, credito_iva:r.ivaCredito||0,
+    remanente:r.ivaRemanenteSig||0, f29:r.totalImpInmediato||0,
+    ppm:r.ppm||0, ret_hon:r.retHon||0, total_general:r.totalGeneral||0,
+    hon_total:r.honTotal||0, hon_estado:r.honEstado||'pendiente',
+    pre_reporte_enviado:r.preReporteEnviado||false,
+    pre_reporte_fecha:r.preReporteFecha||null,
+    ha_postergado:r.haPostergado||false, n_recordatorios:r.nRecordatorios||0,
+    analista_rrhh:r.preparado||null, email_analista:r.emailAnalista||null,
+    secciones:r.secciones||{}, tiene_rrhh:true,
+    prioridad_rrhh:r.prioridadRrhh||'media',
+    obs_analista:r.obsAnalista||null, pagos_validado:r.pagosValidado||false
+  };
+}
 setupUpload();
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',init);
