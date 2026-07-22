@@ -465,7 +465,7 @@ function sbGetReportes(periodo){
   return sbFetch('reportes_mensuales?periodo=eq.'+periodo+'&select=*')
     .then(function(r){return r.ok?r.json():[];})
     .catch(function(){
-  setTimeout(verificarRecordatoriosRrhh, 2000);return[];});
+  setTimeout(function(){if(typeof verificarRecordatoriosRrhh==="function")verificarRecordatoriosRrhh();},2000);return[];});
 }
 function sbUpsertReporte(r){
   return sbFetch('reportes_mensuales',{
@@ -571,7 +571,8 @@ function getClientes(){
   try{return JSON.parse(localStorage.getItem('clientes_bd')||'[]');}catch(e){return[];}
 }
 function cargarClientesDesdeSupabase(cb){
-  sbGet('clientes?select=*&order=razon_social.asc').then(function(rows){
+  console.log('[RRHH] Cargando clientes desde Supabase...');
+  sbGet('clientes?select=*&order=razon_social.asc').then(function(rows){console.log('[RRHH] Clientes recibidos:',rows&&rows.length);
     if(rows&&rows.length){
       var mapped=rows.map(function(r){
         return {
@@ -658,25 +659,29 @@ function init(){
   // Mostrar loading
   var tb=document.getElementById('tablaBody');
   if(tb) tb.innerHTML='<tr><td colspan="8" style="padding:32px;text-align:center;color:var(--tm);font-size:12px">⏳ Cargando desde Supabase...</td></tr>';
-  // 1. Cargar clientes desde Supabase
-  cargarClientesDesdeSupabase(function(){
-    // 2. Cargar períodos desde Supabase
-    cargarPeriodosDesdeSupabase(function(){
-      // 3. Poblar selector y auto-seleccionar período actual
-      popularSelectPeriodos();
-      var sel=document.getElementById('selectPeriodo');
-      var periodoActualStr=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0');
-      var foundActual=false;
-      for(var oi=0;oi<sel.options.length;oi++){
-        if(sel.options[oi].value===periodoActualStr){sel.selectedIndex=oi;foundActual=true;break;}
-      }
-      if(!foundActual&&sel.options.length>1) sel.selectedIndex=1;
-      // 4. Cargar reportes del período seleccionado
-      if(sel.value) cargarPeriodo();
-      // 5. Recordatorios automáticos
-      setTimeout(verificarRecordatoriosRrhh,3000);
+  // Carga secuencial: clientes → períodos → reportes
+  try{
+    cargarClientesDesdeSupabase(function(){
+      try{
+        cargarPeriodosDesdeSupabase(function(){
+          try{
+            popularSelectPeriodos();
+            var sel=document.getElementById('selectPeriodo');
+            if(sel){
+              var hoyStr=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0');
+              var ok=false;
+              for(var i=0;i<sel.options.length;i++){
+                if(sel.options[i].value===hoyStr){sel.selectedIndex=i;ok=true;break;}
+              }
+              if(!ok&&sel.options.length>1) sel.selectedIndex=1;
+              if(sel.value) cargarPeriodo();
+            }
+            setTimeout(function(){if(typeof verificarRecordatoriosRrhh==='function')verificarRecordatoriosRrhh();},3000);
+          }catch(e3){console.error('Error paso 3:',e3);}
+        });
+      }catch(e2){console.error('Error paso 2:',e2);}
     });
-  });
+  }catch(e1){console.error('Error paso 1:',e1);}
 }
 
 function popularSelectPeriodos(){
