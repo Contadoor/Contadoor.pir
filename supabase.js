@@ -1,5 +1,5 @@
 // ============================================================
-// supabase.js — Cliente Supabase compartido · Gestoor
+// supabase.js — Cliente Supabase compartido · Gestoor v3
 // <script src="../supabase.js"></script> en todos los módulos
 // ============================================================
 
@@ -59,7 +59,15 @@ function sbCacheOrLocal(k,legado){
 }
 
 // ── USUARIO ACTIVO ────────────────────────────────────────────
-function getUsuario(){try{return JSON.parse(localStorage.getItem('usuario_sesion')||'{}');}catch(e){return{};}}
+// MODIFICADO v3: sessionStorage('usuario_activo') es la fuente oficial.
+// Fallback a localStorage('usuario_sesion') para módulos en transición.
+function getUsuario(){
+  try{
+    var u=JSON.parse(sessionStorage.getItem('usuario_activo')||'null');
+    if(u&&u.nombre) return u;
+    return JSON.parse(localStorage.getItem('usuario_sesion')||'{}');
+  }catch(e){return{};}
+}
 
 // ── CLIENTES ─────────────────────────────────────────────────
 // Columnas reales: rut, razon_social, contacto, email, wa, tel, ciudad,
@@ -225,17 +233,62 @@ function sbGetUsuarios(cb){
 }
 
 // ── REPORTES MENSUALES ───────────────────────────────────────
-// Columna FK real: cliente_rut (no rut)
-// Columnas con nombre distinto:
-//   n_trabajadores (app: nTrab)
-//   total_descuentos (app: totalDesc)
-//   aporte_patronal (app: totalAportes)
-//   debito_iva (app: ivaDebito)
-//   credito_iva (app: ivaCredito)
-//   f29 (app: totalImpInmediato)
+// FK real: cliente_rut
+// Notas de mapeo:
+//   n_trabajadores       ↔ nTrab
+//   total_descuentos     ↔ totalDesc
+//   total_aportes        ↔ totalAportes  (nuevo; legado: aporte_patronal)
+//   total_cotizaciones   ↔ totalCot      (nuevo; legado: total_cot)
+//   debito_iva           ↔ ivaDebito
+//   credito_iva          ↔ ivaCredito
+//   f29                  ↔ totalImpInmediato
+// IU: siempre separado → iu_sii → F29/imp2cat contable. NO en total_cotizaciones.
 
 function sbReporteToRow(r){
-  var totalCot=(r.afp||0)+(r.salud||0)+(r.apv||0)+(r.cesTrab||0)+(r.iu||0)+(r.otrosDesc||0)+(r.sis||0)+(r.mutual||0)+(r.cesEmp||0)||r.totalCot||0;
+  // ── Totales RRHH ─────────────────────────────────────────
+  // Los campos legacy totalAportes y totalCot pueden contener cálculos
+  // incompletos o incorrectos (versiones anteriores incluían IU u omitían
+  // capInd/expVida/rentProt). No migrar valores legacy hacia los nuevos campos.
+  //
+  // Criterio: si existen componentes previsionales individuales disponibles,
+  // siempre recalcular con la fórmula oficial. Los componentes individuales
+  // son confiables porque vienen directamente de las columnas del libro.
+  // Solo usar legacy como último fallback para registros manuales sin desglose.
+  //
+  // NUNCA incluir IU en total_cotizaciones.
+  // NUNCA incluir otros_descuentos en total_cotizaciones.
+
+  // ¿Hay desglose previsional en este registro?
+  var _tieneDesglose =
+    (r.afp||0)+(r.apv||0)+(r.salud||0)+(r.cesTrab||0) > 0 ||
+    (r.sis||0)+(r.mutual||0)+(r.cesEmp||0)+(r.capInd||0)+(r.expVida||0)+(r.rentProt||0) > 0;
+
+  // total_aportes — fórmula oficial: SIS+Mutual+CesEmp+CapInd+ExpVida+RentProt
+  // Si hay desglose, siempre calcular. No confiar en totalAportes legacy.
+  var _totalAportes = _tieneDesglose
+    ? (r.sis||0)+(r.mutual||0)+(r.cesEmp||0)+(r.capInd||0)+(r.expVida||0)+(r.rentProt||0)
+    : (r.totalAportes||0);   // fallback: registro manual sin ningún componente
+
+  // total_cotizaciones — fórmula oficial: AFP+APV+Salud+CesTrab+SIS+Mutual+CesEmp+CapInd+ExpVida+RentProt
+  // Prioridad:
+  //   1. totalCotizaciones nuevo (campo explícito del procesamiento actual) — siempre confiable
+  //   2. Si hay desglose, recalcular con fórmula oficial — ignora totalCot legacy
+  //   3. totalCot legacy — solo para registros manuales sin ningún desglose previsional
+  var _totalCot = r.totalCotizaciones != null
+    ? r.totalCotizaciones
+    : _tieneDesglose
+      ? (r.afp||0)+(r.apv||0)+(r.salud||0)+(r.cesTrab||0)
+        +(r.sis||0)+(r.mutual||0)+(r.cesEmp||0)
+        +(r.capInd||0)+(r.expVida||0)+(r.rentProt||0)
+      : (r.totalCot||0);     // fallback: registro manual sin ningún componente
+
+  // costo_laboral — total_imponible + total_no_imponible + total_aportes
+  // costoLaboral es campo nuevo; no existe en registros históricos.
+  // Si hay datos de haberes, calcular. Sin haberes, intentar valor recibido.
+  var _costoLaboral = (r.totalImponible||r.totalNoImponible)
+    ? (r.totalImponible||0)+(r.totalNoImponible||0)+_totalAportes
+    : (r.costoLaboral||0);
+
   return {
     cliente_rut:          r.rut,
     periodo:              r.periodo,
@@ -246,28 +299,50 @@ function sbReporteToRow(r){
     cliente_email:        r.clienteEmail||null,
     cliente_plan:         r.clientePlan||null,
     quien_paga:           r.quienPaga||'contadoor',
-    // RRHH — columnas reales
+    // ── RRHH — haberes ──────────────────────────────────────
     n_trabajadores:       r.nTrab||r.trabM||0,
+    total_imponible:      r.totalImponible||0,
+    total_no_imponible:   r.totalNoImponible||0,
     liquido_pagar:        r.liquidoPagar||r.liquidoM||0,
-    // Descuentos trabajadores
+    // ── Descuentos trabajadores ──────────────────────────────
     afp:                  r.afp||0,
     salud:                r.salud||0,
-    apv:                  r.apv||0,
+    apv:                  r.apv||0,     // combinado; apv1+apv2 en tabla trabajadores
     ces_trab:             r.cesTrab||0,
-    iu:                   r.iu||0,
+    iu:                   r.iu||0,      // tributario → F29; NO en cotizaciones
     otros_desc:           r.otrosDesc||0,
     total_desc:           r.totalDesc||0,
     total_descuentos:     r.totalDesc||0,
-    // Aportes patronales
+    // ── Aportes patronales ───────────────────────────────────
     sis:                  r.sis||0,
     mutual:               r.mutual||0,
     ces_emp:              r.cesEmp||0,
-    aporte_patronal:      (r.sis||0)+(r.mutual||0)+(r.cesEmp||0),
+    cap_ind:              r.capInd||0,
+    exp_vida:             r.expVida||0,
+    rent_prot:            r.rentProt||0,
+    // ── Totales calculados correctamente ────────────────────
+    total_aportes:        _totalAportes,
+    total_cotizaciones:   _totalCot,
+    costo_laboral:        _costoLaboral,
+    // Compat legado (se mantienen para módulos existentes)
+    aporte_patronal:      _totalAportes,
+    total_cot:            _totalCot,
     impuesto_unico:       r.iu||r.iuSii||0,
-    total_costo_empresa:  (r.liquidoPagar||0)+(r.sis||0)+(r.mutual||0)+(r.cesEmp||0),
-    total_cot:            totalCot,
+    total_costo_empresa:  (r.liquidoPagar||0)+_totalAportes,
     obs_rrhh:             r.obsRrhh||null,
-    // IVA — columnas reales
+    // ── Contadores asistencia ────────────────────────────────
+    n_con_licencia:       r.nConLicencia||0,
+    n_con_vacaciones:     r.nConVacaciones||0,
+    n_con_atrasos:        r.nConAtrasos||0,
+    // ── Cuadratura ───────────────────────────────────────────
+    // null = no evaluada / true = ok / false = diferencia detectada
+    cuadratura_ok:        r.cuadraturaOk !== undefined ? r.cuadraturaOk : null,
+    diferencia_cuadratura:r.diferenciaCuadratura||0,
+    // ── Trazabilidad archivo ─────────────────────────────────
+    archivo_nombre:       r.archivoNombre||null,
+    procesado_at:         r.procesadoAt||null,
+    procesado_por:        r.procesadoPor||null,
+    // ── IVA ──────────────────────────────────────────────────
     debito_iva:           r.ivaDebito||0,
     credito_iva:          r.ivaCredito||0,
     remanente:            r.ivaRemanenteSig||r.ivaRemanente||0,
@@ -275,7 +350,7 @@ function sbReporteToRow(r){
     iva_postergado:       r.ivaPostergado||0,
     postergar_iva:        r.postergarIva||false,
     iva_fecha_venc:       r.ivaFechaVenc||null,
-    // F29 — columna real: f29
+    // ── F29 (IU va aquí vía flujo independiente, no tocar) ───
     f29:                  r.totalImpInmediato||0,
     total_imp_inmediato:  r.totalImpInmediato||0,
     ppm:                  r.ppm||0,
@@ -286,7 +361,7 @@ function sbReporteToRow(r){
     iu_sii:               r.iuSii||r.iu||0,
     otros_imp:            r.otrosImp||0,
     obs_cont:             r.obsCont||null,
-    // Honorarios
+    // ── Honorarios ───────────────────────────────────────────
     hon_base:             r.honBase||0,
     hon_base_uf:          r.honBaseUf||0,
     hon_var:              r.honVar||0,
@@ -298,13 +373,13 @@ function sbReporteToRow(r){
     factura:              r.factura||null,
     factura_fecha:        r.facturaFecha||null,
     uf_periodo:           r.ufPeriodo||0,
-    // Totales
+    // ── Totales generales ────────────────────────────────────
     total_general:        r.totalGeneral||0,
     total_atrasos:        r.totalAtrasos||0,
     atrasos:              r.atrasos||[],
     recomendaciones:      r.recomendaciones||null,
     obs_analista:         r.obsAnalista||null,
-    // Flujo pago
+    // ── Flujo pago ───────────────────────────────────────────
     pre_reporte_enviado:  r.preReporteEnviado||false,
     pre_reporte_fecha:    r.preReporteFecha||null,
     ha_postergado:        r.haPostergado||false,
@@ -322,13 +397,13 @@ function sbReporteToRow(r){
     pagado:               r.pagado||false,
     pagos_validado:       r.pagosValidado||false,
     decision_cotiz:       r.decisionCotiz||null,
-    // Analistas
+    // ── Analistas ────────────────────────────────────────────
     analista_rrhh:        r.preparado||r.analistaRrhh||null,
     analista_contable:    r.revisado||r.analistaContable||null,
     email_analista:       r.emailAnalista||null,
     preparado:            r.preparado||null,
     revisado:             r.revisado||null,
-    // Flags
+    // ── Flags ────────────────────────────────────────────────
     secciones:            r.secciones||{},
     usa_archivo:          r.usaArchivo||false,
     tiene_rrhh:           r.tieneRrhh!==false,
@@ -350,9 +425,12 @@ function sbRowToReporte(row){
     clienteEmail:     row.cliente_email,
     clientePlan:      row.cliente_plan,
     quienPaga:        row.quien_paga,
-    // RRHH
+    // ── RRHH — haberes ──────────────────────────────────────
     nTrab:            row.n_trabajadores||0,
+    totalImponible:   row.total_imponible||0,
+    totalNoImponible: row.total_no_imponible||0,
     liquidoPagar:     row.liquido_pagar||0,
+    // ── Descuentos trabajadores ──────────────────────────────
     afp:              row.afp||0,
     salud:            row.salud||0,
     apv:              row.apv||0,
@@ -360,20 +438,37 @@ function sbRowToReporte(row){
     iu:               row.iu||0,
     otrosDesc:        row.otros_desc||0,
     totalDesc:        row.total_desc||row.total_descuentos||0,
+    // ── Aportes patronales ───────────────────────────────────
     sis:              row.sis||0,
     mutual:           row.mutual||0,
     cesEmp:           row.ces_emp||0,
-    totalAportes:     row.aporte_patronal||0,
-    totalCot:         row.total_cot||0,
+    capInd:           row.cap_ind||0,
+    expVida:          row.exp_vida||0,
+    rentProt:         row.rent_prot||0,
+    // ── Totales: nuevo campo primero, fallback legado ────────
+    totalAportes:     row.total_aportes||row.aporte_patronal||0,
+    totalCot:         row.total_cotizaciones||row.total_cot||0,
+    costoLaboral:     row.costo_laboral||0,
     obsRrhh:          row.obs_rrhh,
-    // IVA
+    // ── Contadores asistencia ────────────────────────────────
+    nConLicencia:     row.n_con_licencia||0,
+    nConVacaciones:   row.n_con_vacaciones||0,
+    nConAtrasos:      row.n_con_atrasos||0,
+    // ── Cuadratura ───────────────────────────────────────────
+    cuadraturaOk:           row.cuadratura_ok,   // null/true/false — no defaultear
+    diferenciaCuadratura:   row.diferencia_cuadratura||0,
+    // ── Trazabilidad ─────────────────────────────────────────
+    archivoNombre:    row.archivo_nombre||null,
+    procesadoAt:      row.procesado_at||null,
+    procesadoPor:     row.procesado_por||null,
+    // ── IVA ──────────────────────────────────────────────────
     ivaDebito:        row.debito_iva||0,
     ivaCredito:       row.credito_iva||0,
     ivaRemanenteSig:  row.iva_remanente_sig||row.remanente||0,
     ivaPostergado:    row.iva_postergado||0,
     postergarIva:     row.postergar_iva||false,
     ivaFechaVenc:     row.iva_fecha_venc,
-    // F29
+    // ── F29 ──────────────────────────────────────────────────
     totalImpInmediato:row.f29||row.total_imp_inmediato||0,
     ppm:              row.ppm||0,
     ppmTasa:          row.ppm_tasa||0,
@@ -383,7 +478,7 @@ function sbRowToReporte(row){
     iuSii:            row.iu_sii||0,
     otrosImp:         row.otros_imp||0,
     obsCont:          row.obs_cont,
-    // Honorarios
+    // ── Honorarios ───────────────────────────────────────────
     honBase:          row.hon_base||0,
     honBaseUf:        row.hon_base_uf||0,
     honVar:           row.hon_var||0,
@@ -395,13 +490,13 @@ function sbRowToReporte(row){
     factura:          row.factura,
     facturaFecha:     row.factura_fecha,
     ufPeriodo:        row.uf_periodo||0,
-    // Totales
+    // ── Totales generales ────────────────────────────────────
     totalGeneral:     row.total_general||0,
     totalAtrasos:     row.total_atrasos||0,
     atrasos:          row.atrasos||[],
     recomendaciones:  row.recomendaciones,
     obsAnalista:      row.obs_analista,
-    // Flujo
+    // ── Flujo pago ───────────────────────────────────────────
     preReporteEnviado:row.pre_reporte_enviado||false,
     preReporteFecha:  row.pre_reporte_fecha,
     haPostergado:     row.ha_postergado||false,
@@ -419,13 +514,13 @@ function sbRowToReporte(row){
     pagado:           row.pagado||false,
     pagosValidado:    row.pagos_validado||false,
     decisionCotiz:    row.decision_cotiz,
-    // Analistas
+    // ── Analistas ────────────────────────────────────────────
     preparado:        row.preparado||row.analista_rrhh,
     revisado:         row.revisado||row.analista_contable,
     emailAnalista:    row.email_analista,
     analistaRrhh:     row.analista_rrhh,
     analistaContable: row.analista_contable,
-    // Flags
+    // ── Flags ────────────────────────────────────────────────
     secciones:        row.secciones||{},
     usaArchivo:       row.usa_archivo||false,
     tieneRrhh:        row.tiene_rrhh!==false,
@@ -444,8 +539,14 @@ function sbGetReportesPeriodo(periodo,cb){
 
 function sbUpsertReporte(r){
   var row=sbReporteToRow(r);
-  if(r.id&&!String(r.id).includes('.')){
-    return sbPatch('reportes_mensuales?id=eq.'+r.id,row);
+  // ID real = entero numérico puro asignado por Supabase.
+  // IDs temporales como "nuevo_76.567.316-K_2026-07" no son numéricos
+  // y deben ir siempre a POST, nunca a PATCH.
+  var idReal = r.id !== undefined &&
+               r.id !== null &&
+               /^\d+$/.test(String(r.id));
+  if(idReal){
+    return sbPatch('reportes_mensuales?id=eq.'+encodeURIComponent(r.id),row);
   }
   return sbPost('reportes_mensuales',row);
 }
@@ -455,7 +556,7 @@ function sbPatchReporte(id,data){
 }
 
 // ── PAGOS ────────────────────────────────────────────────────
-// Columna FK real: cliente_rut
+// SIN CAMBIOS — mantener intacto en esta fase
 
 function sbGetPagos(filtros,cb){
   var q='pagos?select=*&order=created_at.desc';
@@ -466,7 +567,6 @@ function sbGetPagos(filtros,cb){
 
 function sbUpsertPago(p){
   var row=Object.assign({},p);
-  // normalizar FK
   if(row.rut&&!row.cliente_rut){row.cliente_rut=row.rut;delete row.rut;}
   return sbPost('pagos',row);
 }
@@ -474,6 +574,8 @@ function sbUpsertPago(p){
 function sbPatchPago(id,data){return sbPatch('pagos?id=eq.'+id,data);}
 
 // ── CONCILIACIÓN ─────────────────────────────────────────────
+// SIN CAMBIOS
+
 function sbGetMovimientos(cb){
   sbGet('concil_movimientos?select=*&order=fecha.desc&limit=1000')
     .then(function(rows){cb(rows||[]);}).catch(function(){cb([]);});
@@ -482,7 +584,8 @@ function sbUpsertMovimiento(mov){return sbPost('concil_movimientos',mov);}
 function sbPatchMovimiento(id,data){return sbPatch('concil_movimientos?id=eq.'+id,data);}
 
 // ── CONVENIOS ────────────────────────────────────────────────
-// FK real: cliente_rut, cuotas: n_cuotas
+// SIN CAMBIOS
+
 function sbGetConvenios(rut,cb){
   var q='convenios?select=*'+(rut?'&cliente_rut=eq.'+encodeURIComponent(rut):'')+'&order=created_at.desc';
   sbGet(q).then(function(rows){cb(rows||[]);}).catch(function(){cb([]);});
@@ -495,6 +598,8 @@ function sbUpsertConvenio(c){
 }
 
 // ── PLANES ───────────────────────────────────────────────────
+// SIN CAMBIOS
+
 function sbGetPlanes(cb){
   var cached=sbCacheOrLocal('planes','planes_bd');
   if(cached) cb(cached);
@@ -507,6 +612,8 @@ function sbGetPlanes(cb){
 }
 
 // ── SERVICIOS ADICIONALES ────────────────────────────────────
+// SIN CAMBIOS
+
 function sbGetServiciosAdicionales(cb){
   var cached=sbCacheOrLocal('servicios','servicios_adicionales');
   if(cached) cb(cached);
@@ -518,7 +625,116 @@ function sbGetServiciosAdicionales(cb){
   }).catch(function(){if(!cached)cb([]);});
 }
 
-// ── UTILIDADES ────────────────────────────────────────────────
+// ── DETALLE TRABAJADORES RRHH ─────────────────────────────────
+// Tabla: reporte_rrhh_trabajadores
+// Fotografía histórica por trabajador y período.
+// NO es ficha maestra: cada período tiene su propio registro.
+// Las columnas total_aportes, total_cotizaciones, costo_laboral
+// son GENERATED ALWAYS AS en PostgreSQL — NO enviar en INSERT/UPDATE.
+
+function sbTrabajadorRrhhToRow(t, reporteId, clienteRut, periodo){
+  return {
+    reporte_id:           reporteId,
+    cliente_rut:          clienteRut,
+    periodo:              periodo,
+    // Identificación
+    rut:                  t.rut,
+    apellido_paterno:     t.apellidoPaterno||null,
+    apellido_materno:     t.apellidoMaterno||null,
+    nombres:              t.nombres||null,
+    centro_costo:         t.centroCosto||null,
+    // Previsional
+    salud_nombre:         t.saludNombre||null,
+    plan_salud:           t.plan||null,
+    afp_nombre:           t.afpNombre||null,
+    pct_afp:              t.pctAfp||0,
+    // Asistencia
+    dias_trabajados:      t.diasTrabajados||0,
+    atraso:               t.atraso||0,
+    dias_vacaciones:      t.diasVacaciones||0,
+    dias_licencia:        t.diasLicencia||0,
+    en_licencia_completa: t.enLicenciaCompleta||false,
+    // Contrato
+    sueldo_base:          t.sueldoBase||0,
+    // Haberes imponibles
+    sueldo_mensual:       t.sueldoMensual||0,
+    gratificacion:        t.gratificacion||0,
+    total_imponible:      t.totalImponible||0,
+    // Haberes no imponibles
+    c_familiar:           t.cFamiliar||0,
+    colacion:             t.colacion||0,
+    movilizacion:         t.movilizacion||0,
+    total_no_imponible:   t.totalNoImponible||0,
+    // Descuentos trabajador
+    dcto_afp:             t.dctoAfp||0,
+    apv1:                 t.apv1||0,
+    apv2:                 t.apv2||0,
+    dcto_salud:           t.dctoSalud||0,
+    ces_trab:             t.cesTrab||0,
+    iu:                   t.iu||0,      // tributario → F29; NO en cotizaciones
+    total_descuentos:     t.totalDescuentos||0,
+    otros_descuentos:     t.otrosDescuentos||0,
+    // Resultado
+    liquido:              t.liquido||0,
+    // Aportes patronales
+    sis:                  t.sis||0,
+    mutual:               t.mutual||0,
+    ces_emp:              t.cesEmp||0,
+    cap_ind:              t.capInd||0,
+    exp_vida:             t.expVida||0,
+    rent_prot:            t.rentProt||0,
+    // Base tributaria
+    tributable:           t.tributable||0
+    // NO enviar: total_aportes, total_cotizaciones, costo_laboral
+    // Son GENERATED ALWAYS AS STORED en PostgreSQL
+  };
+}
+
+function sbGetTrabajadoresRrhh(reporteId, cb){
+  sbGet(
+    'reporte_rrhh_trabajadores?reporte_id=eq.'+encodeURIComponent(reporteId)
+    +'&select=*&order=apellido_paterno.asc,nombres.asc'
+  ).then(function(rows){cb(rows||[]);}).catch(function(){cb([]);});
+}
+
+function sbReplaceTrabajadoresRrhh(reporteId, clienteRut, periodo, trabajadores){
+  // Validar antes de cualquier escritura
+  if(!reporteId || !clienteRut || !periodo){
+    return Promise.reject(new Error('sbReplaceTrabajadoresRrhh: reporteId, clienteRut y periodo son requeridos'));
+  }
+  if(!Array.isArray(trabajadores) || !trabajadores.length){
+    return Promise.reject(new Error('sbReplaceTrabajadoresRrhh: trabajadores debe ser un array no vacío'));
+  }
+
+  // Construir rows ANTES de borrar — si falla el mapeo no hay DELETE
+  var rows;
+  try{
+    rows = trabajadores.map(function(t){
+      return sbTrabajadorRrhhToRow(t, reporteId, clienteRut, periodo);
+    });
+  }catch(mapErr){
+    return Promise.reject(new Error('sbReplaceTrabajadoresRrhh: error al mapear trabajadores — '+mapErr.message));
+  }
+
+  // DELETE usando sbFetch directamente (sbDelete traga errores en catch)
+  return sbFetch(
+    'reporte_rrhh_trabajadores?reporte_id=eq.'+encodeURIComponent(reporteId),
+    {method:'DELETE'}
+  ).then(function(delRes){
+    if(!delRes.ok){
+      return Promise.reject(new Error('DELETE trabajadores falló: HTTP '+delRes.status));
+    }
+    // INSERT todos los trabajadores del nuevo procesamiento
+    return sbPost('reporte_rrhh_trabajadores', rows, 'return=representation');
+  }).then(function(inserted){
+    if(!inserted){
+      return Promise.reject(new Error('INSERT trabajadores falló — sin respuesta de Supabase'));
+    }
+    return inserted;
+  });
+}
+
+// ── UTILIDADES ───────────────────────────────────────────────
 function sbNormRut(rut){
   if(!rut) return '';
   var s=String(rut).replace(/[.\-\s]/g,'').toUpperCase();
@@ -526,4 +742,4 @@ function sbNormRut(rut){
   return s.slice(0,-1).replace(/\B(?=(\d{3})+(?!\d))/g,'.')+'-'+s.slice(-1);
 }
 
-console.log('✅ supabase.js v2 · Gestoor');
+console.log('✅ supabase.js v3 · Gestoor');
