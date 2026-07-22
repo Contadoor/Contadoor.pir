@@ -851,18 +851,15 @@ function renderTabla(periodo){
   var reportes=getReportes().filter(function(r){
     if(r.periodo!==periodo) return false;
     if(r.tieneRrhh===false) return false; // cliente sin RRHH no aparece aquí
-    // Solo mis clientes asignados
-    // Filtrar por analista asignado en ficha cliente (no por quien completó el reporte)
-    // Esto asegura que si se reasigna el analista en Clientes, el nuevo analista ve los reportes
-    if(analista){
+    // Filtro por analista — master ve todo
+    var _u=getUsuario();
+    var esMaster=_u.esMaster||_u.rol==='master'||_u.rol==='admin';
+    if(analista && !esMaster){
       var _cli=getClientes().find(function(x){return x.rut===r.rut;});
-      var analistaAsignado=(_cli&&(_cli.rrhh||_cli.analistaRrhh))||r.preparado||r.analistaRrhh||'';
-      // Comparar ignorando mayúsculas/minúsculas y espacios extra
+      var analistaAsignado=(_cli&&(_cli.rrhh||_cli.analistaRrhh))||r.preparado||'';
       var _a1=(analistaAsignado||'').trim().toLowerCase();
       var _a2=(analista||'').trim().toLowerCase();
-      // También comparar por email si el nombre no coincide
-      var _u=getUsuario();
-      var _emailMatch=_u.email&&_cli&&(_cli.emailAnalista||'').toLowerCase()===_u.email.toLowerCase();
+      var _emailMatch=_u.email&&_cli&&(_cli.emailAnalista||'').toLowerCase()===(_u.email||'').toLowerCase();
       if(_a1 && _a1!==_a2 && !_emailMatch) return false;
     }
     return true;
