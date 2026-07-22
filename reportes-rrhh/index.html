@@ -1279,16 +1279,17 @@ function enviarReporteParcial(){
     if(btn){btn.disabled=false;btn.textContent='📨 Aviso de Cotizaciones';}
     return;
   }
-  fetch('https://contafunnel-proxy.vercel.app/api/crear-evento',{
+  fetch('https://contafunnel-v2.vercel.app/api/enviar-preiva',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      tipo:'reporte',
+      analistaNombre:u.nombre||'Contadoor',
+      analistaWa:u.wa||'979881891',
       toEmail:to,
       toNombre:r.clienteNombre||r.rut,
-      subject:'Aviso de Cotizaciones RRHH · '+periodo+' · '+hesc(r.clienteNombre||r.rut),
-      htmlReporte:htmlEmail,
-      replyTo:u.email||'info@contadoor.cl'
+      toEmpresa:r.clienteNombre||r.rut,
+      periodo:periodo,
+      htmlReporte:htmlEmail
     })
   })
   .then(function(res){
@@ -1403,16 +1404,17 @@ function enviarPreReporteRrhh(id){
     if(btn){btn.disabled=false;btn.textContent='📨 Aviso de Cotizaciones';}
     return;
   }
-  fetch('https://contafunnel-proxy.vercel.app/api/crear-evento',{
+  fetch('https://contafunnel-v2.vercel.app/api/enviar-preiva',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      tipo:'reporte',
+      analistaNombre:u.nombre||'Contadoor',
+      analistaWa:u.wa||'979881891',
       toEmail:to,
       toNombre:r.clienteNombre||r.rut,
-      subject:'Aviso de Cotizaciones RRHH · '+periodo+' · '+hesc(r.clienteNombre||r.rut),
-      htmlReporte:htmlEmail,
-      replyTo:u.email||'info@contadoor.cl'
+      toEmpresa:r.clienteNombre||r.rut,
+      periodo:periodo,
+      htmlReporte:htmlEmail
     })
   })
   .then(function(res){
@@ -1471,9 +1473,9 @@ function enviarPreReporteMasivo(){
     toastEl.textContent='Enviando '+(idx+1)+' / '+total+': '+hesc(r.clienteNombre||r.rut)+'...';
     var htmlContent=buildPreReporteRrhhHTML(r,null);
     var htmlEmail='<div style="max-width:600px;margin:0 auto;background:#fff;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;border-radius:4px;overflow:hidden">'+htmlContent+'</div>';
-    fetch('https://contafunnel-proxy.vercel.app/api/crear-evento',{
+    fetch('https://contafunnel-v2.vercel.app/api/enviar-preiva',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({tipo:'reporte',analistaNombre:u.nombre||'Contadoor',analistaWa:u.wa||'979881891',
+      body:JSON.stringify({analistaNombre:u.nombre||'Contadoor',analistaWa:u.wa||'979881891',
         toEmail:to,replyTo:u.email||'reportes@contadoor.cl',
         toNombre:r.clienteNombre||r.rut,toEmpresa:r.clienteNombre||r.rut,
         periodo:formatPeriodo(r.periodo),htmlReporte:minH(htmlEmail)})
