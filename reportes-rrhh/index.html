@@ -1498,23 +1498,23 @@ function guardarRrhh(accion){
     alert('✅ Sección RRHH marcada como completada.');
   }
   // Guardar en Supabase
-  var esNuevo=String(arr[idx2].id).indexOf('nuevo_')===0;
+  var esNuevo=String(arr[idx].id).indexOf('nuevo_')===0;
   if(esNuevo){
-    // Crear nuevo reporte en Supabase
+    var rowSb=sbReporteToRow?sbReporteToRow(arr[idx]):arr[idx];
     sbFetch('reportes_mensuales',{
       method:'POST',
       headers:{'Prefer':'return=representation'},
-      body:JSON.stringify(sbReporteToRow?sbReporteToRow(arr[idx2]):arr[idx2])
+      body:JSON.stringify(rowSb)
     }).then(function(r){return r.ok?r.json():null;})
     .then(function(rows){
       if(rows&&rows[0]&&rows[0].id){
-        // Actualizar id real de Supabase
-        var i=getReportes().findIndex(function(x){return x.id===arr[idx2].id;});
-        if(i>=0){getReportes()[i].id=rows[0].id;setReportesCache(getReportes());}
+        var idViejo=arr[idx].id;
+        arr[idx].id=rows[0].id;
+        setReportesCache(arr);
       }
     }).catch(function(e){console.warn('Supabase create reporte:',e);});
   } else {
-    sbPatchRrhh(arr[idx2].id, arr[idx2]);
+    sbPatchRrhh(arr[idx].id, arr[idx]);
   }
   setReportes(arr);
   if(_reporteActual)syncEstado(_reporteActual.rut,String(_reporteActual.periodo),{secciones:arr[idx]&&arr[idx].secciones||{},estado:arr[idx]&&arr[idx].estado||'en_proceso'});
