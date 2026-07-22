@@ -227,7 +227,7 @@ tr:hover td{background:#f9fefb;}
 
 <main class="main">
   <div class="topbar">
-    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><div style="width:28px;height:28px;border-radius:50%;background:#904891;border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff">C</div><span style="color:#fff;font-size:13px;font-weight:600;letter-spacing:.3px">Contadoor</span></div>
+    
     <div class="tb-title">Reportes RRHH — Remuneraciones</div>
     <span id="tb-periodo-badge" style="font-size:11px;background:rgba(144,72,145,.3);color:#e9d5ff;border:1px solid rgba(144,72,145,.4);border-radius:20px;padding:3px 12px;white-space:nowrap"></span>
     <span class="tb-analista" id="tb-analista-nombre">Analista RRHH</span>
@@ -551,22 +551,61 @@ function setReportesYSync(arr,rut,periodo,data){
   setReportes(arr);
   if(rut&&periodo) sbPatchReporte(rut,periodo,data).catch(function(){});
 }
-function getClientes(){try{return JSON.parse(localStorage.getItem('clientes_bd')||'[]');}catch(e){return[];}}
+// Cache en memoria para clientes
+var _clientesCache=null;
+function getClientes(){
+  if(_clientesCache!==null) return _clientesCache;
+  try{return JSON.parse(localStorage.getItem('clientes_bd')||'[]');}catch(e){return[];}
+}
+function cargarClientesDesdeSupabase(cb){
+  sbGet('clientes?select=*&order=razon_social.asc').then(function(rows){
+    if(rows&&rows.length){
+      _clientesCache=rows;
+      try{localStorage.setItem('clientes_bd',JSON.stringify(rows));}catch(e){}
+    }
+    cb&&cb();
+  }).catch(function(){cb&&cb();});
+}
 function getPeriodos(){
+  // Leer caché en memoria primero, luego localStorage como fallback
   try{
-    // Leer desde rpt_periodos (legacy) y apertura_periodos (nuevo)
     var arr=JSON.parse(localStorage.getItem('rpt_periodos')||'[]');
     var obj=JSON.parse(localStorage.getItem('apertura_periodos')||'{}');
-    // Convertir apertura_periodos (objeto) a array
     Object.values(obj).forEach(function(p){
-      if(p&&p.periodo&&!arr.find(function(x){return x.periodo===p.periodo;})){
+      if(p&&p.periodo&&!arr.find(function(x){return x.periodo===p.periodo;}))
         arr.push({periodo:p.periodo,uf:p.uf,utm:p.utm,ts:p.ts});
-      }
     });
     return arr.sort(function(a,b){return a.periodo>b.periodo?-1:1;});
   }catch(e){return[];}
 }
-function getHistoricoRemu(){try{return JSON.parse(localStorage.getItem('remu_historico')||'{}');}catch(e){return{};}}
+function cargarPeriodosDesdeSupabase(cb){
+  sbGet('periodos?select=periodo,uf,utm,abierto_por&order=periodo.desc&limit=24').then(function(rows){
+    if(rows&&rows.length){
+      // Merge con lo local para no perder datos offline
+      var local=getPeriodos();
+      rows.forEach(function(row){
+        if(!local.find(function(x){return x.periodo===row.periodo;}))
+          local.push({periodo:row.periodo,uf:row.uf,utm:row.utm});
+        else{
+          var i=local.findIndex(function(x){return x.periodo===row.periodo;});
+          if(i>=0) Object.assign(local[i],{uf:row.uf,utm:row.utm});
+        }
+      });
+      try{localStorage.setItem('rpt_periodos',JSON.stringify(local));}catch(e){}
+    }
+    cb&&cb();
+  }).catch(function(){cb&&cb();});
+}
+function getHistoricoRemu(){
+  // Construir historial desde caché de reportes en vez de localStorage separado
+  var hist={};
+  var arr=getReportes();
+  arr.forEach(function(r){
+    if(!hist[r.rut]) hist[r.rut]={};
+    if(r.periodo) hist[r.rut][r.periodo]=r;
+  });
+  return hist;
+}
 function setHistoricoRemu(o){localStorage.setItem('remu_historico',JSON.stringify(o));}
 
 // ═══════════════════════════════════════════════════
@@ -581,22 +620,31 @@ document.addEventListener('DOMContentLoaded',function(){
 function init(){
   var u=getUsuario();
   document.getElementById('tb-analista-nombre').textContent=u.nombre||'Analista RRHH';
-  document.getElementById('sb-usuario').textContent=(u.nombre||'RRHH')+' · '+( u.rol||'rrhh');
-  popularSelectPeriodos();
-  // Auto-cargar el período más reciente
-  var sel=document.getElementById('selectPeriodo');
-  // Auto-seleccionar período actual (YYYY-MM)
-  var hoyPer=new Date();
-  var periodoActualStr=hoyPer.getFullYear()+'-'+String(hoyPer.getMonth()+1).padStart(2,'0');
-  var foundActual=false;
-  for(var oi=0;oi<sel.options.length;oi++){
-    if(sel.options[oi].value===periodoActualStr){sel.selectedIndex=oi;foundActual=true;break;}
-  }
-  if(!foundActual&&sel.options.length>1) sel.selectedIndex=1;
-  cargarPeriodo();
-  // Fecha hoy en calendario
+  document.getElementById('sb-usuario').textContent=(u.nombre||'RRHH')+' · '+(u.rol||'rrhh');
   var hoy=new Date();
-  document.getElementById('cal-hoy-label').textContent='Hoy: '+hoy.getDate()+'/'+( hoy.getMonth()+1);
+  document.getElementById('cal-hoy-label').textContent='Hoy: '+hoy.getDate()+'/'+(hoy.getMonth()+1);
+  // Mostrar loading
+  var tb=document.getElementById('tablaBody');
+  if(tb) tb.innerHTML='<tr><td colspan="8" style="padding:32px;text-align:center;color:var(--tm);font-size:12px">⏳ Cargando desde Supabase...</td></tr>';
+  // 1. Cargar clientes desde Supabase
+  cargarClientesDesdeSupabase(function(){
+    // 2. Cargar períodos desde Supabase
+    cargarPeriodosDesdeSupabase(function(){
+      // 3. Poblar selector y auto-seleccionar período actual
+      popularSelectPeriodos();
+      var sel=document.getElementById('selectPeriodo');
+      var periodoActualStr=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0');
+      var foundActual=false;
+      for(var oi=0;oi<sel.options.length;oi++){
+        if(sel.options[oi].value===periodoActualStr){sel.selectedIndex=oi;foundActual=true;break;}
+      }
+      if(!foundActual&&sel.options.length>1) sel.selectedIndex=1;
+      // 4. Cargar reportes del período seleccionado
+      if(sel.value) cargarPeriodo();
+      // 5. Recordatorios automáticos
+      setTimeout(verificarRecordatoriosRrhh,3000);
+    });
+  });
 }
 
 function popularSelectPeriodos(){
@@ -1697,15 +1745,34 @@ function enviarAprobacionRrhh(id){
   var r=getReportes().find(function(x){return String(x.id)===String(id);});if(!r)return;
   if(!confirm('¿Enviar a aprobación de Luciano?'))return;
   actualizarEstadoRrhh(id,'pendiente_aprobacion',{fechaAprobacion:new Date().toISOString()});
-  var obs=[];try{obs=JSON.parse(localStorage.getItem('pagos_bd')||'[]');}catch(e){}
   var u=getUsuario();
-  obs.push({id:Date.now()+Math.random(),rut:r.rut,clienteNombre:r.clienteNombre||r.rut,
-    area:'rrhh',tipo:'Cotizaciones previsionales',
-    concepto:'Cotizaciones '+formatPeriodo(r.periodo),
-    monto:r.totalCot||r.totalGeneral||0,periodo:r.periodo,
-    estado:'aprobacion',refReporteId:String(r.id),
-    creadoPor:u.nombre||'',fechaCreacion:new Date().toISOString()});
-  localStorage.setItem('pagos_bd',JSON.stringify(obs));
+  // Registrar pago en Supabase tabla pagos
+  sbFetch('pagos',{
+    method:'POST',
+    headers:{'Prefer':'resolution=merge-duplicates'},
+    body:JSON.stringify({
+      rut:r.rut,
+      cliente_nombre:r.clienteNombre||r.rut,
+      area:'rrhh',
+      tipo:'Cotizaciones previsionales',
+      concepto:'Cotizaciones '+formatPeriodo(r.periodo),
+      monto:r.totalCot||r.totalGeneral||0,
+      periodo:r.periodo,
+      estado:'pendiente_aprobacion',
+      ref_reporte_id:String(r.id),
+      creado_por:u.nombre||'',
+      fecha_creacion:new Date().toISOString()
+    })
+  }).catch(function(){
+    // Fallback localStorage si Supabase falla
+    try{
+      var obs=JSON.parse(localStorage.getItem('pagos_bd')||'[]');
+      obs.push({rut:r.rut,clienteNombre:r.clienteNombre,area:'rrhh',
+        concepto:'Cotizaciones '+formatPeriodo(r.periodo),
+        monto:r.totalCot||0,periodo:r.periodo,estado:'pendiente_aprobacion'});
+      localStorage.setItem('pagos_bd',JSON.stringify(obs));
+    }catch(e){}
+  });
   renderTabla();toast('⏳ Enviado a aprobación');
 }
 function marcarFinalizadoRrhh(id){
@@ -2036,6 +2103,7 @@ if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',init);
 }else{init();}
 </script>
+<script src="../supabase.js"></script>
 <script src="../notifications.js"></script>
 <script src="../auth.js"></script>
 </body>
