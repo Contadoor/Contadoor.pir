@@ -1324,46 +1324,53 @@ function buildPreReporteRrhhHTML(r,data){
   var mes=parseInt(partes[1])||1;
   mes++;if(mes>12){mes=1;anio++;}
   var MESES2=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var fechaPostergar='10 de '+MESES2[mes-1]+' de '+anio;
   var fechaTope='13 de '+MESES2[mes-1]+' de '+anio;
-  var diasRest=Math.max(0,Math.floor((new Date(anio,mes-1,13)-new Date())/(864e5)));
-  var nomina=0,totalCot=0,dctoAfp=0,dctoSalud=0,cesTrab=0,cesEmp=0,sis=0,mutual=0,costoEmp=0,nTrab=0,nActivos=0,nLic=0;
+  var diasRest=Math.max(0,Math.floor((new Date(anio,mes-1,13,12,30)-new Date())/(864e5)));
+  var nomina=0,totalCot=0,dctoAfp=0,dctoSalud=0,cesTrab=0,cesEmp=0,sis=0,mutual=0,nTrab=0,nActivos=0,nLic=0;
   if(data&&data.trabajadores){
     data.trabajadores.forEach(function(t){dctoAfp+=t.dctoAfp||0;dctoSalud+=t.dctoSalud||0;cesTrab+=t.cesTrab||0;cesEmp+=t.cesEmp||0;sis+=t.sis||0;mutual+=t.mutual||0;});
-    nomina=data.nomina||0;costoEmp=data.costoEmpresa||0;nTrab=data.nTrab||0;nActivos=data.nTrabActivos||nTrab;nLic=data.nLicencia||0;
+    nomina=data.nomina||0;nTrab=data.nTrab||0;nActivos=data.nTrabActivos||nTrab;nLic=data.nLicencia||0;
   }else{
     nomina=r.liquidoPagar||0;nTrab=r.nTrab||0;nActivos=nTrab;
     dctoAfp=r.afp||0;dctoSalud=r.salud||0;cesTrab=r.cesTrab||0;
     cesEmp=r.cesEmp||0;sis=r.sis||0;mutual=r.mutual||0;
-    costoEmp=(r.sis||0)+(r.mutual||0)+(r.cesEmp||0);
   }
   totalCot=dctoAfp+dctoSalud+cesTrab+cesEmp+sis+mutual;
   var analistaEmail=u.email||'reportes@contadoor.cl';
   var analistaWa=u.wa||'979881891';
   var analistaNombre=u.nombre||'Contadoor';
   var waMsg=encodeURIComponent('Hola Contadoor, soy de '+(r.clienteNombre||r.rut)+'. Quiero coordinar el pago de cotizaciones '+periodo+'.');
-  var waUrl='https://wa.me/56'+analistaWa.replace(/\D/g,'')+'?text='+waMsg;
+  var waUrl='https://wa.me/56'+analistaWa.replace(/\D/g,'')+('?text=')+waMsg;
   var mailPago='mailto:'+analistaEmail+'?subject='+encodeURIComponent('Pagaré cotizaciones '+periodo+' — '+(r.clienteNombre||r.rut))+'&body='+encodeURIComponent('Hola '+analistaNombre+', confirmo que realizaré la transferencia de '+ff(totalCot)+' por las cotizaciones de '+periodo+' dentro del plazo.');
   var mailPost='mailto:'+analistaEmail+'?subject='+encodeURIComponent('Quiero postergar cotizaciones '+periodo+' — '+(r.clienteNombre||r.rut))+'&body='+encodeURIComponent('Hola '+analistaNombre+', necesito postergar el pago de cotizaciones de '+periodo+'. Motivo: ');
-  var datosBancarios='Asesorías Contadoor Ltda.\nRUT: 77.166.269-2\nBanco: Itaú\nTipo: Cuenta corriente\nN° cuenta: 0220729517\nMonto: '+ff(totalCot);
-  var colorVenc=diasRest<=5?'#a93226':'#C0392B';
+  var LOGO='https://agenda.contadoor.cl/logo_blanco_new.png';
+  var AVISO='Asesorías Contadoor Ltda. no se hace responsable de multas, intereses ni recargos generados por el pago fuera de plazo. La recepción de este aviso constituye notificación formal de las obligaciones y fechas límite vigentes. Para coordinar postergaciones, contáctenos antes del plazo indicado.';
   return '<div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto">'
-  // Header morado
-  +'<div style="background:#904891;padding:16px 24px;display:flex;align-items:center;justify-content:space-between">'
-  +'<span style="color:#fff;font-weight:600;font-size:15px">Contadoor</span>'
-  +'<span style="background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:3px 12px;font-size:11px;color:rgba(255,255,255,.9)">Aviso de Cotizaciones · '+periodo+'</span></div>'
+  // Header con logo
+  +'<div style="background:#904891;padding:14px 24px;display:flex;align-items:center;justify-content:space-between">'
+  +'<img src="'+LOGO+'" style="height:28px;object-fit:contain;object-position:left" alt="Contadoor">'
+  +'<span style="background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:3px 12px;font-size:11px;color:rgba(255,255,255,.9)">📋 Aviso de Cotizaciones · '+periodo+'</span>'
+  +'</div>'
   // Saludo
-  +'<div style="padding:20px 24px 14px;border-bottom:1px solid #f0ebf0">'
+  +'<div style="padding:18px 24px 14px;border-bottom:1px solid #f0ebf0">'
   +'<p style="font-size:15px;font-weight:600;color:#1a0a1b;margin:0 0 6px">Hola '+(r.clienteNombre||r.rut)+',</p>'
-  +'<p style="font-size:13px;color:#5c4a5d;margin:0 0 8px;line-height:1.7">Compartimos el <strong style="color:#904891">Aviso de Cotizaciones · '+periodo+'</strong> para que puedas planificar el pago de las obligaciones previsionales de tu empresa.</p>'
-  +'<p style="font-size:12px;color:#9a849b;margin:0">Este es un informe previo. En los próximos días recibirás el Reporte Mensual Consolidado.</p></div>'
-  // Alerta vencimiento prominente
-  +'<div style="padding:14px 24px;background:'+colorVenc+';border-bottom:1px solid #a93226">'
-  +'<div style="display:flex;align-items:center;justify-content:space-between">'
-  +'<div style="display:flex;align-items:center;gap:10px">'
-  +'<div style="font-size:22px;color:#fff">⏰</div>'
-  +'<div><div style="font-size:13px;font-weight:600;color:#fff">Vencimiento: '+fechaTope+'</div>'
-  +'<div style="font-size:11px;color:rgba(255,255,255,.8);margin-top:1px">Quedan '+diasRest+' días para realizar el pago</div></div></div>'
-  +'<div style="background:rgba(0,0,0,.2);border-radius:20px;padding:4px 14px;font-size:14px;font-weight:700;color:#fff">'+diasRest+' días</div>'
+  +'<p style="font-size:13px;color:#5c4a5d;margin:0;line-height:1.7">Compartimos el <strong style="color:#904891">Aviso de Cotizaciones · '+periodo+'</strong> para que puedas planificar el pago de las obligaciones previsionales de tu empresa.</p>'
+  +'</div>'
+  // Fechas importantes
+  +'<div style="padding:14px 24px;background:#f5f0f8;border-bottom:1px solid #e8dde8">'
+  +'<div style="font-size:11px;font-weight:600;color:#904891;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📅 Fechas importantes</div>'
+  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+  +'<div style="background:#fff;border:0.5px solid #e8dde8;border-left:3px solid #C07A1A;border-radius:0 7px 7px 0;padding:10px 12px">'
+  +'<div style="font-size:10px;color:#9a849b;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Postergación hasta</div>'
+  +'<div style="font-size:13px;font-weight:600;color:#854F0B">'+fechaPostergar+'</div>'
+  +'<div style="font-size:11px;color:#9a849b;margin-top:2px">Plazo máximo para informar</div>'
+  +'</div>'
+  +'<div style="background:#fff;border:0.5px solid #e8dde8;border-left:3px solid #C0392B;border-radius:0 7px 7px 0;padding:10px 12px">'
+  +'<div style="font-size:10px;color:#9a849b;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Pago cotizaciones</div>'
+  +'<div style="font-size:13px;font-weight:600;color:#C0392B">'+fechaTope+' · 12:30 hrs</div>'
+  +'<div style="font-size:11px;color:#9a849b;margin-top:2px">Plazo máximo — sin excepciones</div>'
+  +'</div>'
   +'</div></div>'
   // KPIs
   +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e8dde8">'
@@ -1371,34 +1378,37 @@ function buildPreReporteRrhhHTML(r,data){
   +'<div style="background:#fff;padding:14px 16px"><div style="font-size:10px;color:#9a849b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Nómina líquida</div><div style="font-size:22px;font-weight:700;color:#2D9B6F">'+ff(nomina)+'</div><div style="font-size:10px;color:#9a849b;margin-top:2px">Total a pagar trabajadores</div></div>'
   +'<div style="background:#fff;padding:14px 16px"><div style="font-size:10px;color:#9a849b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total cotizaciones</div><div style="font-size:22px;font-weight:700;color:#904891">'+ff(totalCot)+'</div><div style="font-size:10px;color:#9a849b;margin-top:2px">Incluye aportes empleador</div></div>'
   +'</div>'
-  // Tabla cotizaciones
+  // Tabla
   +'<div style="padding:16px 24px;border-bottom:1px solid #f0ebf0">'
   +'<div style="font-size:11px;font-weight:600;color:#1a0a1b;margin-bottom:10px">Detalle de cotizaciones</div>'
   +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
   +'<tr><td colspan="2" style="padding:5px 8px;font-size:10px;font-weight:600;color:#904891;background:#faf7fa;text-transform:uppercase;letter-spacing:.4px">Descuentos trabajadores</td></tr>'
-  +(dctoAfp?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">AFP</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(dctoAfp)+'</td></tr>':''  )
-  +(dctoSalud?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Salud (ISAPRE / Fonasa)</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(dctoSalud)+'</td></tr>':''  )
-  +(cesTrab?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Cesantía trabajador</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(cesTrab)+'</td></tr>':''  )
+  +(dctoAfp?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">AFP</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(dctoAfp)+'</td></tr>':'')
+  +(dctoSalud?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Salud (ISAPRE / Fonasa)</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(dctoSalud)+'</td></tr>':'')
+  +(cesTrab?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Cesantía trabajador</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(cesTrab)+'</td></tr>':'')
   +'<tr><td colspan="2" style="padding:5px 8px;font-size:10px;font-weight:600;color:#904891;background:#faf7fa;text-transform:uppercase;letter-spacing:.4px">Aportes empleador</td></tr>'
-  +(sis?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">SIS</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(sis)+'</td></tr>':''  )
-  +(mutual?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Mutual / Accidentes</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(mutual)+'</td></tr>':''  )
-  +(cesEmp?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Cesantía empleador</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(cesEmp)+'</td></tr>':''  )
+  +(sis?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">SIS</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(sis)+'</td></tr>':'')
+  +(mutual?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Mutual / Accidentes</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(mutual)+'</td></tr>':'')
+  +(cesEmp?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Cesantía empleador</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(cesEmp)+'</td></tr>':'')
   +'<tr style="border-top:2px solid #e8dde8"><td style="padding:8px 8px;font-weight:600;color:#1a0a1b">Total a pagar</td><td style="text-align:right;padding:8px 8px;font-weight:700;font-size:15px;color:#904891">'+ff(totalCot)+'</td></tr>'
   +'</table></div>'
-  // Botones CTA
-  +'<div style="padding:18px 24px;border-bottom:1px solid #f0ebf0">'
+  // CTAs
+  +'<div style="padding:16px 24px;border-bottom:1px solid #f0ebf0">'
   +'<div style="font-size:13px;font-weight:600;color:#1a0a1b;margin-bottom:6px">¿Cómo procederás con este pago?</div>'
-  +'<p style="font-size:12px;color:#5c4a5d;line-height:1.65;margin:0 0 16px">Respóndenos antes del <strong>'+fechaTope+'</strong> para coordinar a tiempo y evitar multas.</p>'
-  +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">'
+  +'<p style="font-size:12px;color:#5c4a5d;margin:0 0 14px;line-height:1.6">Infórmanos <strong>antes del '+fechaPostergar+'</strong> si necesitas postergar, o realiza el pago antes del <strong>'+fechaTope+' a las 12:30 hrs</strong>.</p>'
+  +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">'
   +'<a href="'+mailPago+'" style="display:inline-flex;align-items:center;gap:6px;background:#2D9B6F;color:#fff;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:600;text-decoration:none">✅ Pagaré en el plazo</a>'
   +'<a href="'+mailPost+'" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#854F0B;border:1px solid #EF9F27;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:600;text-decoration:none">⏳ Quiero postergar</a>'
   +'<a href="'+waUrl+'" style="display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:600;text-decoration:none">💬 WhatsApp</a>'
   +'</div>'
-  // Botón copiar datos bancarios
-  +'<div style="border-top:1px dashed #e8dde8;padding-top:14px;display:flex;align-items:center;gap:12px">'
-  +'<span style="font-size:11px;color:#9a849b;flex:1">¿No tienes guardados nuestros datos bancarios?</span>'
-  +'<a href="mailto:'+analistaEmail+'?subject=Necesito datos bancarios&body=Hola, necesito los datos bancarios para realizar la transferencia de cotizaciones '+periodo+'." style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#904891;border:1px solid #e8dde8;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;text-decoration:none">📋 Solicitar datos bancarios</a>'
+  +'<div style="border-top:1px dashed #e8dde8;padding-top:12px;display:flex;align-items:center;gap:12px">'
+  +'<span style="font-size:11px;color:#9a849b;flex:1">¿No tienes nuestros datos bancarios?</span>'
+  +'<a href="mailto:'+analistaEmail+'?subject=Necesito datos bancarios cotizaciones '+periodo+'" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#904891;border:1px solid #e8dde8;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;text-decoration:none">📋 Solicitar datos</a>'
   +'</div></div>'
+  // Aviso legal
+  +'<div style="padding:12px 24px;background:#f5f0f8;border-top:1px solid #e8dde8;border-bottom:1px solid #e8dde8">'
+  +'<p style="font-size:10px;color:#9a849b;line-height:1.6;margin:0;font-style:italic">'+AVISO+'</p>'
+  +'</div>'
   // Footer
   +'<div style="padding:12px 24px;background:#1a0a1b;text-align:center">'
   +'<p style="font-size:11px;color:#c9a6e8;margin:0 0 2px">'+analistaNombre+' · Asesorías Contadoor Ltda.</p>'
@@ -1587,7 +1597,7 @@ function marcarFinalizadoRrhh(id){
 }
 
 // ── RECORDATORIOS AUTOMÁTICOS ────────────────────────────────────────────────
-function buildRecordatorioRrhhHTML(r, diasSinPagar, esUrgente){
+function buildRecordatorioRrhhHTML(r,diasSinPagar,esUrgente){
   var periodo=formatPeriodo(r.periodo);
   var u=getUsuario();
   var partes=String(r.periodo||'').split('-');
@@ -1595,46 +1605,60 @@ function buildRecordatorioRrhhHTML(r, diasSinPagar, esUrgente){
   var mes=parseInt(partes[1])||1;
   mes++;if(mes>12){mes=1;anio++;}
   var MESES2=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var fechaPostergar='10 de '+MESES2[mes-1]+' de '+anio;
   var fechaTope='13 de '+MESES2[mes-1]+' de '+anio;
-  var diasRest=Math.max(0,Math.floor((new Date(anio,mes-1,13)-new Date())/(864e5)));
+  var diasRest=Math.max(0,Math.floor((new Date(anio,mes-1,13,12,30)-new Date())/(864e5)));
   var totalCot=(r.afp||0)+(r.salud||0)+(r.cesTrab||0)+(r.sis||0)+(r.mutual||0)+(r.cesEmp||0)||r.totalCot||0;
   var analistaEmail=u.email||'reportes@contadoor.cl';
+  var analistaWa=u.wa||'979881891';
   var analistaNombre=u.nombre||'Contadoor';
-  var mailPago='mailto:'+analistaEmail+'?subject='+encodeURIComponent('Pagaré cotizaciones '+periodo+' — '+(r.clienteNombre||r.rut))+'&body='+encodeURIComponent('Hola '+analistaNombre+', confirmo que realizaré la transferencia de '+ff(totalCot)+' por las cotizaciones de '+periodo+' dentro del plazo.');
-  var mailPost='mailto:'+analistaEmail+'?subject='+encodeURIComponent('Quiero postergar cotizaciones '+periodo+' — '+(r.clienteNombre||r.rut))+'&body='+encodeURIComponent('Hola '+analistaNombre+', necesito postergar el pago de cotizaciones de '+periodo+'. Motivo: ');
-  var colorFondo=esUrgente?'#C0392B':'#C07A1A';
-  var textoUrgencia=esUrgente
-    ?'Cotizaciones de '+periodo+' sin pagar. El vencimiento es el '+fechaTope+' — después se generan multas e intereses. Contáctanos hoy.'
-    :'Te recordamos que las cotizaciones de '+periodo+' aún aparecen pendientes. Quedan '+diasRest+' días para el vencimiento. Si ya realizaste el pago, responde con el comprobante.';
+  var mailPago='mailto:'+analistaEmail+'?subject='+encodeURIComponent('Pagaré cotizaciones '+periodo+' — '+(r.clienteNombre||r.rut))+'&body='+encodeURIComponent('Hola '+analistaNombre+', confirmo el pago de '+ff(totalCot)+' por cotizaciones '+periodo+'.');
+  var mailPost='mailto:'+analistaEmail+'?subject='+encodeURIComponent('Quiero postergar cotizaciones '+periodo+' — '+(r.clienteNombre||r.rut))+'&body='+encodeURIComponent('Hola '+analistaNombre+', necesito postergar cotizaciones '+periodo+'. Motivo: ');
+  var LOGO='https://agenda.contadoor.cl/logo_blanco_new.png';
+  var AVISO='Asesorías Contadoor Ltda. no se hace responsable de multas, intereses ni recargos generados por el pago fuera de plazo. La recepción de este aviso constituye notificación formal de las obligaciones y fechas límite vigentes. Para coordinar postergaciones, contáctenos antes del plazo indicado.';
+  // Color según urgencia
+  var colorBanner=esUrgente?'#C0392B':diasSinPagar>=8?'#C07A1A':'#2D9B6F';
+  var emoji=esUrgente?'🚨':diasSinPagar>=8?'⏳':'📋';
+  var badge=esUrgente?'Pago vencido — riesgo de multa':diasSinPagar>=8?'Se acerca el vencimiento':'Aviso enviado — sin respuesta aún';
+  var titulo=esUrgente?'Cotizaciones vencidas — se generan multas e intereses':diasSinPagar>=8?'Quedan pocos días — cotizaciones '+periodo:'¿Ya viste el aviso de cotizaciones?';
+  var cuerpo=esUrgente
+    ?'El plazo del <strong>'+fechaTope+' a las 12:30 hrs</strong> ya venció. Contáctanos de inmediato para gestionar el pago y minimizar los recargos.'
+    :diasSinPagar>=8
+      ?'El plazo para informar postergación vence el <strong>'+fechaPostergar+'</strong>. El pago final es el <strong>'+fechaTope+' a las 12:30 hrs</strong>. Respóndenos hoy.'
+      :'Aún no hemos recibido respuesta. El plazo de postergación vence el <strong>'+fechaPostergar+'</strong> y el pago el <strong>'+fechaTope+' a las 12:30 hrs</strong>. ¿Cómo procederás?';
   return '<div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto">'
-  +'<div style="background:#904891;padding:16px 24px;display:flex;align-items:center;justify-content:space-between">'
-  +'<span style="color:#fff;font-weight:600;font-size:15px">Contadoor</span>'
-  +'<span style="background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:3px 12px;font-size:11px;color:rgba(255,255,255,.9)">'+(esUrgente?'⚠️ Pago urgente':'🔔 Recordatorio de pago')+'</span></div>'
-  +'<div style="padding:14px 24px;background:'+colorFondo+'">'
-  +'<div style="display:flex;align-items:center;gap:10px">'
-  +'<div style="font-size:20px;color:#fff">'+(esUrgente?'🚨':'⏰')+'</div>'
-  +'<div><div style="font-size:13px;font-weight:600;color:#fff">'+(esUrgente?'Pago con '+diasSinPagar+' días de atraso':'Pago pendiente · '+diasSinPagar+' días sin conciliar')+'</div>'
-  +'<div style="font-size:11px;color:rgba(255,255,255,.8)">Vencimiento: '+fechaTope+(diasRest>0?' — '+diasRest+' días':'')+'</div></div></div></div>'
+  +'<div style="background:'+colorBanner+';padding:14px 24px;display:flex;align-items:center;justify-content:space-between">'
+  +'<img src="'+LOGO+'" style="height:26px;object-fit:contain;object-position:left" alt="Contadoor">'
+  +'<span style="background:rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:3px 12px;font-size:11px;color:rgba(255,255,255,.9)">'+emoji+' '+badge+'</span>'
+  +'</div>'
   +'<div style="padding:18px 24px;border-bottom:1px solid #f0ebf0">'
-  +'<p style="font-size:15px;font-weight:600;color:#1a0a1b;margin:0 0 10px">Hola '+(r.clienteNombre||r.rut)+',</p>'
-  +'<p style="font-size:13px;color:#5c4a5d;line-height:1.7;margin:0 0 16px">'+textoUrgencia+'</p>'
-  +'<div style="background:#faf7fa;border:1px solid #e8dde8;border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
+  +'<p style="font-size:15px;font-weight:600;color:#1a0a1b;margin:0 0 6px">Hola '+(r.clienteNombre||r.rut)+',</p>'
+  +'<p style="font-size:13px;font-weight:600;color:'+(esUrgente?'#C0392B':diasSinPagar>=8?'#854F0B':'#1a0a1b')+';margin:0 0 8px">'+titulo+'</p>'
+  +'<p style="font-size:13px;color:#5c4a5d;line-height:1.7;margin:0 0 16px">'+cuerpo+'</p>'
+  +'<div style="background:#faf7fa;border:0.5px solid #e8dde8;border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
   +'<div><div style="font-size:11px;color:#9a849b;margin-bottom:2px">Total cotizaciones '+periodo+'</div>'
   +'<div style="font-size:20px;font-weight:700;color:#904891">'+ff(totalCot)+'</div></div>'
-  +'<div style="font-size:11px;color:#C0392B;font-weight:600">'+fechaTope+'</div></div>'
+  +'<div style="text-align:right"><div style="font-size:10px;color:#9a849b;margin-bottom:2px">Plazo máximo</div>'
+  +'<div style="font-size:12px;font-weight:600;color:#C0392B">'+fechaTope+' · 12:30 hrs</div></div>'
+  +'</div>'
   +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">'
-  +'<a href="'+mailPago+'" style="display:inline-flex;align-items:center;gap:6px;background:#2D9B6F;color:#fff;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:600;text-decoration:none">✅ Pagaré en el plazo</a>'
-  +'<a href="'+mailPost+'" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#854F0B;border:1px solid #EF9F27;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:600;text-decoration:none">⏳ Quiero postergar</a></div>'
+  +'<a href="'+mailPago+'" style="display:inline-flex;align-items:center;gap:6px;background:#2D9B6F;color:#fff;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;text-decoration:none">✅ Pagaré en el plazo</a>'
+  +(esUrgente?'':'<a href="'+mailPost+'" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#854F0B;border:1px solid #EF9F27;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;text-decoration:none">⏳ Quiero postergar</a>')
+  +'<a href="https://wa.me/56'+analistaWa.replace(/\D/g,'')+'" style="display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;text-decoration:none">💬 WhatsApp</a>'
+  +'</div>'
   +'<div style="border-top:1px dashed #e8dde8;padding-top:12px;display:flex;align-items:center;gap:12px">'
   +'<span style="font-size:11px;color:#9a849b;flex:1">¿No tienes nuestros datos bancarios?</span>'
   +'<a href="mailto:'+analistaEmail+'?subject=Necesito datos bancarios cotizaciones '+periodo+'" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#904891;border:1px solid #e8dde8;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;text-decoration:none">📋 Solicitar datos</a>'
   +'</div></div>'
+  +'<div style="padding:12px 24px;background:#f5f0f8;border-top:1px solid #e8dde8;border-bottom:1px solid #e8dde8">'
+  +'<p style="font-size:10px;color:#9a849b;line-height:1.6;margin:0;font-style:italic">'+AVISO+'</p>'
+  +'</div>'
   +'<div style="padding:12px 24px;background:#1a0a1b;text-align:center">'
   +'<p style="font-size:11px;color:#c9a6e8;margin:0 0 2px">'+analistaNombre+' · Asesorías Contadoor Ltda.</p>'
   +'<p style="font-size:10px;color:#4a3060;margin:0">reportes@contadoor.cl · contadoor.cl · +56 9 7988 1891</p>'
-  +'</div></div>';
+  +'</div>'
+  +'</div>';
 }
-
 function enviarRecordatorioRrhh(id, forzar){
   var r=getReportes().find(function(x){return String(x.id)===String(id);});
   if(!r) return;
