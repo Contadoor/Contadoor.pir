@@ -1614,7 +1614,47 @@ function guardarRrhh(accion){
   if(accion==='ok'){
     if(!arr[idx].secciones) arr[idx].secciones={};
     arr[idx].secciones.rrhh={ok:true,ts:new Date().toISOString(),por:getUsuario().nombre||'Analista RRHH'};
+    // ── Traspaso automático IU al módulo contable ──────────────
+  var iuVal=arr[idx].iuTributario||arr[idx].iu||0;
+  if(iuVal>0 && accion==='ok'){
+    // Buscar o crear reporte contable del mismo cliente/período
+    var rutRep=arr[idx].rut;
+    var perRep=arr[idx].periodo;
+    var reportesCont=getReportes();
+    var idxCont=reportesCont.findIndex(function(r){
+      return r.rut===rutRep&&r.periodo===perRep&&r.tieneRrhh===false;
+    });
+    // Si no existe reporte contable separado, actualizar el mismo reporte
+    // El campo imp2cat del f29 recibe el IU del libro RRHH
+    if(idxCont>=0){
+      if(!reportesCont[idxCont].f29) reportesCont[idxCont].f29={};
+      reportesCont[idxCont].f29.imp2cat=iuVal;
+      reportesCont[idxCont].iuRrhh=iuVal;
+      reportesCont[idxCont].iuRrhhFecha=new Date().toISOString();
+    } else {
+      // Actualizar el mismo reporte con el campo iuTributario ya guardado
+      arr[idx].f29=arr[idx].f29||{};
+      arr[idx].f29.imp2cat=iuVal;
+    }
+    // Patch en Supabase: actualizar campo imp2cat del reporte contable
+    sbPatchRrhh(arr[idx].id,{
+      iu_sii: iuVal,  // columna en Supabase: iu_sii
+      f29: arr[idx].f29
+    });
     // Notificar al analista contable
+    if(window.crearNotificacion) crearNotificacion({
+      modulo:'contable',
+      tipo:'accion_requerida',
+      prioridad:'alta',
+      clienteNombre:arr[idx].clienteNombre||arr[idx].rut,
+      clienteRut:arr[idx].rut,
+      periodo:formatPeriodo(arr[idx].periodo),
+      mensaje:'IU 2ª Cat. traspasado desde RRHH: '+ff(iuVal)+'. Pre-cargado en F29 del período.',
+      accion:'ver_f29'
+    });
+    toast('✅ IU '+ff(iuVal)+' traspasado al módulo contable (F29)');
+  }
+  // Notificar al analista contable
     if(window.crearNotificacion) crearNotificacion({
       modulo:'impuestos',tipo:'info',prioridad:'media',
       clienteNombre:arr[idx].clienteNombre,clienteRut:arr[idx].rut,periodo:arr[idx].periodo,
