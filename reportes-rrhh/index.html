@@ -512,11 +512,38 @@ function cargarDesdeSupabase(periodo,callback){
   }).catch(function(){if(callback)callback();});
 }
 
-function getReportes(){try{return JSON.parse(localStorage.getItem('reportes_mensuales')||'[]');}catch(e){return[];}}
+// Cache en memoria para evitar localStorage
+var _reportesCache=null;
+function getReportes(){
+  if(_reportesCache!==null) return _reportesCache;
+  // Fallback a localStorage mientras carga Supabase
+  try{return JSON.parse(localStorage.getItem('reportes_mensuales')||'[]');}catch(e){return[];}
+}
+function setReportesCache(arr){
+  _reportesCache=arr;
+  // Sync a localStorage como respaldo offline
+  try{localStorage.setItem('reportes_mensuales',JSON.stringify(arr));}catch(e){}
+}
+function cargarReportesDesdeSupabase(periodo,cb){
+  var url='https://ulxoxqbuxiuylaolaqxj.supabase.co/rest/v1/reportes_mensuales?periodo=eq.'+encodeURIComponent(periodo)+'&select=*&order=created_at.desc';
+  fetch(url,{headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA','Content-Type':'application/json'}})
+  .then(function(r){return r.ok?r.json():null;})
+  .then(function(rows){
+    if(!rows) return cb&&cb();
+    // Merge con lo que hay en caché (otros períodos)
+    var all=JSON.parse(localStorage.getItem('reportes_mensuales')||'[]');
+    // Quitar los del período actual y reemplazar con Supabase
+    all=all.filter(function(x){return x.periodo!==periodo;});
+    all=all.concat(rows);
+    _reportesCache=all;
+    localStorage.setItem('reportes_mensuales',JSON.stringify(all));
+    cb&&cb();
+  }).catch(function(){cb&&cb();});
+}
 var _enviandoMasivo=false;
 function setReportes(arr){
-  localStorage.setItem('reportes_mensuales',JSON.stringify(arr));
-  if(_enviandoMasivo) return; // no re-renderizar durante envío masivo
+  setReportesCache(arr);
+  if(_enviandoMasivo) return;
   var per=sv('selectPeriodo');
   if(per&&document.getElementById('tablaBody')) renderTabla(per);
 }
@@ -573,8 +600,30 @@ function init(){
 }
 
 function popularSelectPeriodos(){
-  var periodos=getPeriodos().sort(function(a,b){return a.periodo>b.periodo?-1:1;});
+  // Primero renderizar con lo que hay en local
+  _renderSelectPeriodos(getPeriodos());
+  // Luego sincronizar desde Supabase (períodos abiertos por Luciano)
+  fetch(SB_URL+'/rest/v1/periodos?select=periodo,uf,utm&order=periodo.desc&limit=12',{
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+  }).then(function(r){return r.ok?r.json():[];})
+  .then(function(rows){
+    if(!rows||!rows.length) return;
+    // Sincronizar al localStorage
+    var local=getPeriodos();
+    rows.forEach(function(row){
+      if(!local.find(function(x){return x.periodo===row.periodo;})){
+        local.push({periodo:row.periodo,uf:row.uf,utm:row.utm});
+      }
+    });
+    localStorage.setItem('rpt_periodos',JSON.stringify(local));
+    _renderSelectPeriodos(local);
+  }).catch(function(){});
+}
+function _renderSelectPeriodos(periodos){
+  periodos=periodos.sort(function(a,b){return a.periodo>b.periodo?-1:1;});
   var sel=document.getElementById('selectPeriodo');
+  if(!sel) return;
+  var cur=sel.value;
   sel.innerHTML='<option value="">Seleccionar período...</option>';
   periodos.forEach(function(p){
     var opt=document.createElement('option');
@@ -582,15 +631,31 @@ function popularSelectPeriodos(){
     opt.textContent=formatPeriodo(p.periodo);
     sel.appendChild(opt);
   });
+  if(cur) sel.value=cur;
+  // Auto-seleccionar período actual si no hay selección
+  if(!sel.value){
+    var hoy=new Date();
+    var cur2=hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0');
+    for(var i=0;i<sel.options.length;i++){
+      if(sel.options[i].value===cur2){sel.selectedIndex=i;break;}
+    }
+    if(!sel.value&&sel.options.length>1) sel.selectedIndex=1;
+    if(sel.value) cargarPeriodo();
+  }
 }
 
 function cargarPeriodo(){
   var periodo=sv('selectPeriodo');
-  // Actualizar badge período en topbar
   var badge=document.getElementById('tb-periodo-badge');
   if(badge&&periodo) badge.textContent=formatPeriodo(periodo);
-  var periodo=sv('selectPeriodo');
   if(!periodo){document.getElementById('tablaBody').innerHTML='';return;}
+  // Mostrar loading
+  var tb=document.getElementById('tablaBody');
+  if(tb) tb.innerHTML='<tr><td colspan="8" style="padding:24px;text-align:center;color:var(--tm);font-size:12px">Cargando reportes...</td></tr>';
+  // Cargar desde Supabase y luego renderizar
+  cargarReportesDesdeSupabase(periodo,function(){
+    renderTabla(periodo);
+  });
   var periodos=getPeriodos();
   var pd=periodos.find(function(p){return p.periodo===periodo;});
   document.getElementById('periodo-label').textContent=formatPeriodo(periodo);
@@ -707,7 +772,10 @@ function renderTabla(periodo){
     if(analista){
       var _cli=getClientes().find(function(x){return x.rut===r.rut;});
       var analistaAsignado=(_cli&&(_cli.rrhh||_cli.analistaRrhh))||r.preparado||'';
-      if(analistaAsignado && analistaAsignado!==analista) return false;
+      // Comparar ignorando mayúsculas/minúsculas y espacios extra
+      var _a1=(analistaAsignado||'').trim().toLowerCase();
+      var _a2=(analista||'').trim().toLowerCase();
+      if(_a1 && _a1!==_a2) return false;
     }
     return true;
   });
@@ -1338,7 +1406,7 @@ function enviarReporteParcial(){
       var arr=getReportes();
       var i=arr.findIndex(function(x){return String(x.id)===String(r.id);});
       if(i>=0){arr[i].preReporteEnviado=true;arr[i].preReporteFecha=new Date().toISOString();arr[i].estado='enviado';}
-      localStorage.setItem('reportes_mensuales',JSON.stringify(arr));
+      setReportesCache(arr);
       closeModalRrhh();
       renderTabla();
       var t=document.createElement('div');
@@ -1375,9 +1443,13 @@ function buildPreReporteRrhhHTML(r,data){
   totalCot=dctoAfp+dctoSalud+cesTrab+cesEmp+sis+mutual;
   var _cli=getClientes().find(function(x){return x.rut===r.rut;});
   var contacto=(_cli&&(_cli.contacto||_cli.contact))||r.clienteNombre||r.rut;
-  var analistaEmail=u.email||'reportes@contadoor.cl';
-  var analistaWa=u.wa||'979881891';
-  var analistaNombre=u.nombre||'Contadoor';
+  // Analista RRHH asignado al cliente (no quien está logueado)
+  var _analistaRrhhNombre=(_cli&&(_cli.rrhh||_cli.analistaRrhh))||u.nombre||'Contadoor';
+  var _todosAnalistas=getAnalistas?getAnalistas():[]; // de admin si existe
+  var _analistaObj=_todosAnalistas.find(function(a){return a.nombre===_analistaRrhhNombre;});
+  var analistaNombre=_analistaRrhhNombre;
+  var analistaEmail=(_analistaObj&&_analistaObj.email)||(_cli&&_cli.emailAnalistaRrhh)||u.email||'reportes@contadoor.cl';
+  var analistaWa=(_analistaObj&&_analistaObj.wa)||(_cli&&_cli.waAnalistaRrhh)||u.wa||'979881891';
   var waMsg=encodeURIComponent('Hola Contadoor, soy de '+(r.clienteNombre||r.rut)+'. Quiero coordinar el pago de cotizaciones '+periodo+'.');
   var waUrl='https://wa.me/56'+analistaWa.replace(/\D/g,'')+('?text=')+waMsg;
   var mailPago='mailto:'+analistaEmail+'?subject='+encodeURIComponent('Pagaré cotizaciones '+periodo+' — '+(r.clienteNombre||r.rut))+'&body='+encodeURIComponent('Hola '+analistaNombre+', confirmo que realizaré la transferencia de '+ff(totalCot)+' por las cotizaciones de '+periodo+' dentro del plazo.');
@@ -1385,9 +1457,9 @@ function buildPreReporteRrhhHTML(r,data){
   var LOGO='https://assets.cdn.filesafe.space/kfq1F3czdejkInyTMLkO/media/6982b1a12dd9857339e39ae1.png';
   var AVISO='Asesorías Contadoor Ltda. no se hace responsable de multas, intereses ni recargos generados por el pago fuera de plazo. La recepción de este aviso constituye notificación formal de las obligaciones y fechas límite vigentes. Para coordinar postergaciones, contáctenos antes del plazo indicado.';
   return '<div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto">'
-  // Header con logo centrado
-  +'<div style="background:#904891;padding:16px 24px;text-align:center">'
-  +'<img src="'+LOGO+'" style="height:32px;object-fit:contain;filter:brightness(0) invert(1)" alt="Contadoor">'
+  // Header: fondo morado + logo blanco
+  +'<div style="background:#904891;padding:18px 24px;text-align:center">'
+  +'<img src="https://agenda.contadoor.cl/logo_blanco_new.png" width="160" style="display:block;margin:0 auto;max-height:40px;object-fit:contain" alt="Contadoor">'
   +'</div>'
   // Saludo
   +'<div style="padding:18px 24px 14px;border-bottom:1px solid #f0ebf0">'
@@ -1511,7 +1583,7 @@ function enviarPreReporteRrhh(id){
       var arr=getReportes();
       var i=arr.findIndex(function(x){return String(x.id)===String(id);});
       if(i>=0){arr[i].preReporteEnviado=true;arr[i].preReporteFecha=new Date().toISOString();}
-      localStorage.setItem('reportes_mensuales',JSON.stringify(arr));
+      setReportesCache(arr);
       renderTabla();
       var t=document.createElement('div');
       t.style.cssText='position:fixed;bottom:24px;right:24px;background:#1a2e1a;border:1px solid #4ade80;color:#4ade80;padding:12px 18px;border-radius:8px;font-size:13px;z-index:9999';
@@ -1674,8 +1746,8 @@ function buildRecordatorioRrhhHTML(r,diasSinPagar,esUrgente){
       ?'El plazo para informar postergación vence el <strong>'+fechaPostergar+'</strong>. El pago final es el <strong>'+fechaTope+' a las 12:30 hrs</strong>. Respóndenos hoy.'
       :'Aún no hemos recibido respuesta. El plazo de postergación vence el <strong>'+fechaPostergar+'</strong> y el pago el <strong>'+fechaTope+' a las 12:30 hrs</strong>. ¿Cómo procederás?';
   return '<div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto">'
-  +'<div style="background:'+colorBanner+';padding:14px 24px;text-align:center">'
-  +'<img src="'+LOGO+'" style="height:28px;object-fit:contain;filter:brightness(0) invert(1)" alt="Contadoor">'
+  +'<div style="background:'+colorBanner+';padding:16px 24px;text-align:center">'
+  +'<img src="https://agenda.contadoor.cl/logo_blanco_new.png" width="140" style="display:block;margin:0 auto;max-height:36px;object-fit:contain" alt="Contadoor">'
   +'</div>'
   +'<div style="padding:18px 24px;border-bottom:1px solid #f0ebf0">'
   +'<p style="font-size:15px;font-weight:600;color:#1a0a1b;margin:0 0 6px">Hola '+contacto+',</p>'
@@ -1888,10 +1960,17 @@ function enviarAvisoCotSilencioso(id, cb){
   }).then(function(res){return res.json();})
   .then(function(d){
     if(d.ok){
+      // Guardar directo en localStorage sin disparar re-render
       var arr=getReportes();
       var i=arr.findIndex(function(x){return String(x.id)===String(id);});
-      if(i>=0){arr[i].estado='aviso_enviado';arr[i].preReporteFecha=new Date().toISOString();setReportes(arr);
-      crearNotificacion({modulo:'rrhh',tipo:'info',prioridad:'media',clienteNombre:arr[i].clienteNombre,clienteRut:arr[i].rut,periodo:arr[i].periodo,mensaje:'Aviso de Cotizaciones enviado a '+to+'.'});}
+      if(i>=0){
+        arr[i].estado='aviso_enviado';
+        arr[i].preReporteFecha=new Date().toISOString();
+        setReportesCache(arr);
+        // Patch a Supabase
+        sbPatchRrhh(arr[i].id,{estado:'aviso_enviado',pre_reporte_enviado:true,pre_reporte_fecha:arr[i].preReporteFecha});
+        crearNotificacion({modulo:'rrhh',tipo:'info',prioridad:'media',clienteNombre:arr[i].clienteNombre,clienteRut:arr[i].rut,periodo:arr[i].periodo,mensaje:'Aviso enviado a '+to+'.'});
+      }
       cb(true);
     }else{cb(false);}
   }).catch(function(){cb(false);});
