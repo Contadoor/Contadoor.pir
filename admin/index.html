@@ -344,8 +344,14 @@ function syncUsuarioSupabase(u){
 }
 
 function getUsuarios(){
-  try{var u=JSON.parse(localStorage.getItem('usuarios_sistema')||'null');if(!u||!u.length){localStorage.setItem('usuarios_sistema',JSON.stringify(USUARIOS_DEFAULT));return USUARIOS_DEFAULT;}return u;}
-  catch(e){return USUARIOS_DEFAULT;}
+  var cached=sbCacheOrLocal('usuarios','usuarios_sistema');
+  return cached||[];
+}
+function recargarUsuarios(cb){
+  sbGetUsuarios(function(rows){
+    if(typeof renderUsuarios==='function') renderUsuarios();
+    if(cb) cb(rows);
+  });
 }
 function setUsuarios(arr){localStorage.setItem('usuarios_sistema',JSON.stringify(arr));arr.forEach(syncUsuarioSupabase);renderUsuarios();}
 function hesc(s){return String(s||'').replace(/&/g,'\x26amp;').replace(/</g,'\x26lt;').replace(/>/g,'\x26gt;');}
@@ -567,6 +573,7 @@ verificarAcceso();
 cargarUsuariosSupabase();
 renderUsuarios();
 </script>
+<script src="../supabase.js"></script>
 <script src="../notifications.js"></script>
 <script src="../auth.js"></script>
 </body>
