@@ -187,6 +187,7 @@ tr:hover td{background:#f9fefb;}
 .bulk-bar{display:none;background:var(--p);color:#fff;padding:10px 16px;border-radius:10px;margin-bottom:12px;align-items:center;gap:12px;}
 .bulk-bar.on{display:flex;}
 </style>
+<script src="../supabase.js"></script>
 </head>
 <body>
 <div class="layout">
@@ -458,14 +459,8 @@ function getUsuario(){try{return JSON.parse(localStorage.getItem('usuario_sesion
 // ═══════════════════════════════════════════════════
 
 // ── SUPABASE ─────────────────────────────────────────────────────────────
-var SB_URL='https://ulxoxqbuxiuylaolaqxj.supabase.co';
-var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA';
-function sbFetch(path,opts){
-  var o=opts||{};
-  return fetch(SB_URL+'/rest/v1/'+path,Object.assign({},o,{
-    headers:Object.assign({'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},o.headers||{})
-  }));
-}
+// (viene de supabase.js)
+
 function sbGetReportes(periodo){
   return sbFetch('reportes_mensuales?periodo=eq.'+periodo+'&select=*')
     .then(function(r){return r.ok?r.json():[];})
@@ -491,12 +486,6 @@ function sbPatchReporte(rut,periodo,data){
 
 
 // ── SUPABASE ─────────────────────────────────────────────────────────────
-var SB_URL='https://ulxoxqbuxiuylaolaqxj.supabase.co';
-var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA';
-function sbH(){return{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};}
-function sbGet(path){return fetch(SB_URL+'/rest/v1/'+path,{headers:sbH()}).then(function(r){return r.ok?r.json():[];}).catch(function(){return[];});}
-function sbPatch(path,data){return fetch(SB_URL+'/rest/v1/'+path,{method:'PATCH',headers:Object.assign({'Prefer':'return=representation'},sbH()),body:JSON.stringify(data)}).catch(function(){});}
-function sbUpsert(path,data){return fetch(SB_URL+'/rest/v1/'+path,{method:'POST',headers:Object.assign({'Prefer':'resolution=merge-duplicates'},sbH()),body:JSON.stringify(data)}).catch(function(){});}
 function syncEstado(rut,periodo,data){if(rut&&periodo)sbPatch('reportes_mensuales?rut=eq.'+encodeURIComponent(rut)+'&periodo=eq.'+periodo,data).catch(function(){});}
 function cargarDesdeSupabase(periodo,callback){
   sbGet('reportes_mensuales?periodo=eq.'+periodo+'&select=*').then(function(sbData){
@@ -584,59 +573,30 @@ function getClientes(){
 function cargarClientesDesdeSupabase(cb){
   sbGet('clientes?select=*&order=razon_social.asc').then(function(rows){
     if(rows&&rows.length){
-      // Mapear snake_case Supabase → camelCase app
-      var mapped=rows.map(function(row){
+      var mapped=rows.map(function(r){
         return {
-          id:              row.id,
-          rut:             row.rut,
-          razon:           row.razon_social,
-          giro:            row.giro,
-          email:           row.email,
-          contacto:        row.contacto,
-          tel:             row.tel,
-          wa:              row.wa,
-          ciudad:          row.ciudad,
-          plan:            row.plan,
-          estado:          row.estado||'activo',
-          inicio:          row.fecha_inicio,
-          reg:             row.regimen,
-          iva:             row.iva_condicion,
-          modalidad:       row.modalidad_pago,
-          moneda:          row.moneda_plan,
-          monedaVar:       row.moneda_variable,
-          monto:           row.monto_base,
-          trab:            row.trab_incluidos||0,
-          varTrab:         row.valor_por_trab||row.hon_variable,
-          // Analistas — campos reales en Supabase
-          rrhh:            row.analista_rrhh,
-          analistaRrhh:    row.analista_rrhh,
-          contador:        row.analista_contable,
-          analistaContable:row.analista_contable,
-          analistaPagos:   row.analista_pagos,
-          emailAnalista:   row.email_analista,
-          waAnalista:      row.wa_analista,
-          prioRrhh:        row.prioridad_rrhh||'media',
-          prioCont:        row.prioridad_contable||'media',
-          // Flags
-          tieneRrhh:         row.tiene_rrhh!==false,
-          tieneContabilidad: row.tiene_contabilidad!==false,
-          // Credenciales
-          siiU:  row.usuario_sii,    siiK:  row.clave_sii,
-          prevU: row.usuario_previred, prevK: row.clave_previred,
-          cuU:   row.usuario_cu,     cuK:   row.clave_cu,
-          factU: row.usuario_fact,   factK: row.clave_fact,
-          licU:  row.usuario_lic,    licK:  row.clave_lic,
-          credsExtra: row.creds_extra||[],
-          obsAcceso:  row.obs_acceso,
-          obs:        row.obs,
-          socios:     row.socios||[]
+          id:r.id, rut:r.rut, razon:r.razon_social, giro:r.giro,
+          email:r.email, contacto:r.contacto, tel:r.tel, wa:r.wa,
+          ciudad:r.ciudad, plan:r.plan, estado:r.estado||'activo',
+          inicio:r.fecha_inicio, reg:r.regimen, iva:r.iva_condicion,
+          modalidad:r.modalidad_pago, moneda:r.moneda_plan,
+          monedaVar:r.moneda_variable, monto:r.monto_base,
+          trab:r.trab_incluidos||0, varTrab:r.valor_por_trab||r.hon_variable,
+          rrhh:r.analista_rrhh, analistaRrhh:r.analista_rrhh,
+          contador:r.analista_contable, analistaContable:r.analista_contable,
+          analistaPagos:r.analista_pagos, emailAnalista:r.email_analista,
+          waAnalista:r.wa_analista, prioRrhh:r.prioridad_rrhh||'media',
+          prioCont:r.prioridad_contable||'media',
+          tieneRrhh:r.tiene_rrhh!==false, tieneContabilidad:r.tiene_contabilidad!==false,
+          obs:r.obs, obsAcceso:r.obs_acceso, socios:r.socios||[],
+          credsExtra:r.creds_extra||[]
         };
       });
       _clientesCache=mapped;
       try{localStorage.setItem('clientes_bd',JSON.stringify(mapped));}catch(e){}
     }
-    cb&&cb();
-  }).catch(function(){cb&&cb();});
+    if(cb)cb();
+  }).catch(function(){if(cb)cb();});
 }
 function getPeriodos(){
   // Leer caché en memoria primero, luego localStorage como fallback
@@ -2199,7 +2159,7 @@ if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',init);
 }else{init();}
 </script>
-<script src="../supabase.js"></script>
+
 <script src="../notifications.js"></script>
 <script src="../auth.js"></script>
 </body>
