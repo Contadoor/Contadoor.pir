@@ -289,7 +289,7 @@ function sbReporteToRow(r){
     ? (r.totalImponible||0)+(r.totalNoImponible||0)+_totalAportes
     : (r.costoLaboral||0);
 
-  return {
+  var row = {
     cliente_rut:          r.rut,
     periodo:              r.periodo,
     estado:               r.estado||'borrador',
