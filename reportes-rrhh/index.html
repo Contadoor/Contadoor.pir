@@ -2083,6 +2083,8 @@ function enviarAvisoRrhhCore(r, opciones){
   var replyTo=u.email||(_cli&&_cli.emailAnalista)||'reportes@contadoor.cl';
   console.log('[RRHH EMAIL] destino:',val.email);
   console.log('[RRHH EMAIL] totalCot:',r.totalCot||r.totalCotizaciones||0);
+  console.log('[RRHH EMAIL] nTrab:',r.nTrab||0);
+  console.log('[RRHH EMAIL] htmlReporte:',htmlEmail.length,'bytes ('+Math.round(htmlEmail.length/1024)+'KB)');
   console.log('[RRHH EMAIL] llamando endpoint...');
   return fetch('https://contafunnel-v2.vercel.app/api/enviar-cotizaciones',{
     method:'POST',
@@ -2105,27 +2107,42 @@ function enviarAvisoRrhhCore(r, opciones){
       return {ok:false, motivo:'HTTP '+res.status+': '+t.slice(0,200)};
     });
     return res.json().then(function(d){
+      // Log completo de la respuesta del endpoint
+      console.log('[RRHH EMAIL] respuesta endpoint:',JSON.stringify(d));
+      if(d&&(d.id||d.messageId)) console.log('[RRHH EMAIL] messageId proveedor:',d.id||d.messageId);
       if(!(d&&d.ok)) return {ok:false, motivo:d&&d.error?d.error:'El servidor rechazó el envío.'};
-      // ── 4. PATCH Supabase ──────────────────────────────────
+      // ── 4. PATCH Supabase (awaited — no fire-and-forget) ───
       var fechaEnvio=new Date().toISOString();
       var idReal=/^\d+$/.test(String(r.id))?r.id:null;
-      if(idReal){
-        sbPatch('reportes_mensuales?id=eq.'+encodeURIComponent(idReal),{
-          estado:'aviso_enviado',
-          pre_reporte_enviado:true,
-          pre_reporte_fecha:fechaEnvio
-        }).catch(function(e){console.warn('[RRHH EMAIL] PATCH SB:',e);});
-      }
-      // ── 5. Actualizar caché local ─────────────────────────
-      var arr=getReportes();
-      var i=arr.findIndex(function(x){return String(x.id)===String(r.id);});
-      if(i>=0){
-        arr[i].preReporteEnviado=true;
-        arr[i].preReporteFecha=fechaEnvio;
-        arr[i].estado='aviso_enviado';
-        setReportesCache(arr);
-      }
-      return {ok:true, email:val.email};
+      var _patchP=idReal
+        ?sbPatch('reportes_mensuales?id=eq.'+encodeURIComponent(idReal),{
+            estado:'aviso_enviado',
+            pre_reporte_enviado:true,
+            pre_reporte_fecha:fechaEnvio
+          })
+        :Promise.resolve(null);
+      return _patchP.then(function(_patchRes){
+        // sbPatch devuelve null si el HTTP no fue ok (error de red/auth)
+        var _patchOk=!idReal||(_patchRes!==null);
+        console.log('[RRHH EMAIL] PATCH Supabase:',idReal?(_patchOk?'ok':'FALLÓ (patchRes null)'):'sin id real (nuevo reporte)');
+        if(!_patchOk&&idReal){
+          // Correo llegó pero el estado no quedó en Supabase
+          return {ok:false, emailEnviado:true, motivo:'Correo enviado pero estado no actualizado en Supabase.'};
+        }
+        // ── 5. Actualizar caché local ─────────────────────────
+        var arr=getReportes();
+        var i=arr.findIndex(function(x){return String(x.id)===String(r.id);});
+        if(i>=0){
+          arr[i].preReporteEnviado=true;
+          arr[i].preReporteFecha=fechaEnvio;
+          arr[i].estado='aviso_enviado';
+          setReportesCache(arr);
+        }
+        return {ok:true, email:val.email};
+      }).catch(function(_patchErr){
+        console.error('[RRHH EMAIL] PATCH Supabase excepción:',_patchErr);
+        return {ok:false, emailEnviado:true, motivo:'Correo enviado pero excepción en PATCH Supabase.'};
+      });
     });
   })
   .catch(function(err){
@@ -2533,30 +2550,43 @@ function enviarSeleccionados(){
   _enviandoMasivo=true;
   var btnBar=document.getElementById('bulkBar');
   if(btnBar)btnBar.innerHTML='<span style="color:#fff;font-size:12px;font-weight:600">Enviando '+total+' avisos...</span>';
-  var enviados=0;
-  var omitidos=[];
+  // 3 categorías de resultado
+  var enviados=[];          // {nombre} ok:true
+  var emailSinEstado=[];    // {nombre, motivo} correo enviado, Supabase no actualizado
+  var noEnviados=[];        // {nombre, motivo} correo no enviado
   function enviarUno(i){
     if(i>=ids.length){
       _enviandoMasivo=false;
       renderTabla(sv('selectPeriodo'));
       document.querySelectorAll('.rrhh-chk').forEach(function(c){c.checked=false;});
       actualizarBarraEnvio();
-      var resumen=total+' seleccionados\n'
-        +'\u2705 '+enviados+' enviados'+(omitidos.length?'\n\u26a0\ufe0f '+omitidos.length+' omitidos':'');
-      if(omitidos.length){
-        resumen+='\n\nDetalle de omitidos:';
-        omitidos.forEach(function(o){resumen+='\n\u2022 '+o.nombre+' \u2192 '+o.motivo;});
+      // ── Resumen final ───────────────────────────────────────
+      var resumen=total+' seleccionados\n';
+      resumen+='\u2705 '+enviados.length+' enviados correctamente';
+      if(emailSinEstado.length) resumen+='\n\u26a0\ufe0f  '+emailSinEstado.length+' correo enviado pero estado no actualizado';
+      if(noEnviados.length)     resumen+='\n\u274c '+noEnviados.length+' no enviados';
+      var hayDetalle=emailSinEstado.length||noEnviados.length;
+      if(hayDetalle){
+        resumen+='\n\n--- Detalle ---';
+        emailSinEstado.forEach(function(o){resumen+='\n\u26a0\ufe0f  '+o.nombre+': '+o.motivo;});
+        noEnviados.forEach(function(o){resumen+='\n\u274c '+o.nombre+': '+o.motivo;});
         alert(resumen);
       }else{
-        toast('\u2705 '+enviados+' Avisos de Cotizaciones enviados correctamente.');
+        toast('\u2705 '+enviados.length+' Avisos de Cotizaciones enviados correctamente.');
       }
       return;
     }
     var _r=getReportes().find(function(x){return String(x.id)===String(ids[i]);});
     var nombreCliente=_r?(_r.clienteNombre||_r.rut):'ID '+ids[i];
-    enviarAvisoCotSilencioso(ids[i], function(ok, motivo){
-      if(ok){enviados++;}
-      else{omitidos.push({nombre:nombreCliente, motivo:motivo||'Error desconocido'});}
+    if(btnBar) btnBar.querySelector('span').textContent='Enviando '+(i+1)+'/'+total+': '+nombreCliente+'...';
+    enviarAvisoCotSilencioso(ids[i], function(ok, motivo, emailEnviado){
+      if(ok){
+        enviados.push({nombre:nombreCliente});
+      }else if(emailEnviado){
+        emailSinEstado.push({nombre:nombreCliente, motivo:motivo||'Estado no actualizado'});
+      }else{
+        noEnviados.push({nombre:nombreCliente, motivo:motivo||'Error desconocido'});
+      }
       setTimeout(function(){enviarUno(i+1);},800);
     });
   }
@@ -2566,13 +2596,25 @@ function enviarSeleccionados(){
 
 function enviarAvisoCotSilencioso(id, cb){
   // Wrapper silencioso: sin UI, para envío masivo. Motor: enviarAvisoRrhhCore
-  // cb(ok:bool, motivo?:string)
+  // cb(ok:bool, motivo?:string, emailEnviado?:bool)
   var r=getReportes().find(function(x){return String(x.id)===String(id);});
-  if(!r){cb(false,'Reporte no encontrado.');return;}
+  if(!r){cb(false,'Reporte no encontrado.',false);return;}
+  // ── Logs de diagnóstico masivo ──────────────────────────────
+  var _cliLog=getClientes().find(function(x){return x.rut===r.rut;});
+  var _emailLog=r.clienteEmail||(_cliLog&&_cliLog.email)||'(sin email)';
+  console.log('[RRHH MASIVO] inicio:',r.clienteNombre||r.rut);
+  console.log('[RRHH MASIVO] reporte_id:',r.id);
+  console.log('[RRHH MASIVO] email_destino:',_emailLog);
+  console.log('[RRHH MASIVO] totalCot:',r.totalCot||r.totalCotizaciones||0);
+  console.log('[RRHH MASIVO] nTrab:',r.nTrab||0);
+  console.log('[RRHH MASIVO] PATCH Supabase id:',r.id);
+  // ── Motor único ─────────────────────────────────────────────
   enviarAvisoRrhhCore(r).then(function(res){
-    cb(res.ok, res.motivo||null);
+    console.log('[RRHH MASIVO] FINAL:',JSON.stringify(res));
+    cb(res.ok, res.motivo||null, res.emailEnviado||false);
   }).catch(function(err){
-    cb(false,'Error inesperado: '+(err.message||String(err)));
+    console.error('[RRHH MASIVO] excepcion:',err);
+    cb(false,'Error inesperado: '+(err.message||String(err)), false);
   });
 }
 
