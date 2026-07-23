@@ -645,10 +645,10 @@ function sbGetServiciosAdicionales(cb){
 // Las columnas total_aportes, total_cotizaciones, costo_laboral
 // son GENERATED ALWAYS AS en PostgreSQL — NO enviar en INSERT/UPDATE.
 
-function sbTrabajadorRrhhToRow(t, reporteId, clienteRut, periodo){
+function sbTrabajadorRrhhToRow(t, reporteId, clienteRut, periodo, revision){
   return {
     reporte_id:           reporteId,
-    revision:             typeof revision!=='undefined'?revision:1,
+    revision:             revision||1,
     cliente_rut:          clienteRut,
     periodo:              periodo,
     // Identificación
