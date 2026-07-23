@@ -25,125 +25,84 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);min-height:100
 .sb-item.on{background:rgba(144,72,145,.3);color:#fff;font-weight:600;}
 .sb-foot{padding:10px 14px;border-top:1px solid rgba(144,72,145,.25);font-size:9px;color:rgba(255,255,255,.3);flex-shrink:0;}
 .main{margin-left:220px;flex:1;min-height:100vh;}
-.sb-logo{padding:18px 16px 12px;border-bottom:1px solid rgba(144,72,145,.3);}
-.sb-logo img{width:140px;display:block;}
-.sb-tagline{font-size:9px;color:rgba(255,255,255,.28);letter-spacing:1px;text-transform:uppercase;margin-top:5px;}
-.sb-nav{padding:12px 8px;flex:1;overflow-y:auto;min-height:0;}
-.sb-sec{font-size:9px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.25);text-transform:uppercase;padding:10px 8px 4px;margin-top:4px;}
-.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;font-size:12px;color:rgba(255,255,255,.55);transition:.15s;margin-bottom:1px;text-decoration:none;cursor:pointer;}
-.sb-item:hover{background:rgba(144,72,145,.18);color:#fff;}
-.sb-item.on{background:rgba(144,72,145,.3);color:#fff;font-weight:600;}
-.sb-foot{padding:12px 14px;border-top:1px solid rgba(144,72,145,.25);font-size:9px;color:rgba(255,255,255,.3);}
 .topbar{background:var(--deep);padding:10px 20px;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--green);position:sticky;top:0;z-index:10;}
 .tb-title{font-size:14px;font-weight:600;color:#fff;flex:1;}
 .tb-analista{font-size:11px;color:rgba(255,255,255,.5);background:rgba(45,155,111,.2);padding:3px 10px;border-radius:20px;}
 .content{padding:20px 24px;}
-
-/* STATS */
 .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;}
 .stat{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:12px 14px;text-align:center;}
 .stat .sv{font-size:22px;font-weight:700;font-family:monospace;}
 .stat .sl{font-size:9.5px;color:var(--tm);text-transform:uppercase;letter-spacing:.6px;margin-top:3px;}
-
-/* FILTROS */
 .filtros{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 .fl{font-size:9.5px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.7px;}
 .fb{padding:3px 12px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--bdr);background:var(--sur);color:var(--t2);transition:.15s;}
 .fb:hover{border-color:var(--p);color:var(--p);}
 .fb.on{background:var(--green);color:#fff;border-color:var(--green);}
-
-/* CALENDARIO */
 .cal-bar{background:linear-gradient(135deg,rgba(45,155,111,.1),rgba(45,155,111,.05));border:1px solid rgba(45,155,111,.2);border-radius:10px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
 .cal-item{display:flex;align-items:center;gap:6px;font-size:11px;}
 .cal-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .cal-lbl{color:var(--t2);}
 .cal-fecha{font-weight:700;color:var(--t1);}
 .cal-hoy{background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.3);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;color:var(--red);}
-
-/* TABLA */
 .tabla-wrap{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;}
 .tabla-hdr{background:linear-gradient(135deg,#1a5c3a,var(--green));padding:12px 18px;display:flex;align-items:center;justify-content:space-between;}
 .tabla-titulo{font-size:13px;font-weight:700;color:#fff;}
 .tabla-meta{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px;}
-
 table{width:100%;border-collapse:collapse;}
 th{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--tm);padding:9px 14px;background:var(--sur2);border-bottom:1px solid var(--bdr);text-align:left;white-space:nowrap;}
 td{padding:10px 14px;border-bottom:1px solid var(--bdr);vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:#f9fefb;}
-
 .cli-nombre{font-size:12.5px;font-weight:700;}
 .cli-sub{font-size:10px;color:var(--tm);margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-
 .plan{padding:1px 7px;border-radius:20px;font-size:9.5px;font-weight:700;}
 .plan-e{background:var(--pp);color:var(--pd);}
 .plan-a{background:#eff6ff;color:#1e40af;}
 .plan-c{background:#f3f4f6;color:#374151;}
-
 .prio{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
 .prio-alta{background:#fee2e2;color:#b91c1c;}
 .prio-media{background:#fef3c7;color:#78350f;}
 .prio-baja{background:#ecfdf5;color:#064e3b;}
-
-/* LIBRO STATUS */
 .libro-status{display:flex;flex-direction:column;gap:4px;}
 .libro-ok{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--green);font-weight:600;}
 .libro-no{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--tm);}
-
-/* DATOS RRHH */
 .datos-rrhh{display:flex;flex-direction:column;gap:3px;}
 .dato-item{font-size:10.5px;color:var(--t2);}
 .dato-val{font-weight:700;color:var(--t1);font-family:monospace;}
 .dato-pending{font-size:10.5px;color:var(--tm);font-style:italic;}
-
-/* CUMPLIMIENTO */
 .cumpl{min-width:80px;}
 .cumpl-pct{font-size:12px;font-weight:700;margin-bottom:3px;}
 .cumpl-bar{height:5px;border-radius:3px;background:#e8dde8;overflow:hidden;}
 .cumpl-fill{height:100%;border-radius:3px;}
 .cumpl-lbl{font-size:9px;color:var(--tm);margin-top:2px;}
-
-/* ESTADO CHIP */
 .ec{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap;}
 .ec-pendiente{background:#fef3c7;color:#78350f;}
 .ec-libro-ok{background:#e0f2fe;color:#0369a1;}
 .ec-completado{background:#ecfdf5;color:#064e3b;}
 .ec-enviado{background:#eff6ff;color:#1e40af;}
 .ec-atrasado{background:#fee2e2;color:#b91c1c;}
-.ec-transferido{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe}
-.ec-previred{background:#e0f2fe;color:#0c4a6e;border:1px solid #7dd3fc}
-.ec-aprobacion{background:#fef3c7;color:#78350f;border:1px solid #fde68a}
-.ec-aprobado{background:#ecfdf5;color:#064e3b;border:1px solid #6ee7b7}
-.ec-finalizado{background:#f0fdf4;color:#14532d;border:1px solid #86efac}
-.ec-transferido{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe}
-.ec-previred{background:#e0f2fe;color:#0c4a6e;border:1px solid #7dd3fc}
-.ec-aprobacion{background:#fef3c7;color:#78350f;border:1px solid #fde68a}
-.ec-aprobado{background:#ecfdf5;color:#064e3b;border:1px solid #6ee7b7}
-.ec-finalizado{background:#f0fdf4;color:#14532d;border:1px solid #86efac}
-
-/* BOTONES */
+.ec-transferido{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;}
+.ec-previred{background:#e0f2fe;color:#0c4a6e;border:1px solid #7dd3fc;}
+.ec-aprobacion{background:#fef3c7;color:#78350f;border:1px solid #fde68a;}
+.ec-aprobado{background:#ecfdf5;color:#064e3b;border:1px solid #6ee7b7;}
+.ec-finalizado{background:#f0fdf4;color:#14532d;border:1px solid #86efac;}
 .btn-p{background:var(--green);color:#fff;border:none;border-radius:6px;padding:5px 11px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;}
 .btn-p:hover{background:#1a8a55;}
 .btn-s{background:transparent;color:var(--t2);border:1px solid var(--bdr);border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;white-space:nowrap;}
 .btn-s:hover{border-color:var(--green);color:var(--green);}
 .btn-wa{background:#25d366;color:#fff;border:none;border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;}
-.btn-danger{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;}
 .acciones{display:flex;gap:4px;justify-content:flex-end;align-items:center;}
-
-/* MODAL LIBRO */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;display:none;align-items:center;justify-content:center;}
 .modal-bg.on{display:flex;}
 .modal{background:var(--sur);border-radius:14px;padding:24px;max-width:680px;width:96%;max-height:90vh;overflow-y:auto;}
 .modal h2{font-size:15px;font-weight:700;color:var(--green);margin-bottom:4px;}
 .modal-sub{font-size:12px;color:var(--tm);margin-bottom:16px;}
 .modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--bdr);}
-
 .upload-zone{border:2px dashed var(--bdr);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:.2s;position:relative;background:var(--sur2);}
 .upload-zone:hover,.upload-zone.drag{border-color:var(--green);background:rgba(45,155,111,.05);}
 .upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
 .file-ok{display:none;align-items:center;gap:10px;background:var(--sur);border:1px solid var(--bdr);border-left:3px solid var(--green);border-radius:8px;padding:10px 14px;margin-top:10px;}
 .file-ok.show{display:flex;}
-
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
 .fgroup{display:flex;flex-direction:column;gap:4px;}
@@ -152,13 +111,10 @@ tr:hover td{background:#f9fefb;}
 .fgroup input:focus,.fgroup select:focus{border-color:var(--green);}
 .fgroup .hint{font-size:10px;color:var(--tm);}
 .readonly-field{background:#f0f0f0!important;font-weight:700;}
-
 .sec-box{background:var(--sur2);border:1px solid var(--bdr);border-left:3px solid var(--green);border-radius:0 8px 8px 0;padding:12px 14px;margin-bottom:12px;}
 .sec-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--green);margin-bottom:10px;}
 .info-box{background:rgba(45,155,111,.06);border:1px solid rgba(45,155,111,.2);border-radius:8px;padding:10px 13px;font-size:12px;color:#064e3b;margin-bottom:10px;}
 .warn-box{background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px 13px;font-size:12px;color:#78350f;margin-bottom:10px;}
-
-/* REPORTE PARCIAL PREVIEW */
 .rpt-preview{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;margin-top:14px;}
 .rpt-preview-hdr{background:linear-gradient(135deg,var(--pd),var(--p));padding:14px 18px;color:#fff;}
 .rpt-preview-titulo{font-size:14px;font-weight:700;}
@@ -170,8 +126,6 @@ tr:hover td{background:#f9fefb;}
 .rpt-tabla .num{text-align:right;font-family:monospace;font-weight:600;}
 .rpt-tabla .total td{font-weight:700;background:rgba(45,155,111,.06);color:var(--green);}
 .rpt-tabla .subtotal td{font-weight:600;background:var(--sur2);}
-
-/* PIPELINE ETAPAS */
 .pipeline{display:flex;align-items:center;gap:0;margin:4px 0;}
 .pipe-step{display:flex;flex-direction:column;align-items:center;position:relative;}
 .pipe-step .ps-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:2px solid var(--bdr);background:var(--sur2);color:var(--tm);transition:.2s;flex-shrink:0;}
@@ -183,7 +137,6 @@ tr:hover td{background:#f9fefb;}
 .pipe-step.active .pipe-lbl{color:var(--p);font-weight:700;}
 .pipe-line{width:20px;height:2px;background:var(--bdr);margin-bottom:14px;flex-shrink:0;}
 .pipe-line.done{background:var(--green);}
-/* BARRA ENVÍO MASIVO RRHH */
 .bulk-bar{display:none;background:var(--p);color:#fff;padding:10px 16px;border-radius:10px;margin-bottom:12px;align-items:center;gap:12px;}
 .bulk-bar.on{display:flex;}
 </style>
@@ -193,42 +146,40 @@ tr:hover td{background:#f9fefb;}
 <div class="layout">
 <aside class="sidebar">
   <nav>
-    <div class="sb-section">Principal</div>
+    <div class="sb-sec">Principal</div>
     <a class="sb-item" href="../index.html">🏠 Dashboard</a>
-    <div class="sb-section">Gestión</div>
+    <div class="sb-sec">Gestión</div>
     <a class="sb-item" href="../clientes/index.html">👥 Clientes</a>
     <a class="sb-item" href="../planes/index.html">📋 Planes y Servicios</a>
     <a class="sb-item" href="../panel-de-control/index.html">📋 Panel de Control</a>
-    <div class="sb-section">Remuneraciones</div>
+    <div class="sb-sec">Remuneraciones</div>
     <a class="sb-item on" href="../reportes-rrhh/index.html">👥 Reporte RRHH</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">👤 Gestión de Personal</a>
-    <div class="sb-section">Contable</div>
+    <div class="sb-sec">Contable</div>
     <a class="sb-item" href="../reportes-contable/index.html">📊 Reporte Contable</a>
     <a class="sb-item" href="../reportes-pagos/index.html">💰 Reporte Pagos</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">🤝 Convenios</a>
-    <div class="sb-section">Tributario</div>
+    <div class="sb-sec">Tributario</div>
     <a class="sb-item" href="../pir/index.html">📊 PIR</a>
     <a class="sb-item" href="../pre-iva/index.html">📋 Pre-IVA</a>
-    <div class="sb-section">Financiero</div>
+    <div class="sb-sec">Financiero</div>
     <a class="sb-item" href="../pagos/index.html">✅ Aprobaciones</a>
     <a class="sb-item" href="../conciliacion/index.html">🏦 Conciliación</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📋 CxC / Cobranza</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">🧾 Facturación</a>
-    <div class="sb-section">Comercial</div>
+    <div class="sb-sec">Comercial</div>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📈 CRM</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📝 Cotizaciones</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📣 Campañas</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">✉️ Comunicaciones</a>
     <a class="sb-item" href="#" style="opacity:.4;pointer-events:none">📊 Performance</a>
-    <div class="sb-section">Configuración</div>
+    <div class="sb-sec">Configuración</div>
     <a class="sb-item" href="../admin/index.html">⚙️ Admin</a>
   </nav>
   <div class="sb-foot" id="sb-usuario">Gestoor v1.0</div>
 </aside>
-
 <main class="main">
   <div class="topbar">
-    
     <div class="tb-title">Reportes RRHH — Remuneraciones</div>
     <span id="tb-periodo-badge" style="font-size:11px;background:rgba(144,72,145,.3);color:#e9d5ff;border:1px solid rgba(144,72,145,.4);border-radius:20px;padding:3px 12px;white-space:nowrap"></span>
     <span class="tb-analista" id="tb-analista-nombre">Analista RRHH</span>
@@ -237,10 +188,7 @@ tr:hover td{background:#f9fefb;}
       <div id="notBadge" style="display:none;position:absolute;top:2px;right:2px;min-width:16px;height:16px;background:#C0392B;border-radius:20px;font-size:9px;font-weight:700;color:#fff;align-items:center;justify-content:center;padding:0 4px;border:1.5px solid #08040f;"></div>
     </div>
   </div>
-
   <div class="content">
-
-    <!-- STATS -->
     <div class="stats" id="statsRow">
       <div class="stat"><div class="sv" id="st-total" style="color:var(--t1)">0</div><div class="sl">Mis clientes</div></div>
       <div class="stat"><div class="sv" id="st-pendiente" style="color:var(--amber)">0</div><div class="sl">Pendientes</div></div>
@@ -248,8 +196,6 @@ tr:hover td{background:#f9fefb;}
       <div class="stat"><div class="sv" id="st-enviado" style="color:var(--blue)">0</div><div class="sl">Enviados</div></div>
       <div class="stat"><div class="sv" id="st-atrasado" style="color:var(--red)">0</div><div class="sl">Atrasados</div></div>
     </div>
-
-    <!-- CALENDARIO -->
     <div class="cal-bar" id="calBar">
       <span style="font-size:9.5px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.7px">Calendario:</span>
       <div class="cal-item"><div class="cal-dot" style="background:var(--green)"></div><span class="cal-lbl">Envío RRHH:</span><span class="cal-fecha" id="cal-envio">—</span></div>
@@ -257,8 +203,6 @@ tr:hover td{background:#f9fefb;}
       <div class="cal-item"><div class="cal-dot" style="background:var(--red)"></div><span class="cal-lbl">Vence cotizaciones:</span><span class="cal-fecha" id="cal-venc">—</span></div>
       <span class="cal-hoy" id="cal-hoy-label"></span>
     </div>
-
-    <!-- FILTROS -->
     <div class="filtros">
       <span class="fl">Prioridad:</span>
       <button class="fb on" onclick="setFiltro('prioridad','')">Todas</button>
@@ -272,9 +216,6 @@ tr:hover td{background:#f9fefb;}
       <button class="fb" onclick="setFiltro('estado','enviado')">📤 Enviados</button>
       <button class="fb" onclick="setFiltro('estado','atrasado')">⚠️ Atrasados</button>
     </div>
-
-    <!-- TABLA -->
-    <!-- BARRA ENVÍO MASIVO -->
     <div class="bulk-bar" id="bulkBar">
       <span id="bulkCount" style="font-size:12px;font-weight:600"></span>
       <button id="btnEnviarMasivo" onclick="enviarSeleccionados()" style="background:#fff;color:var(--p);border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer">📤 Enviar seleccionados</button>
@@ -294,11 +235,9 @@ tr:hover td{background:#f9fefb;}
       </div>
       <div id="tablaBody"></div>
     </div>
-
   </div>
 </main>
 </div>
-
 <!-- MODAL COMPLETAR RRHH -->
 <div class="modal-bg" id="modalRrhh">
   <div class="modal">
@@ -306,7 +245,6 @@ tr:hover td{background:#f9fefb;}
     <div class="modal-sub" id="modal-cliente-nombre">Cliente — Período</div>
     <input type="hidden" id="m-reporte-id"/>
     <input type="hidden" id="m-cliente-rut"/>
-
     <!-- CARGA LIBRO -->
     <div class="sec-box">
       <div class="sec-title">📊 Libro de Remuneraciones — Mas Remuneraciones (.xls)</div>
@@ -322,7 +260,7 @@ tr:hover td{background:#f9fefb;}
           <div style="font-size:13px;font-weight:600" id="libroFileName"></div>
           <div style="font-size:11px;color:var(--tm)" id="libroMeta"></div>
         </div>
-<div id="kpi-libro-panel" style="display:none;margin-top:4px"></div>
+        <div id="kpi-libro-panel" style="display:none;margin-top:4px"></div>
         <button onclick="limpiarLibro()" style="margin-left:auto;background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">✕ Quitar</button>
       </div>
       <div id="selectPeriodoLibroWrap" style="display:none;margin-top:10px">
@@ -332,7 +270,6 @@ tr:hover td{background:#f9fefb;}
         </div>
       </div>
     </div>
-
     <!-- DATOS CARGADOS -->
     <div id="datosLibroWrap" style="display:none">
       <div class="info-box">✅ Datos cargados automáticamente desde el libro. Revisa y ajusta si es necesario.</div>
@@ -341,6 +278,7 @@ tr:hover td{background:#f9fefb;}
         <div class="fg3" style="margin-bottom:10px">
           <div class="fgroup"><label>N° trabajadores</label><input type="number" id="m-ntrab" class="readonly-field" readonly/></div>
           <div class="fgroup"><label>Total imponible</label><input type="number" id="m-timponible" class="readonly-field" readonly/></div>
+          <div class="fgroup"><label>Total no imponible</label><input type="number" id="m-tnoimponible" class="readonly-field" readonly/></div>
           <div class="fgroup"><label>Líquido a pagar</label><input type="number" id="m-liquido" class="readonly-field" readonly/></div>
         </div>
         <div class="sec-title" style="margin-top:8px">Descuentos trabajadores</div>
@@ -350,15 +288,19 @@ tr:hover td{background:#f9fefb;}
           <div class="fgroup"><label>APV</label><input type="number" id="m-apv" oninput="calcTotalesModal()"/></div>
           <div class="fgroup"><label>Seg. Cesantía trabajador</label><input type="number" id="m-ces-trab" oninput="calcTotalesModal()"/></div>
           <div class="fgroup"><label>Imp. Único 2ª Cat. →SII</label><input type="number" id="m-iu" oninput="calcTotalesModal()" style="border-color:var(--amber)"/><span class="hint" style="color:var(--amber)">Cae automático al F29</span></div>
-          <div class="fgroup"><label>Total descuentos</label><input type="number" id="m-total-desc" class="readonly-field" readonly/></div>
+          <div class="fgroup"><label>Total descuentos (libro)</label><input type="number" id="m-total-desc" class="readonly-field" readonly title="Columna TOTAL DESCUENTOS del libro (col 29)"/></div>
+          <div class="fgroup"><label>Otros descuentos</label><input type="number" id="m-otros-desc" class="readonly-field" readonly title="Préstamos, anticipos (col 30)"/></div>
         </div>
         <div class="sec-title">Aportes patronales</div>
         <div class="fg3">
           <div class="fgroup"><label>SIS</label><input type="number" id="m-sis" oninput="calcTotalesModal()"/></div>
           <div class="fgroup"><label>Mutual / Accidentes</label><input type="number" id="m-mutual" oninput="calcTotalesModal()"/></div>
           <div class="fgroup"><label>Seg. Cesantía empleador</label><input type="number" id="m-ces-emp" oninput="calcTotalesModal()"/></div>
+          <div class="fgroup"><label>Cap. individual (reforma)</label><input type="number" id="m-cap-ind" oninput="calcTotalesModal()"/></div>
+          <div class="fgroup"><label>Expectativa de vida (reforma)</label><input type="number" id="m-exp-vida" oninput="calcTotalesModal()"/></div>
+          <div class="fgroup"><label>Rent. protegida (reforma)</label><input type="number" id="m-rent-prot" oninput="calcTotalesModal()"/></div>
           <div class="fgroup"><label>Total aportes patronales</label><input type="number" id="m-total-aportes" class="readonly-field" readonly/></div>
-          <div class="fgroup"><label>TOTAL COTIZACIONES</label><input type="number" id="m-total-cot" class="readonly-field" readonly style="color:var(--green);font-weight:700;font-size:14px"/></div>
+          <div class="fgroup"><label>TOTAL COTIZACIONES PREVIRED</label><input type="number" id="m-total-cot" class="readonly-field" readonly style="color:var(--green);font-weight:700;font-size:14px"/></div>
         </div>
       </div>
       <div class="fgroup" style="margin-bottom:12px">
@@ -366,7 +308,6 @@ tr:hover td{background:#f9fefb;}
         <input type="text" id="m-obs" placeholder="Ej: Incluye finiquito de trabajador X, licencia médica en período, etc."/>
       </div>
     </div>
-
     <!-- MODO MANUAL -->
     <div id="modoManualWrap">
       <div class="warn-box">Sin archivo cargado. Puedes ingresar los datos manualmente o cargar el libro arriba.</div>
@@ -380,8 +321,7 @@ tr:hover td{background:#f9fefb;}
         <input type="text" id="m-obs-m" placeholder="Ej: Datos ingresados manualmente..."/>
       </div>
     </div>
-
-    <!-- OPCIONES POSTERGACIÓN COTIZACIONES -->
+    <!-- OPCIONES POSTERGACIÓN -->
     <div class="sec-box" style="border-left-color:var(--amber)">
       <div class="sec-title" style="color:var(--amber)">⏳ Postergación de cotizaciones</div>
       <div style="font-size:12px;color:var(--t2);margin-bottom:10px">El cliente puede postergar el pago de cotizaciones hasta fin de mes. Debe avisar antes del día 10.</div>
@@ -406,7 +346,6 @@ tr:hover td{background:#f9fefb;}
       </div>
       <div id="decisionInfo" style="margin-top:8px"></div>
     </div>
-
     <!-- PREVIEW REPORTE PARCIAL -->
     <div id="previewRptParcial" style="display:none">
       <div style="font-size:11px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.7px;margin:14px 0 8px">Vista previa — Reporte RRHH al cliente</div>
@@ -424,7 +363,6 @@ tr:hover td{background:#f9fefb;}
         </div>
       </div>
     </div>
-
     <!-- Historial 6 meses -->
     <div style="padding:12px 20px;background:var(--sur2);border-top:1px solid var(--bdr)">
       <div style="font-size:10px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">📊 Comportamiento últimos 6 meses</div>
@@ -440,6 +378,7 @@ tr:hover td{background:#f9fefb;}
 </div>
 
 <script>
+
 // ═══════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════
@@ -474,7 +413,7 @@ function getUsuario(){try{return JSON.parse(sessionStorage.getItem('usuario_acti
 // sbUpsertReporte local eliminada — usar sbUpsertReporte de supabase.js
 
 function sbPatchReporte(rut,periodo,data){
-  return sbFetch('reportes_mensuales?rut=eq.'+encodeURIComponent(rut)+'&periodo=eq.'+periodo,{
+  return sbFetch('reportes_mensuales?cliente_rut=eq.'+encodeURIComponent(rut)+'&periodo=eq.'+periodo,{
     method:'PATCH',
     headers:{'Prefer':'return=representation'},
     body:JSON.stringify(data)
@@ -484,7 +423,7 @@ function sbPatchReporte(rut,periodo,data){
 
 
 // ── SUPABASE ─────────────────────────────────────────────────────────────
-function syncEstado(rut,periodo,data){if(rut&&periodo)sbPatch('reportes_mensuales?rut=eq.'+encodeURIComponent(rut)+'&periodo=eq.'+periodo,data).catch(function(){});}
+function syncEstado(rut,periodo,data){if(rut&&periodo)sbPatch('reportes_mensuales?cliente_rut=eq.'+encodeURIComponent(rut)+'&periodo=eq.'+periodo,data).catch(function(){});}
 function cargarDesdeSupabase(periodo,callback){
   sbGet('reportes_mensuales?periodo=eq.'+periodo+'&select=*').then(function(sbData){
     if(!sbData||!sbData.length){if(callback)callback();return;}
@@ -512,44 +451,18 @@ function setReportesCache(arr){
   try{localStorage.setItem('reportes_mensuales',JSON.stringify(arr));}catch(e){}
 }
 function cargarReportesDesdeSupabase(periodo,cb){
-  var url='https://ulxoxqbuxiuylaolaqxj.supabase.co/rest/v1/reportes_mensuales?periodo=eq.'+encodeURIComponent(periodo)+'&select=*&order=created_at.desc';
-  fetch(url,{headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA','Content-Type':'application/json'}})
-  .then(function(r){return r.ok?r.json():null;})
-  .then(function(rows){
-    if(!rows) return cb&&cb();
-    // Merge con lo que hay en caché (otros períodos)
-    var all=JSON.parse(localStorage.getItem('reportes_mensuales')||'[]');
-    // Quitar los del período actual y reemplazar con Supabase
-    all=all.filter(function(x){return x.periodo!==periodo;});
-    rows=rows.map(function(r){
-      if(!r.rut&&r.cliente_rut) r.rut=r.cliente_rut;
-      // Mapear nombres de columnas Supabase → app
-      if(r.n_trabajadores!==undefined&&r.nTrab===undefined) r.nTrab=r.n_trabajadores;
-      if(r.debito_iva!==undefined) r.ivaDebito=r.debito_iva;
-      if(r.credito_iva!==undefined) r.ivaCredito=r.credito_iva;
-      if(r.f29!==undefined&&!r.totalImpInmediato) r.totalImpInmediato=r.f29;
-      if(r.total_descuentos!==undefined&&!r.totalDesc) r.totalDesc=r.total_descuentos;
-      if(r.aporte_patronal!==undefined&&!r.totalAportes) r.totalAportes=r.aporte_patronal;
-      if(r.total_general!==undefined&&!r.totalGeneral) r.totalGeneral=r.total_general;
-      if(r.pre_reporte_enviado!==undefined) r.preReporteEnviado=r.pre_reporte_enviado;
-      if(r.pre_reporte_fecha!==undefined) r.preReporteFecha=r.pre_reporte_fecha;
-      if(r.ha_postergado!==undefined) r.haPostergado=r.ha_postergado;
-      if(r.n_recordatorios!==undefined) r.nRecordatorios=r.n_recordatorios;
-      if(r.ultimo_recordatorio!==undefined) r.ultimoRecordatorio=r.ultimo_recordatorio;
-      if(r.obs_analista!==undefined) r.obsAnalista=r.obs_analista;
-      if(r.email_analista!==undefined) r.emailAnalista=r.email_analista;
-      if(r.analista_rrhh!==undefined&&!r.preparado) r.preparado=r.analista_rrhh;
-      if(r.analista_contable!==undefined&&!r.revisado) r.revisado=r.analista_contable;
-      if(r.cliente_nombre!==undefined) r.clienteNombre=r.cliente_nombre;
-      if(r.cliente_email!==undefined) r.clienteEmail=r.cliente_email;
-      if(r.cliente_wa!==undefined) r.clienteWa=r.cliente_wa;
-      return r;
-    });
-    all=all.concat(rows);
-    _reportesCache=all;
-    localStorage.setItem('reportes_mensuales',JSON.stringify(all));
+  // Usar sbGetReportesPeriodo de supabase.js como fuente oficial de mapeo.
+  // sbRowToReporte() en supabase.js hace la traducción snake_case → camelCase.
+  sbGetReportesPeriodo(periodo, function(reportes){
+    if(!reportes || !reportes.length){ cb&&cb(); return; }
+    // Merge en caché: preservar otros períodos, reemplazar el actual
+    var all = JSON.parse(localStorage.getItem('reportes_mensuales')||'[]');
+    all = all.filter(function(x){ return x.periodo !== periodo; });
+    all = all.concat(reportes);
+    _reportesCache = all;
+    try{ localStorage.setItem('reportes_mensuales', JSON.stringify(all)); }catch(e){}
     cb&&cb();
-  }).catch(function(){cb&&cb();});
+  });
 }
 var _enviandoMasivo=false;
 function setReportes(arr){
@@ -944,7 +857,9 @@ function renderTabla(periodo){
     +'<th>Cliente / Plan</th>'
     +'<th>Etapas</th>'
     +'<th>Prioridad</th>'
+    +'<th>Libro</th>'
     +'<th>Datos RRHH</th>'
+    +'<th>Estado</th>'
     +'<th>Cumplimiento</th>'
     +'<th style="text-align:right">Acciones</th>'
     +'</tr></thead><tbody>';
@@ -1338,6 +1253,7 @@ function llenarCamposDesdeLibro(data){
   setV('m-ces-trab',data.cesTrab);
   setV('m-iu',data.iu);
   setV('m-total-desc',data.totalDescuentos);
+  setV('m-otros-desc',data.otrosDescuentos||0);
   // Grupo 7: líquido
   setV('m-liquido',data.nomina);
   // Grupo 8: aportes patronales
@@ -1427,7 +1343,7 @@ function setupUpload(){
     var ext=file.name.split('.').pop().toLowerCase();
     if(ext!=='xls'&&ext!=='xlsx'){alert('Sube el archivo .xls del libro de remuneraciones.');return;}
     // Mostrar cargando
-    var zone=document.getElementById('uzRemu');
+    var zone=document.getElementById('uzLibro');
     if(zone)zone.querySelector('div').textContent='Procesando...';
     // Usar nuevo parser async con DOMParser + ISO-8859-1
     parsearLibro(file).then(function(data){
@@ -1440,9 +1356,9 @@ function setupUpload(){
         _remuData.archivoNombre         = file.name;
       }
       // Mostrar resultado
-      var okEl=document.getElementById('remuOk');
-      var fnEl=document.getElementById('remuFileName');
-      var metaEl=document.getElementById('remuMeta');
+      var okEl=document.getElementById('libroOk');
+      var fnEl=document.getElementById('libroFileName');
+      var metaEl=document.getElementById('libroMeta');
       if(fnEl)fnEl.textContent=file.name;
       if(metaEl)metaEl.textContent=data.nTrab+' trabajadores · Período: '+(data.periodo||'detectado')+(data.alertas&&data.alertas.length?' ⚠️ '+data.alertas[0]:'');
       if(okEl)okEl.classList.add('show');
@@ -1505,19 +1421,26 @@ function limpiarLibro(){
 }
 
 function calcTotalesModal(){
-  // Descuentos trabajador (Previred)
+  // ── Descuentos previsionales del trabajador ────────────────
+  // NO incluir IU aquí — es tributario, no previsional
   var afp=gv('m-afp'),salud=gv('m-salud'),apv=gv('m-apv'),cesTrab=gv('m-ces-trab');
-  // IU = tributario (va al módulo contable/F29, NO a Previred)
   var iu=gv('m-iu');
-  setV('m-total-desc',Math.round(afp+salud+apv+cesTrab)); // descuentos previsionales trabajador
-  // Aportes empleador (Previred): SIS + Mutual + CesEmp + CapInd + ExpVida + RentProt
+  var descPrev = afp+salud+apv+cesTrab; // subtotal previsional trabajador
+
+  // m-total-desc NO se recalcula aquí:
+  // contiene el TOTAL DESCUENTOS del libro (col 29), que incluye IU y es el oficial para cuadratura.
+  // Solo se actualiza desde llenarCamposDesdeLibro.
+
+  // ── Aportes patronales ─────────────────────────────────────
   var sis=gv('m-sis'),mutual=gv('m-mutual'),cesEmp=gv('m-ces-emp');
   var capInd=gv('m-cap-ind'),expVida=gv('m-exp-vida'),rentProt=gv('m-rent-prot');
-  setV('m-total-aportes',Math.round(sis+mutual+cesEmp+capInd+expVida+rentProt));
-  // Total cotizaciones Previred (SIN IU)
-  setV('m-total-cot',Math.round(afp+salud+apv+cesTrab+sis+mutual+cesEmp+capInd+expVida+rentProt));
-  // IU separado → irá al módulo contable como retención 2ª categoría
-  setV('m-iu-display',iu?'$'+Math.round(iu).toLocaleString('es-CL'):'$0');
+  var totalAportes = sis+mutual+cesEmp+capInd+expVida+rentProt;
+  setV('m-total-aportes', Math.round(totalAportes));
+
+  // ── Total cotizaciones Previred (SIN IU, SIN otros descuentos) ──
+  var totalCot = descPrev + totalAportes;
+  setV('m-total-cot', Math.round(totalCot));
+
   actualizarPreviewRpt();
 }
 
@@ -1559,10 +1482,14 @@ function onDecisionCotiz(){
 function actualizarPreviewRpt(){
   var afp=gv('m-afp'),salud=gv('m-salud'),apv=gv('m-apv'),cesTrab=gv('m-ces-trab'),iu=gv('m-iu');
   var sis=gv('m-sis'),mutual=gv('m-mutual'),cesEmp=gv('m-ces-emp');
-  var totalDesc=afp+salud+apv+cesTrab+iu;
-  var totalAport=sis+mutual+cesEmp;
-  var totalCot=totalDesc+totalAport;
-  if(totalCot===0){document.getElementById('previewRptParcial').style.display='none';return;}
+  var capInd=gv('m-cap-ind'),expVida=gv('m-exp-vida'),rentProt=gv('m-rent-prot');
+  // Descuentos previsionales trabajador (NO incluye IU)
+  var descPrev = afp+salud+apv+cesTrab;
+  // Aportes empleador (reforma previsional incluida)
+  var totalAport = sis+mutual+cesEmp+capInd+expVida+rentProt;
+  // Total cotizaciones Previred (SIN IU)
+  var totalCot = descPrev + totalAport;
+  if(totalCot===0 && iu===0){document.getElementById('previewRptParcial').style.display='none';return;}
   document.getElementById('previewRptParcial').style.display='block';
   var nombre=_reporteActual?_reporteActual.clienteNombre:'Cliente';
   var periodo=_reporteActual?formatPeriodo(_reporteActual.periodo):' - ';
@@ -1575,13 +1502,17 @@ function actualizarPreviewRpt(){
   if(apv) rows+='<tr><td style="padding:5px 12px;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">APV</td><td class="num" style="padding:5px 12px;border-bottom:0.5px solid #e8dde8">'+ff(apv)+'</td></tr>';
   if(cesTrab) rows+='<tr><td style="padding:5px 12px;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">Seg. Cesantía trabajador</td><td class="num" style="padding:5px 12px;border-bottom:0.5px solid #e8dde8">'+ff(cesTrab)+'</td></tr>';
   if(iu) rows+='<tr><td style="padding:5px 12px;border-bottom:0.5px solid #e8dde8;color:#C07A1A;font-style:italic">Imp. \u00danico 2\u00aa Cat.</td><td class="num" style="padding:5px 12px;border-bottom:0.5px solid #e8dde8;font-style:italic">'+ff(iu)+'</td></tr>';
-  rows+='<tr class="subtotal"><td style="padding:6px 12px;font-weight:600;color:#2D9B6F">Subtotal descuentos trabajadores</td><td class="num" style="padding:6px 12px;font-weight:600;color:#2D9B6F">'+ff(totalDesc)+'</td></tr>';
+  rows+='<tr class="subtotal"><td style="padding:6px 12px;font-weight:600;color:#2D9B6F">Subtotal descuentos previsionales</td><td class="num" style="padding:6px 12px;font-weight:600;color:#2D9B6F">'+ff(descPrev)+'</td></tr>';
+  if(iu) rows+='<tr><td style="padding:5px 12px;color:#C07A1A;font-style:italic">Imp. Único 2ª Cat. (tributario → F29)</td><td class="num" style="padding:5px 12px;font-style:italic;color:#C07A1A">'+ff(iu)+'</td></tr>';
   rows+='<tr><td colspan="2" style="font-size:10px;font-weight:700;color:#9a849b;text-transform:uppercase;padding:8px 12px 4px">Aportes empresa</td></tr>';
   if(sis) rows+='<tr><td style="padding:5px 12px;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">SIS</td><td class="num" style="padding:5px 12px;border-bottom:0.5px solid #e8dde8">'+ff(sis)+'</td></tr>';
   if(mutual) rows+='<tr><td style="padding:5px 12px;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">Mutual / Accidentes</td><td class="num" style="padding:5px 12px;border-bottom:0.5px solid #e8dde8">'+ff(mutual)+'</td></tr>';
   if(cesEmp) rows+='<tr><td style="padding:5px 12px;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">Seg. Cesantía empleador</td><td class="num" style="padding:5px 12px;border-bottom:0.5px solid #e8dde8">'+ff(cesEmp)+'</td></tr>';
+  if(capInd) rows+='<tr><td style="padding:5px 12px;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">Cap. individual (reforma)</td><td class="num" style="padding:5px 12px;border-bottom:0.5px solid #e8dde8">'+ff(capInd)+'</td></tr>';
+  if(expVida) rows+='<tr><td style="padding:5px 12px;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">Expectativa de vida (reforma)</td><td class="num" style="padding:5px 12px;border-bottom:0.5px solid #e8dde8">'+ff(expVida)+'</td></tr>';
+  if(rentProt) rows+='<tr><td style="padding:5px 12px;border-bottom:0.5px solid #e8dde8;color:#5c4a5d">Rent. protegida (reforma)</td><td class="num" style="padding:5px 12px;border-bottom:0.5px solid #e8dde8">'+ff(rentProt)+'</td></tr>';
   rows+='<tr class="subtotal"><td style="padding:6px 12px;font-weight:600;color:#2D9B6F">Subtotal aportes empresa</td><td class="num" style="padding:6px 12px;font-weight:600;color:#2D9B6F">'+ff(totalAport)+'</td></tr>';
-  rows+='<tr class="total"><td style="padding:8px 12px;font-weight:700;font-size:13px;color:#2D9B6F">TOTAL COTIZACIONES A PAGAR</td><td class="num" style="padding:8px 12px;font-weight:700;font-size:13px;color:#2D9B6F">'+ff(totalCot)+'</td></tr>';
+  rows+='<tr class="total"><td style="padding:8px 12px;font-weight:700;font-size:13px;color:#2D9B6F">TOTAL COTIZACIONES PREVIRED</td><td class="num" style="padding:8px 12px;font-weight:700;font-size:13px;color:#2D9B6F">'+ff(totalCot)+'</td></tr>';
   document.getElementById('rpt-tabla-body').innerHTML=rows;
   var periodos=getPeriodos();
   var pd=periodos.find(function(p){return p.periodo===(_reporteActual&&_reporteActual.periodo);});
@@ -1783,13 +1714,13 @@ function guardarRrhh(accion){
 
   // ── GUARDADO ASÍNCRONO ───────────────────────────────────
   // Deshabilitar botones para evitar doble envío
-  var btnOk = document.querySelector('[onclick*="guardarRrhh"]');
-  var btnBo = null; // borrador no necesita deshabilitar durante ok
+  var btnOk = document.getElementById('btnMarcarRrhhOk');
+  var btnBo = document.getElementById('btnGuardarBorrador');
   var lblOkOrig = btnOk ? btnOk.textContent : null;
   var lblBoOrig = btnBo ? btnBo.textContent : null;
   function setBtns(disabled, label){
-    if(btnOk){btnOk.disabled=disabled;if(label!==undefined)btnOk.textContent=label;}
-    if(btnBo){btnBo.disabled=disabled;}
+    if(btnOk){ btnOk.disabled=disabled; if(label!==undefined) btnOk.textContent=label; }
+    if(btnBo){ btnBo.disabled=disabled; if(!disabled && lblBoOrig) btnBo.textContent=lblBoOrig; }
   }
   setBtns(true, 'Guardando...');
 
@@ -1845,16 +1776,17 @@ function guardarRrhh(accion){
           console.log('[RRHH] Detalle trabajadores guardado: '+
             _remuData.trabajadores.length+' trabajadores');
         }).catch(function(e){
-          // Fallo parcial: consolidado ok, detalle no
+          // Fallo parcial: consolidado guardado, detalle no
           console.error('[RRHH] Error detalle trabajadores:', e.message);
           toast('⚠️ El consolidado fue guardado, pero no se pudo guardar el detalle de trabajadores. ' +
-            'Vuelve a cargar el libro antes de continuar.');
+            'Vuelve a cargar el libro y guarda nuevamente para reintentar.');
+          return false; // señal al .then exterior: detalleOk=false → no cerrar modal
         });
       }
       return Promise.resolve();
     })
-    .then(function(){
-      // ── Todo OK: cerrar modal y re-renderizar ─────────────
+    .then(function(detalleOk){
+      // detalleOk===false → detalle falló; no cerrar modal
       setReportes(arr);
       if(_reporteActual) syncEstado(
         _reporteActual.rut, String(_reporteActual.periodo),
@@ -1864,14 +1796,23 @@ function guardarRrhh(accion){
         _reporteActual.rut, _reporteActual.periodo,
         {secciones:arr[idx].secciones, estado:arr[idx].estado||'en_proceso'}
       ).catch(function(){});
+
+      setBtns(false);
+      if(btnOk && lblOkOrig) btnOk.textContent = lblOkOrig;
+
+      if(detalleOk===false){
+        // Consolidado guardado, detalle falló — no cerrar modal
+        return; // rehabilitar botones ya hecho arriba
+      }
+      // Todo OK: cerrar modal y re-renderizar
       if(accion==='ok') alert('✅ Sección RRHH marcada como completada.');
       closeModalRrhh();
       renderTabla(sv('selectPeriodo'));
     })
     .catch(function(e){
-      // Error en el guardado del consolidado
-      console.error('[RRHH] Error guardando reporte:', e);
-      toast('❌ Error al guardar. Por favor intenta nuevamente.');
+      // Error en el guardado del consolidado (el detalle nunca se intentó)
+      console.error('[RRHH] Error guardando consolidado:', e);
+      toast('❌ Error al guardar el consolidado. Por favor intenta nuevamente.');
       setBtns(false);
       if(btnOk && lblOkOrig) btnOk.textContent = lblOkOrig;
     });
@@ -1881,70 +1822,75 @@ function enviarReporteParcial(){
   if(!_reporteActual){alert('No hay reporte activo.');return;}
   var r=_reporteActual;
   var to=r.clienteEmail||'';
-  if(!to){var c=getClientes().find(function(x){return x.rut===r.rut;});if(c&&c.email)to=c.email;}
-  if(!to){alert('El cliente no tiene email registrado. Agrégalo en la ficha del cliente.');return;}
+  if(!to){var _c=getClientes().find(function(x){return x.rut===r.rut;});if(_c&&_c.email)to=_c.email;}
+  if(!to){alert('El cliente no tiene email registrado.');return;}
   var u=getUsuario();
   var periodo=formatPeriodo(r.periodo);
-  if(!confirm('¿Enviar Aviso de Cotizaciones RRHH de '+periodo+' a '+hesc(r.clienteNombre)+'?\nEmail: '+to+'\n\nSale desde: reportes@contadoor.cl'))return;
+  if(!confirm('\u00bfEnviar Aviso de Cotizaciones de '+periodo+' a '+hesc(r.clienteNombre)+'?\nEmail: '+to))return;
   var btn=document.getElementById('btnEnviarParcial');
+  function restBtn(){if(btn){btn.disabled=false;btn.textContent='\u{1F4E8} Enviar Aviso de Cotizaciones';}}
   if(btn){btn.disabled=true;btn.textContent='Enviando...';}
   var data=(_remuData&&_remuData.trabajadores&&_remuData.trabajadores.length)?_remuData:null;
   var htmlContent;
   try{
     htmlContent=buildPreReporteRrhhHTML(r,data);
   }catch(buildErr){
+    console.error('[RRHH EMAIL] buildPreReporteRrhhHTML error:',buildErr);
     alert('Error al generar el email: '+buildErr.message);
-    console.error('buildPreReporteRrhhHTML error:', buildErr);
+    restBtn();
     return;
   }
-  // Compactar HTML para no superar límite Vercel (4.5MB)
-  var htmlEmail='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>'
+  var htmlEmail='<!DOCTYPE html><html><head><meta charset="utf-8"></head>'
     +'<body style="margin:0;padding:16px;background:#f4f4f4">'+htmlContent+'</body></html>';
-  // Limpiar espacios redundantes
   htmlEmail=htmlEmail.replace(/\s{2,}/g,' ').replace(/> </g,'><');
   if(htmlEmail.length>300000){
-    alert('El HTML del reporte es muy largo ('+Math.round(htmlEmail.length/1024)+'KB). Contacta soporte.');
-    if(btn){btn.disabled=false;btn.textContent='📨 Aviso de Cotizaciones';}
-    return;
+    alert('El HTML del reporte es muy largo.');restBtn();return;
   }
-  console.log('[RRHH] Enviando a API enviar-cotizaciones...');
+  console.log('[RRHH EMAIL] destino:',to);
+  console.log('[RRHH EMAIL] totalCot:',r.totalCot||r.totalCotizaciones||0);
+  console.log('[RRHH EMAIL] enviando endpoint...');
   fetch('https://contafunnel-v2.vercel.app/api/enviar-cotizaciones',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+    method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      analistaNombre:u.nombre||'Contadoor',
-      analistaWa:u.wa||'979881891',
+      analistaNombre:u.nombre||'Contadoor',analistaWa:u.wa||'979881891',
       toEmail:to,
       toNombre:(function(){var _c=getClientes().find(function(x){return x.rut===r.rut;});return (_c&&(_c.contacto||_c.contact))||r.clienteNombre||r.rut;})(),
-      toEmpresa:r.clienteNombre||r.rut,
-      periodo:periodo,
-      htmlReporte:htmlEmail,
+      toEmpresa:r.clienteNombre||r.rut,periodo:periodo,htmlReporte:htmlEmail,
       replyTo:u.email||(getClientes().find(function(x){return x.rut===r.rut;})||{}).emailAnalista||'reportes@contadoor.cl'
     })
   })
   .then(function(res){
-    if(!res.ok)return res.text().then(function(t){throw new Error('HTTP '+res.status+': '+t.slice(0,300));});
+    console.log('[RRHH EMAIL] status:',res.status);
+    if(!res.ok)return res.text().then(function(t){
+      console.error('[RRHH EMAIL] error body:',t);
+      throw new Error('HTTP '+res.status+': '+t.slice(0,300));
+    });
     return res.json();
   })
   .then(function(d){
-    if(d.ok){
+    if(d&&d.ok){
+      var idReal=/^\d+$/.test(String(r.id))?r.id:null;
+      if(idReal){
+        sbPatchRrhh(idReal,{estado:'aviso_enviado',preReporteEnviado:true,preReporteFecha:new Date().toISOString()});
+      }
       var arr=getReportes();
       var i=arr.findIndex(function(x){return String(x.id)===String(r.id);});
-      if(i>=0){arr[i].preReporteEnviado=true;arr[i].preReporteFecha=new Date().toISOString();arr[i].estado='enviado';}
-      setReportesCache(arr);
-      closeModalRrhh();
-      renderTabla(sv('selectPeriodo'));
-      var t=document.createElement('div');
-      t.style.cssText='position:fixed;bottom:24px;right:24px;background:#1a2e1a;border:1px solid #4ade80;color:#4ade80;padding:12px 18px;border-radius:8px;font-size:13px;z-index:9999';
-      t.textContent='✅ Aviso de Cotizaciones enviado a '+to;document.body.appendChild(t);
-      setTimeout(function(){t.remove();},4000);
+      if(i>=0){arr[i].preReporteEnviado=true;arr[i].preReporteFecha=new Date().toISOString();arr[i].estado='aviso_enviado';setReportesCache(arr);}
+      closeModalRrhh();renderTabla(sv('selectPeriodo'));
+      toast('\u2705 Aviso de Cotizaciones enviado a '+to);
     }else{
-      alert('Error al enviar: '+(d.error||JSON.stringify(d).slice(0,200)));
+      console.error('[RRHH EMAIL] respuesta no-ok:',d);
+      alert('No se pudo enviar el Aviso de Cotizaciones. Revisa la consola (F12).');
+      restBtn();
     }
   })
-  .catch(function(err){alert('Error de conexión: '+err.message);})
-  .finally(function(){if(btn){btn.disabled=false;btn.textContent='📨 Enviar Aviso de Cotizaciones';}});
+  .catch(function(err){
+    console.error('[RRHH EMAIL] Error fetch:',err);
+    alert('No se pudo enviar el Aviso de Cotizaciones. Revisa la consola (F12).');
+    restBtn();
+  });
 }
+
 function buildPreReporteRrhhHTML(r,data){
   var periodo=formatPeriodo(r.periodo);
   var u=getUsuario();
@@ -1956,21 +1902,34 @@ function buildPreReporteRrhhHTML(r,data){
   var fechaPostergar='10 de '+MESES2[mes-1]+' de '+anio;
   var fechaTope='13 de '+MESES2[mes-1]+' de '+anio;
   var diasRest=Math.max(0,Math.floor((new Date(anio,mes-1,13,12,30)-new Date())/(864e5)));
-  var nomina=0,totalCot=0,dctoAfp=0,dctoSalud=0,cesTrab=0,cesEmp=0,sis=0,mutual=0,nTrab=0,nActivos=0,nLic=0;
-  if(data&&data.trabajadores){
-    data.trabajadores.forEach(function(t){dctoAfp+=t.dctoAfp||0;dctoSalud+=t.dctoSalud||0;cesTrab+=t.cesTrab||0;cesEmp+=t.cesEmp||0;sis+=t.sis||0;mutual+=t.mutual||0;});
-    nomina=data.nomina||0;nTrab=data.nTrab||0;nActivos=data.nTrabActivos||nTrab;nLic=data.nLicencia||0;
+  var nomina=0,dctoAfp=0,apv=0,dctoSalud=0,cesTrab=0;
+  var sis=0,mutual=0,cesEmp=0,capInd=0,expVida=0,rentProt=0,iuEmail=0;
+  var nTrab=0,nActivos=0,nLic=0;
+  if(data&&data.trabajadores&&data.trabajadores.length){
+    data.trabajadores.forEach(function(t){
+      dctoAfp+=t.dctoAfp||0;
+      apv+=(t.apv1!=null)?(t.apv1||0)+(t.apv2||0):(t.apv||0);
+      dctoSalud+=t.dctoSalud||0;cesTrab+=t.cesTrab||0;iuEmail+=t.iu||0;
+      sis+=t.sis||0;mutual+=t.mutual||0;cesEmp+=t.cesEmp||0;
+      capInd+=t.capInd||0;expVida+=t.expVida||0;rentProt+=t.rentProt||0;
+    });
+    nomina=data.nomina||data.liquidoPagar||0;
+    nTrab=data.nTrab||0;nActivos=data.nTrabActivos||nTrab;nLic=data.nLicencia||0;
   }else{
     nomina=r.liquidoPagar||0;nTrab=r.nTrab||0;nActivos=nTrab;
-    dctoAfp=r.afp||0;dctoSalud=r.salud||0;cesTrab=r.cesTrab||0;
-    cesEmp=r.cesEmp||0;sis=r.sis||0;mutual=r.mutual||0;
+    dctoAfp=r.afp||0;apv=r.apv||0;dctoSalud=r.salud||0;cesTrab=r.cesTrab||0;
+    iuEmail=r.iu||0;sis=r.sis||0;mutual=r.mutual||0;cesEmp=r.cesEmp||0;
+    capInd=r.capInd||0;expVida=r.expVida||0;rentProt=r.rentProt||0;
   }
-  totalCot=dctoAfp+dctoSalud+cesTrab+cesEmp+sis+mutual;
+  // Fuente oficial: r.totalCot de Supabase (total_cotizaciones via sbRowToReporte). SIN IU.
+  var totalCot=(r.totalCot||r.totalCotizaciones||0)>0
+    ?(r.totalCot||r.totalCotizaciones)
+    :(dctoAfp+apv+dctoSalud+cesTrab+sis+mutual+cesEmp+capInd+expVida+rentProt);
   var _cli=getClientes().find(function(x){return x.rut===r.rut;});
   var contacto=(_cli&&(_cli.contacto||_cli.contact))||r.clienteNombre||r.rut;
   // Analista RRHH asignado al cliente (no quien está logueado)
   var _analistaRrhhNombre=(_cli&&(_cli.rrhh||_cli.analistaRrhh))||u.nombre||'Contadoor';
-  var _todosAnalistas=getAnalistas?getAnalistas():[]; // de admin si existe
+  var _todosAnalistas=typeof getAnalistas==='function'?getAnalistas():[]; // de admin si existe
   var _analistaObj=_todosAnalistas.find(function(a){return a.nombre===_analistaRrhhNombre;});
   var analistaNombre=_analistaRrhhNombre;
   var analistaEmail=(_analistaObj&&_analistaObj.email)||(_cli&&_cli.emailAnalistaRrhh)||u.email||'reportes@contadoor.cl';
@@ -2017,14 +1976,20 @@ function buildPreReporteRrhhHTML(r,data){
   +'<div style="font-size:11px;font-weight:600;color:#1a0a1b;margin-bottom:10px">Detalle de cotizaciones</div>'
   +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
   +'<tr><td colspan="2" style="padding:5px 8px;font-size:10px;font-weight:600;color:#904891;background:#faf7fa;text-transform:uppercase;letter-spacing:.4px">Descuentos trabajadores</td></tr>'
-  +(dctoAfp?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">AFP</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(dctoAfp)+'</td></tr>':'')
-  +(dctoSalud?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Salud (ISAPRE / Fonasa)</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(dctoSalud)+'</td></tr>':'')
-  +(cesTrab?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Cesantía trabajador</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(cesTrab)+'</td></tr>':'')
-  +'<tr><td colspan="2" style="padding:5px 8px;font-size:10px;font-weight:600;color:#904891;background:#faf7fa;text-transform:uppercase;letter-spacing:.4px">Aportes empleador</td></tr>'
-  +(sis?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">SIS</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(sis)+'</td></tr>':'')
-  +(mutual?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Mutual / Accidentes</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(mutual)+'</td></tr>':'')
-  +(cesEmp?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Cesantía empleador</td><td style="text-align:right;padding:5px 8px;font-weight:600;border-bottom:1px solid #f5f0f5">'+ff(cesEmp)+'</td></tr>':'')
-  +'<tr style="border-top:2px solid #e8dde8"><td style="padding:8px 8px;font-weight:600;color:#1a0a1b">Total a pagar</td><td style="text-align:right;padding:8px 8px;font-weight:700;font-size:15px;color:#904891">'+ff(totalCot)+'</td></tr>'
+  +(dctoAfp?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">AFP</td><td style="text-align:right;padding:5px 8px;font-weight:600">'+ff(dctoAfp)+'</td></tr>':'')
+  +(apv?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">APV</td><td style="text-align:right;padding:5px 8px;font-weight:600">'+ff(apv)+'</td></tr>':'')
+  +(dctoSalud?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Salud (ISAPRE / Fonasa)</td><td style="text-align:right;padding:5px 8px;font-weight:600">'+ff(dctoSalud)+'</td></tr>':'')
+  +(cesTrab?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Ces. Seguro trab.</td><td style="text-align:right;padding:5px 8px;font-weight:600">'+ff(cesTrab)+'</td></tr>':'')
+  +'<tr><td colspan="2" style="padding:5px 8px;font-size:10px;font-weight:600;color:#904891;background:#faf7fa;text-transform:uppercase">Aportes empleador</td></tr>'
+  +(sis?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">SIS</td><td style="text-align:right;padding:5px 8px;font-weight:600">'+ff(sis)+'</td></tr>':'')
+  +(mutual?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Mutual / Accidentes</td><td style="text-align:right;padding:5px 8px;font-weight:600">'+ff(mutual)+'</td></tr>':'')
+  +(cesEmp?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Ces. Seguro empleador</td><td style="text-align:right;padding:5px 8px;font-weight:600">'+ff(cesEmp)+'</td></tr>':'')
+  +(capInd?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Cap. Individual (reforma)</td><td style="text-align:right;padding:5px 8px;font-weight:600">'+ff(capInd)+'</td></tr>':'')
+  +(expVida?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Expectativa de vida</td><td style="text-align:right;padding:5px 8px;font-weight:600">'+ff(expVida)+'</td></tr>':'')
+  +(rentProt?'<tr><td style="padding:5px 8px;color:#5c4a5d;border-bottom:1px solid #f5f0f5">Rent. Protegida</td><td style="text-align:right;padding:5px 8px;font-weight:600">'+ff(rentProt)+'</td></tr>':'')
+  +(iuEmail?'<tr><td colspan="2" style="padding:4px 8px;font-size:10px;font-weight:600;color:#C07A1A;background:#fef9f0">Tributario (no Previred)</td></tr>':'')
+  +(iuEmail?'<tr><td style="padding:5px 8px;color:#854F0B;font-style:italic">Imp. \u00danico 2\u00aa Cat. \u2192 gestionado en F29</td><td style="text-align:right;padding:5px 8px;font-style:italic;color:#C07A1A">'+ff(iuEmail)+'</td></tr>':'')
+  +'<tr style="border-top:2px solid #e8dde8"><td style="padding:8px 8px;font-weight:600;color:#1a0a1b">Total Previred</td><td style="text-align:right;padding:8px 8px;font-weight:700;font-size:15px;color:#904891">'+ff(totalCot)+'</td></tr>'
   +'</table></div>'
   // CTAs
   +'<div style="padding:16px 24px;border-bottom:1px solid #f0ebf0">'
@@ -2179,32 +2144,64 @@ function enviarPreReporteMasivo(){
     .finally(function(){setTimeout
 // ── FLUJO DE PAGOS RRHH ──────────────────────────────────────────────────────
 function sbPatchRrhh(id,data){
-  // Convertir camelCase→snake_case para Supabase
-  var sb={};
+  if(!id || /^nuevo_/.test(String(id))) return; // no parchear IDs temporales
+  // Traducir camelCase → snake_case para Supabase
+  // Usar sbPatch() de supabase.js — sin fetch directo ni API key hardcodeada
   var map={
-    estado:'estado', nTrab:'n_trabajadores', totalCot:'total_cot',
-    totalGeneral:'total_general', preReporteEnviado:'pre_reporte_enviado',
-    preReporteFecha:'pre_reporte_fecha', haPostergado:'ha_postergado',
-    fechaPostergacion:'fecha_postergacion', nRecordatorios:'n_recordatorios',
-    ultimoRecordatorio:'ultimo_recordatorio', fechaTransferido:'fecha_transferido',
-    quienTransferido:'quien_transferido', fechaPrevired:'fecha_previred',
-    quienPrevired:'quien_previred', fechaAprobacion:'fecha_aprobacion',
-    fechaFinalizado:'fecha_finalizado', quienFinalizado:'quien_finalizado',
+    estado:'estado',
+    nTrab:'n_trabajadores',
+    totalImponible:'total_imponible',
+    totalNoImponible:'total_no_imponible',
+    liquidoPagar:'liquido_pagar',
+    afp:'afp', salud:'salud', apv:'apv',
+    cesTrab:'ces_trab', iu:'iu',
+    otrosDesc:'otros_desc',
+    totalDesc:'total_desc',
+    sis:'sis', mutual:'mutual', cesEmp:'ces_emp',
+    capInd:'cap_ind', expVida:'exp_vida', rentProt:'rent_prot',
+    totalAportes:'total_aportes',
+    totalCotizaciones:'total_cotizaciones',
+    totalCot:'total_cot',
+    costoLaboral:'costo_laboral',
+    nConLicencia:'n_con_licencia',
+    nConVacaciones:'n_con_vacaciones',
+    nConAtrasos:'n_con_atrasos',
+    cuadraturaOk:'cuadratura_ok',
+    diferenciaCuadratura:'diferencia_cuadratura',
+    archivoNombre:'archivo_nombre',
+    procesadoAt:'procesado_at',
+    procesadoPor:'procesado_por',
+    totalGeneral:'total_general',
+    preReporteEnviado:'pre_reporte_enviado',
+    preReporteFecha:'pre_reporte_fecha',
+    haPostergado:'ha_postergado',
+    fechaPostergacion:'fecha_postergacion',
+    nRecordatorios:'n_recordatorios',
+    ultimoRecordatorio:'ultimo_recordatorio',
+    fechaTransferido:'fecha_transferido',
+    quienTransferido:'quien_transferido',
+    fechaPrevired:'fecha_previred',
+    quienPrevired:'quien_previred',
+    fechaAprobacion:'fecha_aprobacion',
+    fechaFinalizado:'fecha_finalizado',
+    quienFinalizado:'quien_finalizado',
     obsAnalista:'obs_analista', obsRrhh:'obs_rrhh', obsCont:'obs_cont',
     ivaDebito:'debito_iva', ivaCredito:'credito_iva', ivaPostergado:'iva_postergado',
-    totalImpInmediato:'f29', preparado:'analista_rrhh', revisado:'analista_contable',
-    pagado:'pagado', pagosValidado:'pagos_validado', decisionCotiz:'decision_cotiz',
-    secciones:'secciones', usaArchivo:'usa_archivo'
+    totalImpInmediato:'f29', iuSii:'iu_sii',
+    preparado:'analista_rrhh', revisado:'analista_contable',
+    emailAnalista:'email_analista',
+    pagado:'pagado', pagosValidado:'pagos_validado',
+    decisionCotiz:'decision_cotiz',
+    secciones:'secciones', usaArchivo:'usa_archivo',
+    f29:'f29'
   };
+  var sb={};
   Object.keys(data).forEach(function(k){
     var sbKey=map[k]||k;
     sb[sbKey]=data[k];
   });
-  fetch('https://ulxoxqbuxiuylaolaqxj.supabase.co/rest/v1/reportes_mensuales?id=eq.'+encodeURIComponent(id),{
-    method:'PATCH',
-    headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA','Content-Type':'application/json','Prefer':'return=representation'},
-    body:JSON.stringify(sb)  // sb = traducción snake_case correcta
-  }).catch(function(){});
+  sbPatch('reportes_mensuales?id=eq.'+encodeURIComponent(id), sb)
+    .catch(function(e){ console.warn('[sbPatchRrhh] Error:', e); });
 }
 function actualizarEstadoRrhh(id,nuevoEstado,extra){
   var arr=getReportes();
@@ -2615,8 +2612,8 @@ setupUpload();
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',init);
 }else{init();}
-</script>
 
+</script>
 <script src="../notifications.js"></script>
 <script src="../auth.js"></script>
 </body>
