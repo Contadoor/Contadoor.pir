@@ -873,8 +873,14 @@ function renderTabla(periodo){
     var planLabel=c&&c.plan?c.plan:' - ';
 
     var est_r=getEstadoRrhh(r);
+    var _chkOk=(est_r==='completado');
     html+='<tr>'
-      +'<td style="text-align:center"><input type="checkbox" class="rrhh-chk" data-id="'+r.id+'" data-estado="'+est_r+'" onchange="actualizarBulkBar()" style="width:14px;height:14px;accent-color:var(--p)"></td>';
+      +'<td style="text-align:center">'
+      +(_chkOk
+        ?'<input type="checkbox" class="rrhh-chk" data-id="'+r.id+'" data-estado="'+est_r+'" onchange="actualizarBulkBar()" style="width:14px;height:14px;accent-color:var(--p)">'
+        :'<input type="checkbox" disabled title="Solo reportes RRHH OK son elegibles" style="width:14px;height:14px;opacity:.3;cursor:not-allowed">'
+      )
+      +'</td>';
     // Cliente
     html+='<td><div class="cli-nombre">'+hesc(r.clienteNombre||r.rut)+'</div>'
       +'<div class="cli-sub"><span class="cli-rut">'+hesc(r.rut)+'</span>'
@@ -1819,84 +1825,39 @@ function guardarRrhh(accion){
 }
 
 function enviarReporteParcial(){
+  // Wrapper modal: gestiona btn + confirm. Motor: enviarAvisoRrhhCore
   if(!_reporteActual){alert('No hay reporte activo.');return;}
   var r=_reporteActual;
-  var to=r.clienteEmail||'';
-  if(!to){var _c=getClientes().find(function(x){return x.rut===r.rut;});if(_c&&_c.email)to=_c.email;}
-  if(!to){alert('El cliente no tiene email registrado.');return;}
-  var u=getUsuario();
-  var periodo=formatPeriodo(r.periodo);
-  if(!confirm('\u00bfEnviar Aviso de Cotizaciones de '+periodo+' a '+hesc(r.clienteNombre)+'?\nEmail: '+to))return;
-  var btn=document.getElementById('btnEnviarParcial');
-  function restBtn(){if(btn){btn.disabled=false;btn.textContent='\u{1F4E8} Enviar Aviso de Cotizaciones';}}
-  if(btn){btn.disabled=true;btn.textContent='Enviando...';}
-  var data=(_remuData&&_remuData.trabajadores&&_remuData.trabajadores.length)?_remuData:null;
-  var htmlContent;
-  try{
-    htmlContent=buildPreReporteRrhhHTML(r,data);
-  }catch(buildErr){
-    console.error('[RRHH EMAIL] buildPreReporteRrhhHTML error:',buildErr);
-    alert('Error al generar el email: '+buildErr.message);
-    restBtn();
+  // Guard rail antes de cualquier UI
+  var val=validarParaEnvioAviso(r);
+  if(!val.ok){
+    alert('\u274c No es posible enviar el Aviso de Cotizaciones.\n\n'+val.motivo);
     return;
   }
-  var htmlEmail='<!DOCTYPE html><html><head><meta charset="utf-8"></head>'
-    +'<body style="margin:0;padding:16px;background:#f4f4f4">'+htmlContent+'</body></html>';
-  htmlEmail=htmlEmail.replace(/\s{2,}/g,' ').replace(/> </g,'><');
-  if(htmlEmail.length>300000){
-    alert('El HTML del reporte es muy largo.');restBtn();return;
+  var u=getUsuario();
+  var periodo=formatPeriodo(r.periodo);
+  if(!confirm('\u00bfEnviar Aviso de Cotizaciones de '+periodo+' a '+hesc(r.clienteNombre)+'?\nEmail: '+val.email))return;
+  var btn=document.getElementById('btnEnviarParcial');
+  function restBtn(){if(btn){btn.disabled=false;btn.textContent='\ud83d\udce8 Enviar Aviso de Cotizaciones';}}
+  if(btn){btn.disabled=true;btn.textContent='Enviando...';}
+  // Pasar _remuData si corresponde al mismo cliente/periodo
+  var datosLibro=null;
+  if(_remuData&&_remuData.trabajadores&&_remuData.trabajadores.length&&
+     (!_remuData.clienteRutContexto||_remuData.clienteRutContexto===r.rut)){
+    datosLibro=_remuData;
   }
-  console.log('[RRHH EMAIL] destino:',to);
-  console.log('[RRHH EMAIL] totalCot:',r.totalCot||r.totalCotizaciones||0);
-  console.log('[RRHH EMAIL] enviando endpoint...');
-  fetch('https://contafunnel-v2.vercel.app/api/enviar-cotizaciones',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      analistaNombre:u.nombre||'Contadoor',analistaWa:u.wa||'979881891',
-      toEmail:to,
-      toNombre:(function(){var _c=getClientes().find(function(x){return x.rut===r.rut;});return (_c&&(_c.contacto||_c.contact))||r.clienteNombre||r.rut;})(),
-      toEmpresa:r.clienteNombre||r.rut,periodo:periodo,htmlReporte:htmlEmail,
-      replyTo:u.email||(getClientes().find(function(x){return x.rut===r.rut;})||{}).emailAnalista||'reportes@contadoor.cl'
-    })
-  })
-  .then(function(res){
-    console.log('[RRHH EMAIL] status:',res.status);
-    if(!res.ok)return res.text().then(function(t){
-      console.error('[RRHH EMAIL] error body:',t);
-      throw new Error('HTTP '+res.status+': '+t.slice(0,300));
-    });
-    return res.json();
-  })
-  .then(function(d){
-    if(d&&d.ok){
-      var idReal=/^\d+$/.test(String(r.id))?r.id:null;
-      // PATCH Supabase directo con sbPatch de supabase.js (no sbPatchRrhh)
-      var fechaEnvio=new Date().toISOString();
-      if(idReal){
-        sbPatch('reportes_mensuales?id=eq.'+encodeURIComponent(idReal),{
-          estado:'aviso_enviado',
-          pre_reporte_enviado:true,
-          pre_reporte_fecha:fechaEnvio
-        });
-      }
-      // Actualizar caché local
-      var arr=getReportes();
-      var i=arr.findIndex(function(x){return String(x.id)===String(r.id);});
-      if(i>=0){arr[i].preReporteEnviado=true;arr[i].preReporteFecha=fechaEnvio;arr[i].estado='aviso_enviado';setReportesCache(arr);}
-      closeModalRrhh();renderTabla(sv('selectPeriodo'));
-      toast('\u2705 Aviso de Cotizaciones enviado a '+to);
-    }else{
-      console.error('[RRHH EMAIL] respuesta no-ok:',d);
-      alert('No se pudo enviar el Aviso de Cotizaciones. Revisa la consola (F12).');
-      restBtn();
-    }
-  })
-  .catch(function(err){
-    console.error('[RRHH EMAIL] Error fetch:',err);
-    alert('No se pudo enviar el Aviso de Cotizaciones. Revisa la consola (F12).');
+  enviarAvisoRrhhCore(r,{datosLibro:datosLibro}).then(function(res){
     restBtn();
+    if(res.ok){
+      closeModalRrhh();
+      renderTabla(sv('selectPeriodo'));
+      toast('\u2705 Aviso de Cotizaciones enviado a '+res.email);
+    }else{
+      alert('\u274c Error al enviar.\n\n'+res.motivo);
+    }
   });
 }
+
 
 function buildPreReporteRrhhHTML(r,data){
   var periodo=formatPeriodo(r.periodo);
@@ -1945,12 +1906,12 @@ function buildPreReporteRrhhHTML(r,data){
   var waUrl='https://wa.me/56'+analistaWa.replace(/\D/g,'')+('?text=')+waMsg;
   var mailPago='mailto:'+analistaEmail+'?subject='+encodeURIComponent('Pagaré cotizaciones '+periodo+' — '+(r.clienteNombre||r.rut))+'&body='+encodeURIComponent('Hola '+analistaNombre+', confirmo que realizaré la transferencia de '+ff(totalCot)+' por las cotizaciones de '+periodo+' dentro del plazo.');
   var mailPost='mailto:'+analistaEmail+'?subject='+encodeURIComponent('Quiero postergar cotizaciones '+periodo+' — '+(r.clienteNombre||r.rut))+'&body='+encodeURIComponent('Hola '+analistaNombre+', necesito postergar el pago de cotizaciones de '+periodo+'. Motivo: ');
-  var LOGO='https://assets.cdn.filesafe.space/kfq1F3czdejkInyTMLkO/media/6982b1a12dd9857339e39ae1.png';
+  var LOGO='https://agenda.contadoor.cl/logo_blanco_new.png';
   var AVISO='Asesorías Contadoor Ltda. no se hace responsable de multas, intereses ni recargos generados por el pago fuera de plazo. La recepción de este aviso constituye notificación formal de las obligaciones y fechas límite vigentes. Para coordinar postergaciones, contáctenos antes del plazo indicado.';
   return '<div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto">'
   // Header: fondo morado + logo blanco
   +'<div style="background:#904891;padding:18px 24px;text-align:center">'
-  +'<img src="https://agenda.contadoor.cl/logo_blanco_new.png" width="160" style="display:block;margin:0 auto;max-height:40px;object-fit:contain" alt="Contadoor">'
+  +'<img src="'+LOGO+'" width="160" style="display:block;margin:0 auto;max-height:40px;object-fit:contain" alt="Contadoor">'
   +'</div>'
   // Saludo
   +'<div style="padding:18px 24px 14px;border-bottom:1px solid #f0ebf0">'
@@ -2008,8 +1969,16 @@ function buildPreReporteRrhhHTML(r,data){
   +'<a href="'+waUrl+'" style="display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:600;text-decoration:none">💬 WhatsApp</a>'
   +'</div>'
   +'<div style="border-top:1px dashed #e8dde8;padding-top:14px;text-align:center">'
-  +'<a href="mailto:'+analistaEmail+'?subject=Datos bancarios — '+encodeURIComponent(periodo)+'" style="display:inline-block;background:#904891;color:#fff;border-radius:8px;padding:11px 24px;font-size:13px;font-weight:600;text-decoration:none">📋 Solicitar datos bancarios</a>'
-  +'<p style="font-size:11px;color:#9a849b;margin:8px 0 0">Te los enviamos de inmediato</p>'
+  +'<div style="font-size:10px;font-weight:600;color:#904891;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Datos bancarios para transferencia</div>'
+  +'<table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #e8dde8;border-radius:8px;overflow:hidden">'
+  +'<tr style="background:#f5f0f8"><td style="padding:7px 12px;color:#5c4a5d;font-weight:600;width:42%">Banco</td><td style="padding:7px 12px;color:#1a0a1b;font-weight:700">It\u00e1u</td></tr>'
+  +'<tr><td style="padding:7px 12px;color:#5c4a5d;font-weight:600">Tipo de cuenta</td><td style="padding:7px 12px;color:#1a0a1b;font-weight:700">Cuenta Corriente</td></tr>'
+  +'<tr style="background:#f5f0f8"><td style="padding:7px 12px;color:#5c4a5d;font-weight:600">N\u00b0 cuenta</td><td style="padding:7px 12px;color:#1a0a1b;font-weight:700;font-family:monospace;letter-spacing:1px">0220729517</td></tr>'
+  +'<tr><td style="padding:7px 12px;color:#5c4a5d;font-weight:600">RUT titular</td><td style="padding:7px 12px;color:#1a0a1b;font-weight:700">77.166.269-2</td></tr>'
+  +'<tr style="background:#f5f0f8"><td style="padding:7px 12px;color:#5c4a5d;font-weight:600">Titular</td><td style="padding:7px 12px;color:#1a0a1b;font-weight:700">Asesor\u00edas Contadoor Ltda.</td></tr>'
+  +'<tr><td style="padding:7px 12px;color:#5c4a5d;font-weight:600">Email confirmaci\u00f3n</td><td style="padding:7px 12px;color:#1a0a1b;font-weight:700">reportes@contadoor.cl</td></tr>'
+  +'</table>'
+  +'<p style="font-size:11px;color:#9a849b;margin:8px 0 0;text-align:center">Confirma la transferencia por email o WhatsApp a tu asesor</p>'
   +'</div></div>'
   // Aviso legal
   +'<div style="padding:12px 24px;background:#f5f0f8;border-top:1px solid #e8dde8;border-bottom:1px solid #e8dde8">'
@@ -2036,25 +2005,38 @@ function buildPreReporteRrhhHTML(r,data){
 // Centralizada para uso individual y masivo.
 function validarParaEnvioAviso(r){
   if(!r) return {ok:false, motivo:'Reporte no encontrado.'};
+  // 0. ID real (no temporal)
+  if(/^nuevo_/.test(String(r.id||''))){
+    return {ok:false, motivo:'El reporte aún no ha sido guardado. Completa y guarda la sección RRHH primero.'};
+  }
   // 1. Estado bloqueado
   var ESTADOS_BLOQUEADOS=['finalizado','cancelado'];
   if(ESTADOS_BLOQUEADOS.indexOf(r.estado||'')>=0){
-    return {ok:false, motivo:'El reporte está '+r.estado+' y no puede recibir avisos de cotizaciones.'};
+    return {ok:false, motivo:'El reporte está en estado "'+r.estado+'" y no puede recibir avisos de cotizaciones.'};
   }
-  // 2. RRHH completado (libro procesado + marcado OK)
+  // 2. RRHH completado (único estado permitido)
   var est=getEstadoRrhh(r);
   if(est==='pendiente'){
     return {ok:false, motivo:'El libro de remuneraciones aún no ha sido procesado para este período.'};
   }
   if(est==='libro_ok'){
-    return {ok:false, motivo:'El libro fue cargado pero el reporte RRHH aún no ha sido marcado como OK.'};
+    return {ok:false, motivo:'El libro fue cargado pero el reporte RRHH no ha sido marcado como OK (Completado).'};
   }
-  // 3. Total cotizaciones > 0
+  if(est!=='completado'){
+    // aviso_enviado, transferido, etc. — ya avanzó
+    return {ok:false, motivo:'El reporte ya fue enviado o está en una etapa posterior. No se puede reenviar desde este flujo.'};
+  }
+  // 3. Al menos 1 trabajador
+  var nTrab=r.nTrab||r.trabM||0;
+  if(nTrab<=0){
+    return {ok:false, motivo:'No se registran trabajadores activos. Verifica el libro cargado.'};
+  }
+  // 4. Total cotizaciones > 0
   var totalCot=r.totalCot||r.totalCotizaciones||0;
   if(!totalCot||totalCot<=0){
     return {ok:false, motivo:'No existen cotizaciones calculadas para este período.'};
   }
-  // 4. Correo del cliente
+  // 5. Correo del cliente
   var _cli=getClientes().find(function(x){return x.rut===r.rut;});
   var email=r.clienteEmail||(_cli&&_cli.email)||'';
   if(!email){
@@ -2063,79 +2045,118 @@ function validarParaEnvioAviso(r){
   return {ok:true, email:email};
 }
 
-function enviarPreReporteRrhh(id){
-  var r=getReportes().find(function(x){return String(x.id)===String(id);});
-  if(!r){alert('Reporte no encontrado.');return;}
-  // ── Validación de guard rails ─────────────────────────────
+// ── MOTOR ÚNICO DE ENVÍO AVISO COTIZACIONES RRHH ────────────────────────────
+// enviarAvisoRrhhCore(r, opciones)
+// opciones.datosLibro : objeto _remuData para enriquecer el email (opcional)
+// Retorna Promise<{ok:true, email:'...'} | {ok:false, motivo:'...'}>
+function enviarAvisoRrhhCore(r, opciones){
+  opciones=opciones||{};
+  // ── 1. Validar ───────────────────────────────────────────────
   var val=validarParaEnvioAviso(r);
-  if(!val.ok){
-    alert('\u274c No es posible enviar el Aviso de Cotizaciones.\n\n'+val.motivo);
-    return;
-  }
-  var to=val.email;
-  console.log('[RRHH EMAIL] destino:', to);
-  var u=getUsuario();
-  var periodo=formatPeriodo(r.periodo);
-  if(!confirm('¿Enviar Aviso de Cotizaciones RRHH de '+periodo+' a '+hesc(r.clienteNombre)+'?\nEmail: '+to+'\n\nSale desde: reportes@contadoor.cl'))return;
-  var data=null;
-  if(_remuData&&_remuData.trabajadores&&_remuData.trabajadores.length){
-    var perLibro=String(_remuData.periodo||'').replace('-','');
-    var perRep=String(r.periodo||'').replace('-','');
-    if(!perLibro||perLibro===perRep)data=_remuData;
+  if(!val.ok) return Promise.resolve({ok:false, motivo:val.motivo});
+  // ── 2. Construir email ───────────────────────────────────────
+  var data=opciones.datosLibro||null;
+  // Intentar usar _remuData si corresponde al mismo periodo/cliente
+  if(!data&&_remuData&&_remuData.trabajadores&&_remuData.trabajadores.length){
+    var perLibro=normalizarPeriodoLibro(_remuData.periodo||'');
+    if((!perLibro||perLibro===r.periodo)&&(!_remuData.clienteRutContexto||_remuData.clienteRutContexto===r.rut)){
+      data=_remuData;
+    }
   }
   var htmlContent;
-  try{
-    htmlContent=buildPreReporteRrhhHTML(r,data);
-  }catch(buildErr){
-    alert('Error al generar el email: '+buildErr.message);
-    console.error('buildPreReporteRrhhHTML error:', buildErr);
-    return;
+  try{htmlContent=buildPreReporteRrhhHTML(r,data);}
+  catch(buildErr){
+    console.error('[RRHH CORE] Error build email:',buildErr);
+    return Promise.resolve({ok:false, motivo:'Error al generar el email: '+buildErr.message});
   }
-  // Compactar HTML para no superar límite Vercel (4.5MB)
   var htmlEmail='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>'
     +'<body style="margin:0;padding:16px;background:#f4f4f4">'+htmlContent+'</body></html>';
-  // Limpiar espacios redundantes
   htmlEmail=htmlEmail.replace(/\s{2,}/g,' ').replace(/> </g,'><');
   if(htmlEmail.length>300000){
-    alert('El HTML del reporte es muy largo ('+Math.round(htmlEmail.length/1024)+'KB). Contacta soporte.');
-    if(btn){btn.disabled=false;btn.textContent='📨 Aviso de Cotizaciones';}
-    return;
+    return Promise.resolve({ok:false, motivo:'El HTML del email es muy largo ('+Math.round(htmlEmail.length/1024)+'KB). Contacta soporte.'});
   }
-  fetch('https://contafunnel-v2.vercel.app/api/enviar-cotizaciones',{
+  // ── 3. Enviar al endpoint ────────────────────────────────────
+  var u=getUsuario();
+  var periodo=formatPeriodo(r.periodo);
+  var _cli=getClientes().find(function(x){return x.rut===r.rut;});
+  var toNombre=(_cli&&(_cli.contacto||_cli.contact))||r.clienteNombre||r.rut;
+  var replyTo=u.email||(_cli&&_cli.emailAnalista)||'reportes@contadoor.cl';
+  console.log('[RRHH EMAIL] destino:',val.email);
+  console.log('[RRHH EMAIL] totalCot:',r.totalCot||r.totalCotizaciones||0);
+  console.log('[RRHH EMAIL] llamando endpoint...');
+  return fetch('https://contafunnel-v2.vercel.app/api/enviar-cotizaciones',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
       analistaNombre:u.nombre||'Contadoor',
       analistaWa:u.wa||'979881891',
-      toEmail:to,
-      toNombre:(function(){var _c=getClientes().find(function(x){return x.rut===r.rut;});return (_c&&(_c.contacto||_c.contact))||r.clienteNombre||r.rut;})(),
+      toEmail:val.email,
+      toNombre:toNombre,
       toEmpresa:r.clienteNombre||r.rut,
       periodo:periodo,
       htmlReporte:htmlEmail,
-      replyTo:u.email||(getClientes().find(function(x){return x.rut===r.rut;})||{}).emailAnalista||'reportes@contadoor.cl'
+      replyTo:replyTo
     })
   })
   .then(function(res){
-    if(!res.ok)return res.text().then(function(t){throw new Error('HTTP '+res.status+': '+t.slice(0,300));});
-    return res.json();
-  })
-  .then(function(d){
-    if(d.ok){
+    console.log('[RRHH EMAIL] HTTP status:',res.status);
+    if(!res.ok) return res.text().then(function(t){
+      console.error('[RRHH EMAIL] error body:',t);
+      return {ok:false, motivo:'HTTP '+res.status+': '+t.slice(0,200)};
+    });
+    return res.json().then(function(d){
+      if(!(d&&d.ok)) return {ok:false, motivo:d&&d.error?d.error:'El servidor rechazó el envío.'};
+      // ── 4. PATCH Supabase ──────────────────────────────────
+      var fechaEnvio=new Date().toISOString();
+      var idReal=/^\d+$/.test(String(r.id))?r.id:null;
+      if(idReal){
+        sbPatch('reportes_mensuales?id=eq.'+encodeURIComponent(idReal),{
+          estado:'aviso_enviado',
+          pre_reporte_enviado:true,
+          pre_reporte_fecha:fechaEnvio
+        }).catch(function(e){console.warn('[RRHH EMAIL] PATCH SB:',e);});
+      }
+      // ── 5. Actualizar caché local ─────────────────────────
       var arr=getReportes();
-      var i=arr.findIndex(function(x){return String(x.id)===String(id);});
-      if(i>=0){arr[i].preReporteEnviado=true;arr[i].preReporteFecha=new Date().toISOString();}
-      setReportesCache(arr);
-      renderTabla(sv('selectPeriodo'));
-      var t=document.createElement('div');
-      t.style.cssText='position:fixed;bottom:24px;right:24px;background:#1a2e1a;border:1px solid #4ade80;color:#4ade80;padding:12px 18px;border-radius:8px;font-size:13px;z-index:9999';
-      t.textContent='✅ Aviso de Cotizaciones enviado a '+to;document.body.appendChild(t);
-      setTimeout(function(){t.remove();},4000);
-    }else{
-      alert('Error: '+(d.error||JSON.stringify(d).slice(0,200)));
-    }
+      var i=arr.findIndex(function(x){return String(x.id)===String(r.id);});
+      if(i>=0){
+        arr[i].preReporteEnviado=true;
+        arr[i].preReporteFecha=fechaEnvio;
+        arr[i].estado='aviso_enviado';
+        setReportesCache(arr);
+      }
+      return {ok:true, email:val.email};
+    });
   })
-  .catch(function(err){alert('Error de conexión: '+err.message);});
+  .catch(function(err){
+    console.error('[RRHH EMAIL] Error fetch:',err);
+    return {ok:false, motivo:'Error de conexión: '+(err.message||String(err))};
+  });
 }
+
+function enviarPreReporteRrhh(id){
+  // Wrapper: confirm + toast. Motor: enviarAvisoRrhhCore
+  var r=getReportes().find(function(x){return String(x.id)===String(id);});
+  if(!r){alert('Reporte no encontrado.');return;}
+  // Validar antes del confirm (sin molestar al usuario si falla)
+  var val=validarParaEnvioAviso(r);
+  if(!val.ok){
+    alert('\u274c No es posible enviar el Aviso de Cotizaciones.\n\n'+val.motivo);
+    return;
+  }
+  var periodo=formatPeriodo(r.periodo);
+  if(!confirm('\u00bfEnviar Aviso de Cotizaciones RRHH de '+periodo+' a '+hesc(r.clienteNombre)+'?\nEmail: '+val.email+'\n\nSale desde: reportes@contadoor.cl'))return;
+  enviarAvisoRrhhCore(r).then(function(res){
+    if(res.ok){
+      renderTabla(sv('selectPeriodo'));
+      toast('\u2705 Aviso de Cotizaciones enviado a '+res.email);
+    }else{
+      alert('\u274c Error al enviar.\n\n'+res.motivo);
+    }
+  });
+}
+
+
 function enviarPreReporteMasivo(){
   var per=getPeriodoActivo();
   if(!per){alert('No hay período activo.');return;}
@@ -2336,7 +2357,7 @@ function buildRecordatorioRrhhHTML(r,diasSinPagar,esUrgente){
   var analistaNombre=u.nombre||'Contadoor';
   var mailPago='mailto:'+analistaEmail+'?subject='+encodeURIComponent('Pagaré cotizaciones '+periodo+' — '+(r.clienteNombre||r.rut))+'&body='+encodeURIComponent('Hola '+analistaNombre+', confirmo el pago de '+ff(totalCot)+' por cotizaciones '+periodo+'.');
   var mailPost='mailto:'+analistaEmail+'?subject='+encodeURIComponent('Quiero postergar cotizaciones '+periodo+' — '+(r.clienteNombre||r.rut))+'&body='+encodeURIComponent('Hola '+analistaNombre+', necesito postergar cotizaciones '+periodo+'. Motivo: ');
-  var LOGO='https://assets.cdn.filesafe.space/kfq1F3czdejkInyTMLkO/media/6982b1a12dd9857339e39ae1.png';
+  var LOGO='https://agenda.contadoor.cl/logo_blanco_new.png';
   var AVISO='Asesorías Contadoor Ltda. no se hace responsable de multas, intereses ni recargos generados por el pago fuera de plazo. La recepción de este aviso constituye notificación formal de las obligaciones y fechas límite vigentes. Para coordinar postergaciones, contáctenos antes del plazo indicado.';
   // Color según urgencia
   var colorBanner=esUrgente?'#C0392B':diasSinPagar>=8?'#C07A1A':'#2D9B6F';
@@ -2350,7 +2371,7 @@ function buildRecordatorioRrhhHTML(r,diasSinPagar,esUrgente){
       :'Aún no hemos recibido respuesta. El plazo de postergación vence el <strong>'+fechaPostergar+'</strong> y el pago el <strong>'+fechaTope+' a las 12:30 hrs</strong>. ¿Cómo procederás?';
   return '<div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto">'
   +'<div style="background:'+colorBanner+';padding:16px 24px;text-align:center">'
-  +'<img src="https://agenda.contadoor.cl/logo_blanco_new.png" width="140" style="display:block;margin:0 auto;max-height:36px;object-fit:contain" alt="Contadoor">'
+  +'<img src="'+LOGO+'" width="140" style="display:block;margin:0 auto;max-height:36px;object-fit:contain" alt="Contadoor">'
   +'</div>'
   +'<div style="padding:18px 24px;border-bottom:1px solid #f0ebf0">'
   +'<p style="font-size:15px;font-weight:600;color:#1a0a1b;margin:0 0 6px">Hola '+contacto+',</p>'
@@ -2367,10 +2388,7 @@ function buildRecordatorioRrhhHTML(r,diasSinPagar,esUrgente){
   +(esUrgente?'':'<a href="'+mailPost+'" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#854F0B;border:1px solid #EF9F27;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;text-decoration:none">⏳ Quiero postergar</a>')
   +'<a href="https://wa.me/56'+analistaWa.replace(/\D/g,'')+'" style="display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;text-decoration:none">💬 WhatsApp</a>'
   +'</div>'
-  +'<div style="border-top:1px dashed #e8dde8;padding-top:14px;text-align:center">'
-  +'<a href="mailto:'+analistaEmail+'?subject=Datos bancarios — '+encodeURIComponent(periodo)+'" style="display:inline-block;background:#904891;color:#fff;border-radius:8px;padding:11px 24px;font-size:13px;font-weight:600;text-decoration:none">📋 Solicitar datos bancarios</a>'
-  +'<p style="font-size:11px;color:#9a849b;margin:8px 0 0">Te los enviamos de inmediato</p>'
-  +'</div></div>'
+  +'<div style="border-top:1px dashed #e8dde8;padding-top:14px">'  +'<div style="font-size:10px;font-weight:600;color:#904891;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Datos bancarios</div>'  +'<table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #e8dde8">'  +'<tr style="background:#f5f0f8"><td style="padding:6px 10px;color:#5c4a5d;font-weight:600;width:42%">Banco</td><td style="padding:6px 10px;color:#1a0a1b;font-weight:700">It\u00e1u</td></tr>'  +'<tr><td style="padding:6px 10px;color:#5c4a5d;font-weight:600">N\u00b0 cuenta</td><td style="padding:6px 10px;color:#1a0a1b;font-weight:700;font-family:monospace">0220729517</td></tr>'  +'<tr style="background:#f5f0f8"><td style="padding:6px 10px;color:#5c4a5d;font-weight:600">RUT</td><td style="padding:6px 10px;color:#1a0a1b;font-weight:700">77.166.269-2</td></tr>'  +'<tr><td style="padding:6px 10px;color:#5c4a5d;font-weight:600">Titular</td><td style="padding:6px 10px;color:#1a0a1b;font-weight:700">Asesor\u00edas Contadoor Ltda.</td></tr>'  +'</table>'  +'</div></div>'
   +'<div style="padding:12px 24px;background:#f5f0f8;border-top:1px solid #e8dde8;border-bottom:1px solid #e8dde8">'
   +'<p style="font-size:10px;color:#9a849b;line-height:1.6;margin:0;font-style:italic">'+AVISO+'</p>'
   +'</div>'
@@ -2547,58 +2565,17 @@ function enviarSeleccionados(){
 
 
 function enviarAvisoCotSilencioso(id, cb){
-  // cb(true) = enviado | cb(false, motivo) = omitido con causa
+  // Wrapper silencioso: sin UI, para envío masivo. Motor: enviarAvisoRrhhCore
+  // cb(ok:bool, motivo?:string)
   var r=getReportes().find(function(x){return String(x.id)===String(id);});
   if(!r){cb(false,'Reporte no encontrado.');return;}
-  // Guard rails — validación centralizada
-  var val=validarParaEnvioAviso(r);
-  if(!val.ok){cb(false, val.motivo);return;}
-  var to=val.email;
-  var c=getClientes().find(function(x){return x.rut===r.rut;});
-  var u=getUsuario();
-  var periodo=formatPeriodo(r.periodo);
-  var htmlContent;
-  try{htmlContent=buildPreReporteRrhhHTML(r,null);}
-  catch(e){cb(false,'Error al generar el email: '+e.message);return;}
-  var htmlEmail=htmlContent.replace(/\s{2,}/g,' ').replace(/> </g,'><');
-  fetch('https://contafunnel-v2.vercel.app/api/enviar-cotizaciones',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      analistaNombre:u.nombre||'Contadoor',
-      analistaWa:u.wa||'979881891',
-      toEmail:to,
-      toNombre:(c&&(c.contacto||c.contact))||r.clienteNombre||r.rut,
-      toEmpresa:r.clienteNombre||r.rut,
-      periodo:periodo,
-      htmlReporte:htmlEmail
-    })
-  }).then(function(res){return res.ok?res.json():Promise.reject('HTTP '+res.status);})
-  .then(function(d){
-    if(d.ok){
-      var fechaEnvio=new Date().toISOString();
-      var arr=getReportes();
-      var i=arr.findIndex(function(x){return String(x.id)===String(id);});
-      if(i>=0){
-        arr[i].estado='aviso_enviado';
-        arr[i].preReporteEnviado=true;
-        arr[i].preReporteFecha=fechaEnvio;
-        setReportesCache(arr);
-        // PATCH Supabase via sbPatch (no sbPatchRrhh)
-        var idReal=/^\d+$/.test(String(arr[i].id))?arr[i].id:null;
-        if(idReal){
-          sbPatch('reportes_mensuales?id=eq.'+encodeURIComponent(idReal),{
-            estado:'aviso_enviado',
-            pre_reporte_enviado:true,
-            pre_reporte_fecha:fechaEnvio
-          });
-        }
-        crearNotificacion({modulo:'rrhh',tipo:'info',prioridad:'media',clienteNombre:arr[i].clienteNombre,clienteRut:arr[i].rut,periodo:arr[i].periodo,mensaje:'Aviso enviado a '+to+'.'});
-      }
-      cb(true);
-    }else{cb(false, d.error||'El servidor rechazó el envío.');}
-  }).catch(function(err){cb(false,'Error de red: '+err);});
+  enviarAvisoRrhhCore(r).then(function(res){
+    cb(res.ok, res.motivo||null);
+  }).catch(function(err){
+    cb(false,'Error inesperado: '+(err.message||String(err)));
+  });
 }
+
 
 function actualizarBarraEnvio(){
   var chks=document.querySelectorAll('.rrhh-chk:checked');
