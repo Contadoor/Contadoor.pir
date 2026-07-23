@@ -451,6 +451,14 @@ function sv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
 function gv(id){return parseFloat(sv(id))||0;}
 function setV(id,v){var e=document.getElementById(id);if(e)e.value=v||'';}
 function hesc(s){return String(s||'').replace(/&/g,'\x26amp;').replace(/</g,'\x26lt;').replace(/>/g,'\x26gt;');}
+// Convierte período del libro MasContable MM-YYYY a YYYY-MM (formato Supabase)
+// Ejemplo: '06-2026' → '2026-06'
+function normalizarPeriodoLibro(p){
+  if(!p) return '';
+  var pts=String(p).split('-');
+  if(pts.length===2&&pts[0].length===2&&pts[1].length===4) return pts[1]+'-'+pts[0];
+  return p; // ya en YYYY-MM u otro formato
+}
 function formatPeriodo(p){if(!p)return' - ';var pts=p.split('-');return MESES[parseInt(pts[1])-1]+' '+pts[0];}
 function getUsuario(){try{return JSON.parse(sessionStorage.getItem('usuario_activo')||'{}');}catch(e){return{};}}
 
@@ -461,20 +469,10 @@ function getUsuario(){try{return JSON.parse(sessionStorage.getItem('usuario_acti
 // ── SUPABASE ─────────────────────────────────────────────────────────────
 // (viene de supabase.js)
 
-function sbGetReportes(periodo){
-  return sbFetch('reportes_mensuales?periodo=eq.'+periodo+'&select=*')
-    .then(function(r){return r.ok?r.json():[];})
-    .catch(function(){
-  setTimeout(function(){if(typeof verificarRecordatoriosRrhh==="function")verificarRecordatoriosRrhh();},2000);return[];});
-}
-function sbUpsertReporte(r){
-  return sbFetch('reportes_mensuales',{
-    method:'POST',
-    headers:{'Prefer':'resolution=merge-duplicates,return=representation'},
-    body:JSON.stringify(r)
-  }).then(function(r){return r.ok?r.json():null;})
-  .catch(function(){});
-}
+// sbGetReportes eliminada — sin callers; usar sbGetReportesPeriodo de supabase.js
+
+// sbUpsertReporte local eliminada — usar sbUpsertReporte de supabase.js
+
 function sbPatchReporte(rut,periodo,data){
   return sbFetch('reportes_mensuales?rut=eq.'+encodeURIComponent(rut)+'&periodo=eq.'+periodo,{
     method:'PATCH',
@@ -1171,46 +1169,57 @@ function parsearLibro(file){
           var diasT=parseInt(c[IDX.dias])||0;
           var diasL=parseInt(c[IDX.licencia])||0;
           trabajadores.push({
-            rut:       c[IDX.rut],
-            nombre:    (c[IDX.nombres]+' '+c[IDX.apPat]+' '+c[IDX.apMat]).trim(),
-            // Previsional
-            afpNombre: c[IDX.afpNombre],
-            saludNombre:c[IDX.saludNombre],
-            plan:      c[IDX.plan],
-            pctAfp:    parseFloat((c[IDX.pctAfp]||'0').replace(',','.'))||0,
-            // Asistencia
-            diasTrabajados:diasT,
-            diasVacaciones:parseInt(c[IDX.vacaciones])||0,
-            diasLicencia:  diasL,
+            // ── Identificación ───────────────────────────────
+            rut:             c[IDX.rut],
+            apellidoPaterno: (c[IDX.apPat]||'').trim(),
+            apellidoMaterno: (c[IDX.apMat]||'').trim(),
+            nombres:         (c[IDX.nombres]||'').trim(),
+            // Legacy: nombre combinado (usado en emails y vistas actuales)
+            nombre:          (c[IDX.nombres]+' '+c[IDX.apPat]+' '+c[IDX.apMat]).trim(),
+            // ── Clasificación ────────────────────────────────
+            centroCosto:     (c[IDX.centroCosto]||'').trim(),
+            // ── Previsional ──────────────────────────────────
+            afpNombre:       c[IDX.afpNombre],
+            saludNombre:     c[IDX.saludNombre],
+            plan:            c[IDX.plan],
+            pctAfp:          parseFloat((c[IDX.pctAfp]||'0').replace(',','.'))||0,
+            // ── Asistencia ───────────────────────────────────
+            diasTrabajados:  diasT,
+            atraso:          montoCLP(c[IDX.atraso]),
+            diasVacaciones:  parseInt(c[IDX.vacaciones])||0,
+            diasLicencia:    diasL,
             enLicenciaCompleta:diasT===0&&diasL>0,
-            // Haberes
-            sueldoBase:     montoCLP(c[IDX.sueldoBase]),
-            sueldoMensual:  montoCLP(c[IDX.sueldoMensual]),
-            gratificacion:  montoCLP(c[IDX.gratificacion]),
-            totalImponible: montoCLP(c[IDX.totalImponible]),
-            cFamiliar:      montoCLP(c[IDX.cFamiliar]),
-            colacion:       montoCLP(c[IDX.colacion]),
-            movilizacion:   montoCLP(c[IDX.movilizacion]),
+            // ── Haberes ──────────────────────────────────────
+            sueldoBase:      montoCLP(c[IDX.sueldoBase]),
+            sueldoMensual:   montoCLP(c[IDX.sueldoMensual]),
+            gratificacion:   montoCLP(c[IDX.gratificacion]),
+            totalImponible:  montoCLP(c[IDX.totalImponible]),
+            cFamiliar:       montoCLP(c[IDX.cFamiliar]),
+            colacion:        montoCLP(c[IDX.colacion]),
+            movilizacion:    montoCLP(c[IDX.movilizacion]),
             totalNoImponible:montoCLP(c[IDX.totalNoImponible]),
-            // Descuentos trabajador
-            dctoAfp:        montoCLP(c[IDX.dctoAfp]),
-            apv:            montoCLP(c[IDX.apv1])+montoCLP(c[IDX.apv2]),
-            dctoSalud:      montoCLP(c[IDX.dctoSalud]),
-            cesTrab:        montoCLP(c[IDX.cesTrab]),
-            iu:             montoCLP(c[IDX.iu]),
-            totalDescuentos:montoCLP(c[IDX.totalDescuentos]),
-            otrosDescuentos:montoCLP(c[IDX.otrosDescuentos]),
-            // Resultado trabajador
-            liquido:        montoCLP(c[IDX.liquido]),
-            // Aportes patronales
-            sis:            montoCLP(c[IDX.sis]),
-            mutual:         montoCLP(c[IDX.mutual]),
-            cesEmp:         montoCLP(c[IDX.cesEmp]),
-            capInd:         montoCLP(c[IDX.capInd]),
-            expVida:        montoCLP(c[IDX.expVida]),
-            rentProt:       montoCLP(c[IDX.rentProt]),
-            // Tributario
-            tributable:     montoCLP(c[IDX.tributable])
+            // ── Descuentos trabajador ────────────────────────
+            dctoAfp:         montoCLP(c[IDX.dctoAfp]),
+            apv1:            montoCLP(c[IDX.apv1]),
+            apv2:            montoCLP(c[IDX.apv2]),
+            // Legacy: apv combinado (usado en cálculos actuales)
+            apv:             montoCLP(c[IDX.apv1])+montoCLP(c[IDX.apv2]),
+            dctoSalud:       montoCLP(c[IDX.dctoSalud]),
+            cesTrab:         montoCLP(c[IDX.cesTrab]),
+            iu:              montoCLP(c[IDX.iu]),
+            totalDescuentos: montoCLP(c[IDX.totalDescuentos]),
+            otrosDescuentos: montoCLP(c[IDX.otrosDescuentos]),
+            // ── Resultado ────────────────────────────────────
+            liquido:         montoCLP(c[IDX.liquido]),
+            // ── Aportes patronales ───────────────────────────
+            sis:             montoCLP(c[IDX.sis]),
+            mutual:          montoCLP(c[IDX.mutual]),
+            cesEmp:          montoCLP(c[IDX.cesEmp]),
+            capInd:          montoCLP(c[IDX.capInd]),
+            expVida:         montoCLP(c[IDX.expVida]),
+            rentProt:        montoCLP(c[IDX.rentProt]),
+            // ── Tributario ───────────────────────────────────
+            tributable:      montoCLP(c[IDX.tributable])
           });
         }
         if(!trabajadores.length){
@@ -1255,22 +1264,55 @@ function parsearLibro(file){
         if(Math.abs(liquidoCalculado-nomina)>100){
           alertas.push('Diferencia en cuadratura: calculado '+ff(liquidoCalculado)+' vs libro '+ff(nomina));
         }
+        // ── Contadores de asistencia ──────────────────────────────
+        // nConLicencia: trabajadores con diasLicencia > 0 (no enLicenciaCompleta)
+        var nConLicencia   = trabajadores.filter(function(t){return (t.diasLicencia||0)>0;}).length;
+        var nConVacaciones = trabajadores.filter(function(t){return (t.diasVacaciones||0)>0;}).length;
+        var nConAtrasos    = trabajadores.filter(function(t){return (t.atraso||0)>0;}).length;
+        // ── Cuadratura final ─────────────────────────────────────────
+        var liquidoCalculado2 = totalImponible+totalNoImponible-totalDescuentos-otrosDescuentos;
+        var diferenciaCuadratura = liquidoCalculado2 - nomina;
+        var cuadraturaOk = Math.abs(diferenciaCuadratura) <= 100;
+        // ── Costos consolidados ──────────────────────────────────────
+        var costoLaboral = totalImponible + totalNoImponible + totalAportesPatronales;
+
         resolve({
           periodo, trabajadores,
+          // Dotación
           nTrab:              trabajadores.length,
           nTrabActivos:       trabajadores.filter(function(t){return t.diasTrabajados>0;}).length,
           nLicencia:          trabajadores.filter(function(t){return t.enLicenciaCompleta;}).length,
+          nConLicencia,
+          nConVacaciones,
+          nConAtrasos,
           // Haberes
-          nomina, totalImponible, totalNoImponible,
+          liquidoPagar:    nomina,    // alias principal
+          nomina,                     // legacy
+          totalImponible,
+          totalNoImponible,
           // Descuentos trabajador
-          totalDescuentos, otrosDescuentos,
-          dctoAfp, apv, dctoSalud, cesTrab, iu,
+          totalDescuentos,
+          otrosDescuentos,
+          afp:     dctoAfp,          // alias para guardarRrhh / supabase.js
+          dctoAfp,                   // legacy
+          salud:   dctoSalud,        // alias
+          dctoSalud,                 // legacy
+          apv,
+          cesTrab,
+          iu,
           // Aportes patronales
-          totalAportesPatronales, sis, mutual, cesEmp, capInd, expVida, rentProt,
-          // Previred (cotizaciones)
+          totalAportes: totalAportesPatronales,  // alias principal
+          totalAportesPatronales,                 // legacy
+          sis, mutual, cesEmp, capInd, expVida, rentProt,
+          // Cotizaciones Previred (SIN IU)
           totalCotizaciones,
+          // Costo laboral
+          costoLaboral,
           // Tributario
           tributable,
+          // Cuadratura
+          cuadraturaOk,
+          diferenciaCuadratura,
           alertas
         });
       }catch(err){reject(new Error('Error al procesar: '+err.message));}
@@ -1390,6 +1432,13 @@ function setupUpload(){
     // Usar nuevo parser async con DOMParser + ISO-8859-1
     parsearLibro(file).then(function(data){
       _remuData=data;
+      // Contexto de seguridad: asociar procesamiento al reporte actual
+      // Usado en guardarRrhh para evitar cruce de datos entre clientes
+      if(_reporteActual){
+        _remuData.clienteRutContexto    = _reporteActual.rut;
+        _remuData.reportePeriodoContexto = _reporteActual.periodo;
+        _remuData.archivoNombre         = file.name;
+      }
       // Mostrar resultado
       var okEl=document.getElementById('remuOk');
       var fnEl=document.getElementById('remuFileName');
@@ -1604,104 +1653,228 @@ function guardarRrhh(accion){
   var arr=getReportes();
   var idx=arr.findIndex(function(x){return x.id===_reporteActual.id;});
   if(idx<0) return;
-  var usaArchivo=document.getElementById('datosLibroWrap').style.display!=='none';
-  var iu=usaArchivo?gv('m-iu'):gv('m-iu-m');
-  // Total Previred (SIN IU — el IU es tributario, va al F29)
-  var totalCot=usaArchivo
-    ?(gv('m-afp')+gv('m-salud')+gv('m-apv')+gv('m-ces-trab')+gv('m-sis')+gv('m-mutual')+gv('m-ces-emp')+gv('m-cap-ind')+gv('m-exp-vida')+gv('m-rent-prot'))
-    :gv('m-cot-m');
-  // Actualizar reporte
-  Object.assign(arr[idx],{
-    nTrab:usaArchivo?gv('m-ntrab'):gv('m-ntrab-m'),
-    totalImponible:gv('m-timponible'),liquidoPagar:gv('m-liquido'),
-    afp:usaArchivo?gv('m-afp'):0,salud:usaArchivo?gv('m-salud'):0,
-    apv:usaArchivo?gv('m-apv'):0,cesTrab:usaArchivo?gv('m-ces-trab'):0,
-    iu:iu,otrosDesc:usaArchivo?gv('m-otros-desc'):0,totalDesc:usaArchivo?gv('m-total-desc'):0,
-    sis:usaArchivo?gv('m-sis'):0,mutual:usaArchivo?gv('m-mutual'):0,cesEmp:usaArchivo?gv('m-ces-emp'):0,
-    capInd:usaArchivo?gv('m-cap-ind'):0,expVida:usaArchivo?gv('m-exp-vida'):0,rentProt:usaArchivo?gv('m-rent-prot'):0,
-    iuTributario:usaArchivo?iu:0, // IU va al módulo contable
-    cotM:usaArchivo?0:gv('m-cot-m'),iuM:usaArchivo?0:gv('m-iu-m'),
-    totalCot,usaArchivo,
-    obsRrhh:usaArchivo?sv('m-obs'):sv('m-obs-m'),
-    decisionCotiz:sv('m-decision-cotiz'),
-    preparado:getUsuario().nombre||''
+
+  // ── PROTECCIÓN DE ESTADOS ──────────────────────────────────
+  // Estados que indican avance operacional — no reprocesar silenciosamente
+  var ESTADOS_AVANZADOS = ['aviso_enviado','transferido','en_previred','pendiente_aprobacion','aprobado'];
+  var ESTADO_FINALIZADO = 'finalizado';
+  var estadoActual = arr[idx].estado||'';
+  if(estadoActual === ESTADO_FINALIZADO){
+    alert('⛔ Este reporte está FINALIZADO y no puede ser modificado de forma ordinaria.');
+    return;
+  }
+  if(ESTADOS_AVANZADOS.indexOf(estadoActual) >= 0){
+    if(!confirm("\u26a0\ufe0f Este reporte ya avanz\u00f3 en el flujo de pagos (estado: "+estadoActual+").\n\n\u00bfDeseas reprocesar igualmente?\n\nSolo los datos RRHH ser\u00e1n actualizados. El estado y el flujo de pagos no cambiar\u00e1n.")){
+      return;
+    }
+  }
+
+  // ── DATOS DEL MODAL ───────────────────────────────────────
+  var usaArchivo = document.getElementById('datosLibroWrap').style.display !== 'none';
+  var iu = usaArchivo ? gv('m-iu') : gv('m-iu-m');
+
+  // totalCotizaciones oficial (sin IU, sin otros descuentos)
+  var totalCotizaciones = usaArchivo
+    ? (gv('m-afp')+gv('m-salud')+gv('m-apv')+gv('m-ces-trab')
+       +gv('m-sis')+gv('m-mutual')+gv('m-ces-emp')
+       +gv('m-cap-ind')+gv('m-exp-vida')+gv('m-rent-prot'))
+    : gv('m-cot-m');
+
+  var totalAportes = usaArchivo
+    ? (gv('m-sis')+gv('m-mutual')+gv('m-ces-emp')
+       +gv('m-cap-ind')+gv('m-exp-vida')+gv('m-rent-prot'))
+    : 0;
+
+  var totalImponible   = gv('m-timponible');
+  var totalNoImponible = gv('m-tnoimponible')||0;
+  var costoLaboral     = totalImponible + totalNoImponible + totalAportes;
+
+  // Cuadratura y trazabilidad desde _remuData si está disponible
+  var cuadraturaOk         = _remuData ? _remuData.cuadraturaOk : undefined;
+  var diferenciaCuadratura = _remuData ? (_remuData.diferenciaCuadratura||0) : 0;
+  var nConLicencia         = _remuData ? (_remuData.nConLicencia||0) : 0;
+  var nConVacaciones       = _remuData ? (_remuData.nConVacaciones||0) : 0;
+  var nConAtrasos          = _remuData ? (_remuData.nConAtrasos||0) : 0;
+  var u = getUsuario();
+
+  // ── ACTUALIZAR OBJETO EN CACHÉ ────────────────────────────
+  Object.assign(arr[idx], {
+    nTrab:            usaArchivo ? gv('m-ntrab') : gv('m-ntrab-m'),
+    totalImponible,
+    totalNoImponible,
+    liquidoPagar:     gv('m-liquido'),
+    afp:              usaArchivo ? gv('m-afp') : 0,
+    salud:            usaArchivo ? gv('m-salud') : 0,
+    apv:              usaArchivo ? gv('m-apv') : 0,
+    cesTrab:          usaArchivo ? gv('m-ces-trab') : 0,
+    iu,
+    otrosDesc:        usaArchivo ? gv('m-otros-desc') : 0,
+    totalDesc:        usaArchivo ? gv('m-total-desc') : 0,
+    sis:              usaArchivo ? gv('m-sis') : 0,
+    mutual:           usaArchivo ? gv('m-mutual') : 0,
+    cesEmp:           usaArchivo ? gv('m-ces-emp') : 0,
+    capInd:           usaArchivo ? gv('m-cap-ind') : 0,
+    expVida:          usaArchivo ? gv('m-exp-vida') : 0,
+    rentProt:         usaArchivo ? gv('m-rent-prot') : 0,
+    iuTributario:     usaArchivo ? iu : 0,
+    totalCotizaciones,
+    totalAportes,
+    costoLaboral,
+    totalCot:         totalCotizaciones, // legacy compat
+    cotM:             usaArchivo ? 0 : gv('m-cot-m'),
+    iuM:              usaArchivo ? 0 : gv('m-iu-m'),
+    usaArchivo,
+    obsRrhh:          usaArchivo ? sv('m-obs') : sv('m-obs-m'),
+    decisionCotiz:    sv('m-decision-cotiz'),
+    preparado:        u.nombre||'',
+    // Contadores asistencia
+    nConLicencia,
+    nConVacaciones,
+    nConAtrasos,
+    // Cuadratura
+    cuadraturaOk,
+    diferenciaCuadratura,
+    // Trazabilidad
+    archivoNombre:    usaArchivo && _remuData ? (_remuData.archivoNombre||null) : null,
+    procesadoAt:      usaArchivo ? new Date().toISOString() : null,
+    procesadoPor:     u.nombre||null
   });
+
+  // ── FLUJO IU → MÓDULO CONTABLE (SIN CAMBIOS) ─────────────
   if(accion==='ok'){
     if(!arr[idx].secciones) arr[idx].secciones={};
-    arr[idx].secciones.rrhh={ok:true,ts:new Date().toISOString(),por:getUsuario().nombre||'Analista RRHH'};
-    // ── Traspaso automático IU al módulo contable ──────────────
-  var iuVal=arr[idx].iuTributario||arr[idx].iu||0;
-  if(iuVal>0 && accion==='ok'){
-    // Buscar o crear reporte contable del mismo cliente/período
-    var rutRep=arr[idx].rut;
-    var perRep=arr[idx].periodo;
-    var reportesCont=getReportes();
-    var idxCont=reportesCont.findIndex(function(r){
-      return r.rut===rutRep&&r.periodo===perRep&&r.tieneRrhh===false;
-    });
-    // Si no existe reporte contable separado, actualizar el mismo reporte
-    // El campo imp2cat del f29 recibe el IU del libro RRHH
-    if(idxCont>=0){
-      if(!reportesCont[idxCont].f29) reportesCont[idxCont].f29={};
-      reportesCont[idxCont].f29.imp2cat=iuVal;
-      reportesCont[idxCont].iuRrhh=iuVal;
-      reportesCont[idxCont].iuRrhhFecha=new Date().toISOString();
-    } else {
-      // Actualizar el mismo reporte con el campo iuTributario ya guardado
-      arr[idx].f29=arr[idx].f29||{};
-      arr[idx].f29.imp2cat=iuVal;
+    arr[idx].secciones.rrhh={ok:true,ts:new Date().toISOString(),por:u.nombre||'Analista RRHH'};
+    var iuVal=arr[idx].iuTributario||arr[idx].iu||0;
+    if(iuVal>0){
+      var rutRep=arr[idx].rut;
+      var perRep=arr[idx].periodo;
+      var reportesCont=getReportes();
+      var idxCont=reportesCont.findIndex(function(r){
+        return r.rut===rutRep&&r.periodo===perRep&&r.tieneRrhh===false;
+      });
+      if(idxCont>=0){
+        if(!reportesCont[idxCont].f29) reportesCont[idxCont].f29={};
+        reportesCont[idxCont].f29.imp2cat=iuVal;
+        reportesCont[idxCont].iuRrhh=iuVal;
+        reportesCont[idxCont].iuRrhhFecha=new Date().toISOString();
+      }else{
+        arr[idx].f29=arr[idx].f29||{};
+        arr[idx].f29.imp2cat=iuVal;
+      }
+      sbPatchRrhh(arr[idx].id,{iu_sii:iuVal,f29:arr[idx].f29});
+      if(window.crearNotificacion) crearNotificacion({
+        modulo:'contable',tipo:'accion_requerida',prioridad:'alta',
+        clienteNombre:arr[idx].clienteNombre||arr[idx].rut,
+        clienteRut:arr[idx].rut,
+        periodo:formatPeriodo(arr[idx].periodo),
+        mensaje:'IU 2ª Cat. traspasado desde RRHH: '+ff(iuVal)+'. Pre-cargado en F29 del período.',
+        accion:'ver_f29'
+      });
+      toast('✅ IU '+ff(iuVal)+' traspasado al módulo contable (F29)');
     }
-    // Patch en Supabase: actualizar campo imp2cat del reporte contable
-    sbPatchRrhh(arr[idx].id,{
-      iu_sii: iuVal,  // columna en Supabase: iu_sii
-      f29: arr[idx].f29
-    });
-    // Notificar al analista contable
-    if(window.crearNotificacion) crearNotificacion({
-      modulo:'contable',
-      tipo:'accion_requerida',
-      prioridad:'alta',
-      clienteNombre:arr[idx].clienteNombre||arr[idx].rut,
-      clienteRut:arr[idx].rut,
-      periodo:formatPeriodo(arr[idx].periodo),
-      mensaje:'IU 2ª Cat. traspasado desde RRHH: '+ff(iuVal)+'. Pre-cargado en F29 del período.',
-      accion:'ver_f29'
-    });
-    toast('✅ IU '+ff(iuVal)+' traspasado al módulo contable (F29)');
-  }
-  // Notificar al analista contable
     if(window.crearNotificacion) crearNotificacion({
       modulo:'impuestos',tipo:'info',prioridad:'media',
-      clienteNombre:arr[idx].clienteNombre,clienteRut:arr[idx].rut,periodo:arr[idx].periodo,
+      clienteNombre:arr[idx].clienteNombre,clienteRut:arr[idx].rut,
+      periodo:arr[idx].periodo,
       mensaje:'RRHH OK  -  '+arr[idx].clienteNombre+' · '+formatPeriodo(arr[idx].periodo)+'. El analista contable puede completar impuestos y honorarios.',
       accion:null,accionUrl:'../reportes-contable/index.html'
     });
-    alert('✅ Sección RRHH marcada como completada.');
   }
-  // Guardar en Supabase
-  var esNuevo=String(arr[idx].id).indexOf('nuevo_')===0;
-  if(esNuevo){
-    var rowSb=sbReporteToRow?sbReporteToRow(arr[idx]):arr[idx];
-    sbFetch('reportes_mensuales',{
-      method:'POST',
-      headers:{'Prefer':'return=representation'},
-      body:JSON.stringify(rowSb)
-    }).then(function(r){return r.ok?r.json():null;})
-    .then(function(rows){
-      if(rows&&rows[0]&&rows[0].id){
-        var idViejo=arr[idx].id;
-        arr[idx].id=rows[0].id;
+
+  // ── GUARDADO ASÍNCRONO ───────────────────────────────────
+  // Deshabilitar botones para evitar doble envío
+  var btnOk = document.querySelector('[onclick*="guardarRrhh"]');
+  var btnBo = null; // borrador no necesita deshabilitar durante ok
+  var lblOkOrig = btnOk ? btnOk.textContent : null;
+  var lblBoOrig = btnBo ? btnBo.textContent : null;
+  function setBtns(disabled, label){
+    if(btnOk){btnOk.disabled=disabled;if(label!==undefined)btnOk.textContent=label;}
+    if(btnBo){btnBo.disabled=disabled;}
+  }
+  setBtns(true, 'Guardando...');
+
+  var esNuevo = String(arr[idx].id).indexOf('nuevo_') === 0;
+
+  // sbUpsertReporte de supabase.js:
+  //   - POST si es nuevo (id temporal)
+  //   - PATCH si id es numérico real
+  sbUpsertReporte(arr[idx])
+    .then(function(result){
+      // ── Capturar ID real si fue POST ─────────────────────
+      var filas = Array.isArray(result) ? result : (result ? [result] : []);
+      if(esNuevo && filas[0] && filas[0].id){
+        arr[idx].id = filas[0].id;
         setReportesCache(arr);
       }
-    }).catch(function(e){console.warn('Supabase create reporte:',e);});
-  } else {
-    sbPatchRrhh(arr[idx].id, arr[idx]);
-  }
-  setReportes(arr);
-  if(_reporteActual)syncEstado(_reporteActual.rut,String(_reporteActual.periodo),{secciones:arr[idx]&&arr[idx].secciones||{},estado:arr[idx]&&arr[idx].estado||'en_proceso'});
-  if(_reporteActual) sbPatchReporte(_reporteActual.rut,_reporteActual.periodo,{secciones:arr[idx].secciones,estado:arr[idx].estado||"en_proceso"}).catch(function(){});
-  closeModalRrhh();
-  renderTabla(sv('selectPeriodo'));
+
+      // ── Guardar detalle de trabajadores ──────────────────
+      // Solo si: libro cargado, _remuData válido, ID real disponible
+      // y el contexto del cliente coincide (protección anti-cruce)
+      var idReal = /^\d+$/.test(String(arr[idx].id)) ? arr[idx].id : null;
+      var hayTrabajadores = usaArchivo && _remuData
+        && Array.isArray(_remuData.trabajadores)
+        && _remuData.trabajadores.length > 0;
+
+      // Verificar periodo del libro vs periodo del reporte
+      var periodoLibroNorm = _remuData ? normalizarPeriodoLibro(_remuData.periodo||'') : '';
+      var periodoCoinide = !periodoLibroNorm || periodoLibroNorm === arr[idx].periodo;
+
+      // Verificar contexto del cliente
+      var contextoValido = !_remuData || !_remuData.clienteRutContexto
+        || _remuData.clienteRutContexto === arr[idx].rut;
+
+      if(!contextoValido){
+        console.error('[RRHH] Mismatch contexto cliente:',
+          _remuData.clienteRutContexto, '!==', arr[idx].rut);
+        toast('⚠️ El libro cargado corresponde a otro cliente. Detalle no guardado.');
+        return Promise.resolve();
+      }
+
+      if(!periodoCoinide){
+        console.warn('[RRHH] Período libro:', periodoLibroNorm,
+          'vs reporte:', arr[idx].periodo);
+        toast('⚠️ Período del libro ('+_remuData.periodo+') no coincide con el reporte ('+
+          formatPeriodo(arr[idx].periodo)+'). Detalle de trabajadores no guardado.');
+        return Promise.resolve();
+      }
+
+      if(hayTrabajadores && idReal){
+        return sbReplaceTrabajadoresRrhh(
+          idReal, arr[idx].rut, arr[idx].periodo, _remuData.trabajadores
+        ).then(function(){
+          console.log('[RRHH] Detalle trabajadores guardado: '+
+            _remuData.trabajadores.length+' trabajadores');
+        }).catch(function(e){
+          // Fallo parcial: consolidado ok, detalle no
+          console.error('[RRHH] Error detalle trabajadores:', e.message);
+          toast('⚠️ El consolidado fue guardado, pero no se pudo guardar el detalle de trabajadores. ' +
+            'Vuelve a cargar el libro antes de continuar.');
+        });
+      }
+      return Promise.resolve();
+    })
+    .then(function(){
+      // ── Todo OK: cerrar modal y re-renderizar ─────────────
+      setReportes(arr);
+      if(_reporteActual) syncEstado(
+        _reporteActual.rut, String(_reporteActual.periodo),
+        {secciones:arr[idx]&&arr[idx].secciones||{},estado:arr[idx]&&arr[idx].estado||'en_proceso'}
+      );
+      if(_reporteActual) sbPatchReporte(
+        _reporteActual.rut, _reporteActual.periodo,
+        {secciones:arr[idx].secciones, estado:arr[idx].estado||'en_proceso'}
+      ).catch(function(){});
+      if(accion==='ok') alert('✅ Sección RRHH marcada como completada.');
+      closeModalRrhh();
+      renderTabla(sv('selectPeriodo'));
+    })
+    .catch(function(e){
+      // Error en el guardado del consolidado
+      console.error('[RRHH] Error guardando reporte:', e);
+      toast('❌ Error al guardar. Por favor intenta nuevamente.');
+      setBtns(false);
+      if(btnOk && lblOkOrig) btnOk.textContent = lblOkOrig;
+    });
 }
 
 function enviarReporteParcial(){
@@ -2030,7 +2203,7 @@ function sbPatchRrhh(id,data){
   fetch('https://ulxoxqbuxiuylaolaqxj.supabase.co/rest/v1/reportes_mensuales?id=eq.'+encodeURIComponent(id),{
     method:'PATCH',
     headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseG94cWJ1eGl1eWxhb2xhcXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMwNDcsImV4cCI6MjA5OTcxOTA0N30.bN_KeSJFEBKSBzwTixRQs92y6aEhBo-SJs4fGxZgAbA','Content-Type':'application/json','Prefer':'return=representation'},
-    body:JSON.stringify(data)
+    body:JSON.stringify(sb)  // sb = traducción snake_case correcta
   }).catch(function(){});
 }
 function actualizarEstadoRrhh(id,nuevoEstado,extra){
@@ -2436,31 +2609,8 @@ function marcarPostergado(id){
 }
 
 
-function sbReporteToRow(r){
-  return {
-    cliente_rut:r.rut, periodo:r.periodo, estado:r.estado||'borrador',
-    cliente_nombre:r.clienteNombre||null, cliente_email:r.clienteEmail||null,
-    cliente_wa:r.clienteWa||null, cliente_plan:r.clientePlan||null,
-    n_trabajadores:r.nTrab||0, liquido_pagar:r.liquidoPagar||0,
-    afp:r.afp||0, salud:r.salud||0, apv:r.apv||0,
-    ces_trab:r.cesTrab||0, iu:r.iu||0, otros_desc:r.otrosDesc||0,
-    total_desc:r.totalDesc||0, total_descuentos:r.totalDesc||0,
-    sis:r.sis||0, mutual:r.mutual||0, ces_emp:r.cesEmp||0,
-    aporte_patronal:(r.sis||0)+(r.mutual||0)+(r.cesEmp||0),
-    total_cot:r.totalCot||0, obs_rrhh:r.obsRrhh||null,
-    debito_iva:r.ivaDebito||0, credito_iva:r.ivaCredito||0,
-    remanente:r.ivaRemanenteSig||0, f29:r.totalImpInmediato||0,
-    ppm:r.ppm||0, ret_hon:r.retHon||0, total_general:r.totalGeneral||0,
-    hon_total:r.honTotal||0, hon_estado:r.honEstado||'pendiente',
-    pre_reporte_enviado:r.preReporteEnviado||false,
-    pre_reporte_fecha:r.preReporteFecha||null,
-    ha_postergado:r.haPostergado||false, n_recordatorios:r.nRecordatorios||0,
-    analista_rrhh:r.preparado||null, email_analista:r.emailAnalista||null,
-    secciones:r.secciones||{}, tiene_rrhh:true,
-    prioridad_rrhh:r.prioridadRrhh||'media',
-    obs_analista:r.obsAnalista||null, pagos_validado:r.pagosValidado||false
-  };
-}
+// sbReporteToRow local eliminada — usar sbReporteToRow de supabase.js
+
 setupUpload();
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',init);
