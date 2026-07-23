@@ -2235,30 +2235,31 @@ function ejecutarReproceso(id, motivo){
   var _revNueva=_revActual+1;
   var idReal=/^\d+$/.test(String(r.id))?r.id:null;
   if(!idReal){alert('El reporte no tiene ID real. Guárdalo antes de reprocesar.');return;}
+  // campos en scope externo para ser accesible en todos los .then()
+  var campos={
+    revision:           _revNueva,
+    reprocesado_at:     new Date().toISOString(),
+    reprocesado_por:    u.nombre||'',
+    motivo_reproceso:   motivo,
+    // Reset del flujo posterior
+    estado:             'completado',
+    pre_reporte_enviado:false,
+    pre_reporte_fecha:  null,
+    decision_cotiz:     null,
+    ha_postergado:      false,
+    fecha_postergacion: null,
+    n_recordatorios:    0,
+    ultimo_recordatorio:null,
+    fecha_previred:     null,
+    quien_previred:     null,
+    fecha_aprobacion:   null,
+    fecha_finalizado:   null,
+    quien_finalizado:   null
+  };
   // 1. Fotografiar versión anterior en reporte_rrhh_versiones
   console.log('[RRHH REPROCESO] Fotografiando v'+_revActual+' de reporte',idReal);
   sbFotografiarVersionRrhh(r, _revActual, motivo, u.nombre||'').then(function(){
     // 2. PATCH para incrementar revisión y resetear flujo
-    var campos={
-      revision:           _revNueva,
-      reprocesado_at:     new Date().toISOString(),
-      reprocesado_por:    u.nombre||'',
-      motivo_reproceso:   motivo,
-      // Reset del flujo posterior
-      estado:             'completado',
-      pre_reporte_enviado:false,
-      pre_reporte_fecha:  null,
-      decision_cotiz:     null,
-      ha_postergado:      false,
-      fecha_postergacion: null,
-      n_recordatorios:    0,
-      ultimo_recordatorio:null,
-      fecha_previred:     null,
-      quien_previred:     null,
-      fecha_aprobacion:   null,
-      fecha_finalizado:   null,
-      quien_finalizado:   null
-    };
     console.log('[RRHH REPROCESO] PATCH campos reset + revision',_revNueva);
     return sbPatch('reportes_mensuales?id=eq.'+encodeURIComponent(idReal), campos);
   }).then(function(patchRes){
