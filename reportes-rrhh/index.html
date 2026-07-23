@@ -2031,16 +2031,49 @@ function buildPreReporteRrhhHTML(r,data){
   +'</div>'
   +'</div>';
 }
+// ── VALIDACIÓN PREVIA AL ENVÍO DE AVISO DE COTIZACIONES ────────────────────
+// Retorna {ok:true, email:'...'} o {ok:false, motivo:'...'}
+// Centralizada para uso individual y masivo.
+function validarParaEnvioAviso(r){
+  if(!r) return {ok:false, motivo:'Reporte no encontrado.'};
+  // 1. Estado bloqueado
+  var ESTADOS_BLOQUEADOS=['finalizado','cancelado'];
+  if(ESTADOS_BLOQUEADOS.indexOf(r.estado||'')>=0){
+    return {ok:false, motivo:'El reporte está '+r.estado+' y no puede recibir avisos de cotizaciones.'};
+  }
+  // 2. RRHH completado (libro procesado + marcado OK)
+  var est=getEstadoRrhh(r);
+  if(est==='pendiente'){
+    return {ok:false, motivo:'El libro de remuneraciones aún no ha sido procesado para este período.'};
+  }
+  if(est==='libro_ok'){
+    return {ok:false, motivo:'El libro fue cargado pero el reporte RRHH aún no ha sido marcado como OK.'};
+  }
+  // 3. Total cotizaciones > 0
+  var totalCot=r.totalCot||r.totalCotizaciones||0;
+  if(!totalCot||totalCot<=0){
+    return {ok:false, motivo:'No existen cotizaciones calculadas para este período.'};
+  }
+  // 4. Correo del cliente
+  var _cli=getClientes().find(function(x){return x.rut===r.rut;});
+  var email=r.clienteEmail||(_cli&&_cli.email)||'';
+  if(!email){
+    return {ok:false, motivo:'El cliente no tiene un correo electrónico registrado.'};
+  }
+  return {ok:true, email:email};
+}
+
 function enviarPreReporteRrhh(id){
   var r=getReportes().find(function(x){return String(x.id)===String(id);});
   if(!r){alert('Reporte no encontrado.');return;}
-  var to=r.clienteEmail||'';
-  if(!to){
-    var _cliMail=getClientes().find(function(x){return x.rut===r.rut;});
-    if(_cliMail&&_cliMail.email) to=_cliMail.email;
+  // ── Validación de guard rails ─────────────────────────────
+  var val=validarParaEnvioAviso(r);
+  if(!val.ok){
+    alert('\u274c No es posible enviar el Aviso de Cotizaciones.\n\n'+val.motivo);
+    return;
   }
-  if(!to){alert('El cliente '+hesc(r.clienteNombre||r.rut)+' no tiene email.\nAgrégalo en Módulo Clientes.');return;}
-  console.log('[RRHH] Enviando aviso cotizaciones a:', to);
+  var to=val.email;
+  console.log('[RRHH EMAIL] destino:', to);
   var u=getUsuario();
   var periodo=formatPeriodo(r.periodo);
   if(!confirm('¿Enviar Aviso de Cotizaciones RRHH de '+periodo+' a '+hesc(r.clienteNombre)+'?\nEmail: '+to+'\n\nSale desde: reportes@contadoor.cl'))return;
@@ -2478,38 +2511,55 @@ function enviarSeleccionados(){
   if(!chks.length){alert('Selecciona al menos un reporte.');return;}
   var ids=Array.from(chks).map(function(c){return c.getAttribute('data-id');});
   var total=ids.length;
-  var enviados=0;var errores=[];
-  if(!confirm('¿Enviar Aviso de Cotizaciones a '+total+' cliente(s)?'))return;
-  _enviandoMasivo=true; // bloquear re-render
+  if(!confirm('\u00bfEnviar Aviso de Cotizaciones a '+total+' cliente(s) seleccionados?'))return;
+  _enviandoMasivo=true;
   var btnBar=document.getElementById('bulkBar');
   if(btnBar)btnBar.innerHTML='<span style="color:#fff;font-size:12px;font-weight:600">Enviando '+total+' avisos...</span>';
+  var enviados=0;
+  var omitidos=[];
   function enviarUno(i){
     if(i>=ids.length){
-      var msg=enviados+' enviados correctamente'+(errores.length?' · '+errores.length+' errores':'');
-      toast(errores.length?'⚠️ '+msg:'✅ '+msg);
-      _enviandoMasivo=false; // liberar re-render
-      renderTabla(sv('selectPeriodo')); // render único al terminar
+      _enviandoMasivo=false;
+      renderTabla(sv('selectPeriodo'));
       document.querySelectorAll('.rrhh-chk').forEach(function(c){c.checked=false;});
       actualizarBarraEnvio();
+      var resumen=total+' seleccionados\n'
+        +'\u2705 '+enviados+' enviados'+(omitidos.length?'\n\u26a0\ufe0f '+omitidos.length+' omitidos':'');
+      if(omitidos.length){
+        resumen+='\n\nDetalle de omitidos:';
+        omitidos.forEach(function(o){resumen+='\n\u2022 '+o.nombre+' \u2192 '+o.motivo;});
+        alert(resumen);
+      }else{
+        toast('\u2705 '+enviados+' Avisos de Cotizaciones enviados correctamente.');
+      }
       return;
     }
-    enviarAvisoCotSilencioso(ids[i], function(ok){
-      if(ok)enviados++;else errores.push(ids[i]);
+    var _r=getReportes().find(function(x){return String(x.id)===String(ids[i]);});
+    var nombreCliente=_r?(_r.clienteNombre||_r.rut):'ID '+ids[i];
+    enviarAvisoCotSilencioso(ids[i], function(ok, motivo){
+      if(ok){enviados++;}
+      else{omitidos.push({nombre:nombreCliente, motivo:motivo||'Error desconocido'});}
       setTimeout(function(){enviarUno(i+1);},800);
     });
   }
   enviarUno(0);
 }
 
+
 function enviarAvisoCotSilencioso(id, cb){
+  // cb(true) = enviado | cb(false, motivo) = omitido con causa
   var r=getReportes().find(function(x){return String(x.id)===String(id);});
-  if(!r){cb(false);return;}
+  if(!r){cb(false,'Reporte no encontrado.');return;}
+  // Guard rails — validación centralizada
+  var val=validarParaEnvioAviso(r);
+  if(!val.ok){cb(false, val.motivo);return;}
+  var to=val.email;
   var c=getClientes().find(function(x){return x.rut===r.rut;});
-  var to=r.clienteEmail||(c&&c.email)||'';
-  if(!to){cb(false);return;}
   var u=getUsuario();
   var periodo=formatPeriodo(r.periodo);
-  var htmlContent=buildPreReporteRrhhHTML(r,null);
+  var htmlContent;
+  try{htmlContent=buildPreReporteRrhhHTML(r,null);}
+  catch(e){cb(false,'Error al generar el email: '+e.message);return;}
   var htmlEmail=htmlContent.replace(/\s{2,}/g,' ').replace(/> </g,'><');
   fetch('https://contafunnel-v2.vercel.app/api/enviar-cotizaciones',{
     method:'POST',
@@ -2523,23 +2573,31 @@ function enviarAvisoCotSilencioso(id, cb){
       periodo:periodo,
       htmlReporte:htmlEmail
     })
-  }).then(function(res){return res.json();})
+  }).then(function(res){return res.ok?res.json():Promise.reject('HTTP '+res.status);})
   .then(function(d){
     if(d.ok){
-      // Guardar directo en localStorage sin disparar re-render
+      var fechaEnvio=new Date().toISOString();
       var arr=getReportes();
       var i=arr.findIndex(function(x){return String(x.id)===String(id);});
       if(i>=0){
         arr[i].estado='aviso_enviado';
-        arr[i].preReporteFecha=new Date().toISOString();
+        arr[i].preReporteEnviado=true;
+        arr[i].preReporteFecha=fechaEnvio;
         setReportesCache(arr);
-        // Patch a Supabase
-        sbPatchRrhh(arr[i].id,{estado:'aviso_enviado',preReporteEnviado:true,preReporteFecha:arr[i].preReporteFecha});
+        // PATCH Supabase via sbPatch (no sbPatchRrhh)
+        var idReal=/^\d+$/.test(String(arr[i].id))?arr[i].id:null;
+        if(idReal){
+          sbPatch('reportes_mensuales?id=eq.'+encodeURIComponent(idReal),{
+            estado:'aviso_enviado',
+            pre_reporte_enviado:true,
+            pre_reporte_fecha:fechaEnvio
+          });
+        }
         crearNotificacion({modulo:'rrhh',tipo:'info',prioridad:'media',clienteNombre:arr[i].clienteNombre,clienteRut:arr[i].rut,periodo:arr[i].periodo,mensaje:'Aviso enviado a '+to+'.'});
       }
       cb(true);
-    }else{cb(false);}
-  }).catch(function(){cb(false);});
+    }else{cb(false, d.error||'El servidor rechazó el envío.');}
+  }).catch(function(err){cb(false,'Error de red: '+err);});
 }
 
 function actualizarBarraEnvio(){
