@@ -1870,12 +1870,19 @@ function enviarReporteParcial(){
   .then(function(d){
     if(d&&d.ok){
       var idReal=/^\d+$/.test(String(r.id))?r.id:null;
+      // PATCH Supabase directo con sbPatch de supabase.js (no sbPatchRrhh)
+      var fechaEnvio=new Date().toISOString();
       if(idReal){
-        sbPatchRrhh(idReal,{estado:'aviso_enviado',preReporteEnviado:true,preReporteFecha:new Date().toISOString()});
+        sbPatch('reportes_mensuales?id=eq.'+encodeURIComponent(idReal),{
+          estado:'aviso_enviado',
+          pre_reporte_enviado:true,
+          pre_reporte_fecha:fechaEnvio
+        });
       }
+      // Actualizar caché local
       var arr=getReportes();
       var i=arr.findIndex(function(x){return String(x.id)===String(r.id);});
-      if(i>=0){arr[i].preReporteEnviado=true;arr[i].preReporteFecha=new Date().toISOString();arr[i].estado='aviso_enviado';setReportesCache(arr);}
+      if(i>=0){arr[i].preReporteEnviado=true;arr[i].preReporteFecha=fechaEnvio;arr[i].estado='aviso_enviado';setReportesCache(arr);}
       closeModalRrhh();renderTabla(sv('selectPeriodo'));
       toast('\u2705 Aviso de Cotizaciones enviado a '+to);
     }else{
@@ -2141,7 +2148,10 @@ function enviarPreReporteMasivo(){
     .then(function(res){return res.ok?res.json():Promise.reject(res.status);})
     .then(function(d){if(d.ok||d.id||d.messageId)enviados++;else errores++;})
     .catch(function(){errores++;})
-    .finally(function(){setTimeout
+    .finally(function(){setTimeout(function(){enviarUno(idx+1);},800);});
+  }
+  enviarUno(0);
+}
 // ── FLUJO DE PAGOS RRHH ──────────────────────────────────────────────────────
 function sbPatchRrhh(id,data){
   if(!id || /^nuevo_/.test(String(id))) return; // no parchear IDs temporales
@@ -2219,22 +2229,8 @@ function toast(msg){
   setTimeout(function(){t.remove();},3500);
 }
 function enviarAvisoCot(id){
-  _vistaId=id;
-  // Verificar que el reporte existe
-  var r=getReportes().find(function(x){return String(x.id)===String(id);});
-  if(!r){alert('Reporte no encontrado. Recarga la página.');return;}
-  // Verificar email
-  var to=r.clienteEmail||'';
-  if(!to){
-    var _c2=getClientes().find(function(x){return x.rut===r.rut;});
-    if(_c2&&_c2.email) to=_c2.email;
-  }
-  if(!to){
-    alert('El cliente '+hesc(r.clienteNombre||r.rut)+' no tiene email.\nAgrégalo en Módulo Clientes.');
-    return;
-  }
-  console.log('[RRHH] Email destino:', to);
-  enviarPreReporteRrhh(id);
+  // Wrapper directo — usa el mismo motor que el botón del modal
+  return enviarPreReporteRrhh(id);
 }
 function marcarTransferido(id){
   var r=getReportes().find(function(x){return String(x.id)===String(id);});if(!r)return;
@@ -2422,10 +2418,6 @@ function verificarRecordatoriosRrhh(){
   // Corre al cargar — revisa todos los reportes pendientes
   var arr=getReportes();
   arr.forEach(function(r){enviarRecordatorioRrhh(r.id,false);});
-}
-(function(){enviarUno(idx+1);},800);});
-  }
-  enviarUno(0);
 }
 
 
