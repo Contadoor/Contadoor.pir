@@ -409,8 +409,16 @@ function sbReporteToRow(r){
     tiene_rrhh:           r.tieneRrhh!==false,
     tiene_cont:           r.tieneCont!==false,
     prioridad_rrhh:       r.prioridadRrhh||'media',
-    prioridad_contable:   r.prioridadContable||'media'
+    prioridad_contable:   r.prioridadContable||'media',
+    // ── Versionado RRHH ─────────────────────────────────────
+    revision:            (r.revision != null && r.revision !== undefined) ? Number(r.revision) : undefined,
+    reprocesado_at:      r.reprocesadoAt||null,
+    reprocesado_por:     r.reprocesadoPor||null,
+    motivo_reproceso:    r.motivoReproceso||null
   };
+  // Eliminar undefined para no contaminar PATCH (evita sobreescribir campos que no cambian)
+  Object.keys(row).forEach(function(k){ if(row[k]===undefined) delete row[k]; });
+  return row;
 }
 
 function sbRowToReporte(row){
@@ -499,6 +507,11 @@ function sbRowToReporte(row){
     // ── Flujo pago ───────────────────────────────────────────
     preReporteEnviado:row.pre_reporte_enviado||false,
     preReporteFecha:  row.pre_reporte_fecha,
+    // Versionado RRHH
+    revision:         row.revision!=null?row.revision:1,
+    reprocesadoAt:    row.reprocesado_at||null,
+    reprocesadoPor:   row.reprocesado_por||null,
+    motivoReproceso:  row.motivo_reproceso||null,
     haPostergado:     row.ha_postergado||false,
     fechaPostergacion:row.fecha_postergacion,
     nRecordatorios:   row.n_recordatorios||0,
@@ -635,6 +648,7 @@ function sbGetServiciosAdicionales(cb){
 function sbTrabajadorRrhhToRow(t, reporteId, clienteRut, periodo){
   return {
     reporte_id:           reporteId,
+    revision:             typeof revision!=='undefined'?revision:1,
     cliente_rut:          clienteRut,
     periodo:              periodo,
     // Identificación
@@ -697,7 +711,9 @@ function sbGetTrabajadoresRrhh(reporteId, cb){
   ).then(function(rows){cb(rows||[]);}).catch(function(){cb([]);});
 }
 
-function sbReplaceTrabajadoresRrhh(reporteId, clienteRut, periodo, trabajadores){
+function sbReplaceTrabajadoresRrhh(reporteId, clienteRut, periodo, trabajadores, revision){
+  // revision: número de versión RRHH. Default 1. NUNCA eliminar revisiones anteriores.
+  revision = revision || 1;
   // Validar antes de cualquier escritura
   if(!reporteId || !clienteRut || !periodo){
     return Promise.reject(new Error('sbReplaceTrabajadoresRrhh: reporteId, clienteRut y periodo son requeridos'));
@@ -710,28 +726,61 @@ function sbReplaceTrabajadoresRrhh(reporteId, clienteRut, periodo, trabajadores)
   var rows;
   try{
     rows = trabajadores.map(function(t){
-      return sbTrabajadorRrhhToRow(t, reporteId, clienteRut, periodo);
+      return sbTrabajadorRrhhToRow(t, reporteId, clienteRut, periodo, revision);
     });
   }catch(mapErr){
     return Promise.reject(new Error('sbReplaceTrabajadoresRrhh: error al mapear trabajadores — '+mapErr.message));
   }
 
-  // DELETE usando sbFetch directamente (sbDelete traga errores en catch)
+  // DELETE SOLO la revisión actual (NUNCA borrar otras revisiones)
   return sbFetch(
-    'reporte_rrhh_trabajadores?reporte_id=eq.'+encodeURIComponent(reporteId),
+    'reporte_rrhh_trabajadores?reporte_id=eq.'+encodeURIComponent(reporteId)
+    +'&revision=eq.'+encodeURIComponent(revision),
     {method:'DELETE'}
   ).then(function(delRes){
     if(!delRes.ok){
-      return Promise.reject(new Error('DELETE trabajadores falló: HTTP '+delRes.status));
+      return Promise.reject(new Error('DELETE trabajadores rev'+revision+' falló: HTTP '+delRes.status));
     }
-    // INSERT todos los trabajadores del nuevo procesamiento
+    // INSERT trabajadores con la revisión correspondiente
     return sbPost('reporte_rrhh_trabajadores', rows, 'return=representation');
   }).then(function(inserted){
     if(!inserted){
-      return Promise.reject(new Error('INSERT trabajadores falló — sin respuesta de Supabase'));
+      return Promise.reject(new Error('INSERT trabajadores rev'+revision+' falló — sin respuesta de Supabase'));
     }
     return inserted;
   });
+}
+
+// Fotografiar consolidado RRHH en reporte_rrhh_versiones antes de reprocesar
+function sbFotografiarVersionRrhh(r, revision, motivo, usuario){
+  var row={
+    reporte_id:         r.id,
+    revision:           revision||1,
+    cliente_rut:        r.rut||r.cliente_rut||null,
+    periodo:            r.periodo||null,
+    n_trabajadores:     r.nTrab||r.n_trabajadores||0,
+    total_imponible:    r.totalImponible||r.total_imponible||0,
+    total_no_imponible: r.totalNoImponible||r.total_no_imponible||0,
+    liquido_pagar:      r.liquidoPagar||r.liquido_pagar||0,
+    afp:                r.afp||0, salud:r.salud||0, apv:r.apv||0,
+    ces_trab:           r.cesTrab||r.ces_trab||0,
+    iu:                 r.iu||0,
+    sis:                r.sis||0, mutual:r.mutual||0, ces_emp:r.cesEmp||r.ces_emp||0,
+    cap_ind:            r.capInd||r.cap_ind||0,
+    exp_vida:           r.expVida||r.exp_vida||0,
+    rent_prot:          r.rentProt||r.rent_prot||0,
+    total_aportes:      r.totalAportes||r.total_aportes||0,
+    total_cotizaciones: r.totalCotizaciones||r.total_cotizaciones||r.totalCot||0,
+    costo_laboral:      r.costoLaboral||r.costo_laboral||0,
+    estado:             r.estado||null,
+    decision_cotiz:     r.decisionCotiz||r.decision_cotiz||null,
+    ha_postergado:      r.haPostergado||r.ha_postergado||false,
+    archivo_nombre:     r.archivoNombre||r.archivo_nombre||null,
+    creado_at:          new Date().toISOString(),
+    creado_por:         usuario||null,
+    motivo_reproceso:   motivo||null
+  };
+  return sbPost('reporte_rrhh_versiones', row, 'return=representation');
 }
 
 // ── UTILIDADES ───────────────────────────────────────────────
